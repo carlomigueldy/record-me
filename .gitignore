@@ -5,3 +5,9 @@ node_modules/
 .vercel/
 .env*.local
 *.log
+.turbo/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+dist/
