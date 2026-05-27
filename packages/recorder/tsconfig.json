@@ -1,0 +1,10 @@
+{
+  "extends": "@record-me/config/tsconfig/package.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "types": ["vitest/globals"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules", "coverage"]
+}
