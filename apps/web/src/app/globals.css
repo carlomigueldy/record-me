@@ -1,0 +1,11 @@
+@import 'tailwindcss';
+@import '@record-me/ui/tokens.css';
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ivory);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
