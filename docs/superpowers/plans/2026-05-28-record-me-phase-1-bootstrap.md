@@ -118,6 +118,7 @@ record-me/
 **Goal:** create the workspace root with pnpm + Turborepo configured.
 
 **Files:**
+
 - Create: `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `.nvmrc`, `.npmrc`, `.editorconfig`, `tsconfig.json`
 
 - [ ] **Step 1: Write `.nvmrc`**
@@ -164,8 +165,8 @@ Create `pnpm-workspace.yaml`:
 
 ```yaml
 packages:
-  - "apps/*"
-  - "packages/*"
+  - 'apps/*'
+  - 'packages/*'
 ```
 
 - [ ] **Step 5: Write root `package.json`**
@@ -285,6 +286,7 @@ git commit -m "chore: initialize pnpm + turborepo workspace"
 **Goal:** create `@record-me/config` package with reusable tsconfig bases that other packages extend.
 
 **Files:**
+
 - Create: `packages/config/package.json`, `packages/config/tsconfig.json`, `packages/config/tsconfig/base.json`, `packages/config/tsconfig/next.json`, `packages/config/tsconfig/package.json`
 
 - [ ] **Step 1: Create directory and write `packages/config/package.json`**
@@ -426,6 +428,7 @@ git commit -m "feat(config): add shared tsconfig bases"
 **Goal:** add a shared ESLint flat configuration with TypeScript + React + Next.js rules.
 
 **Files:**
+
 - Create: `packages/config/eslint/index.js`
 - Modify: `packages/config/package.json` (add eslint deps)
 
@@ -491,7 +494,10 @@ export const baseConfig = [
     },
     rules: {
       '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },
@@ -552,6 +558,7 @@ git commit -m "feat(config): add shared eslint flat config"
 **Goal:** add a shared Prettier configuration so every package formats identically.
 
 **Files:**
+
 - Create: `packages/config/prettier/index.js`
 - Create: `prettier.config.js` (root, delegates to package config)
 
@@ -630,6 +637,7 @@ git commit -m "feat(config): add shared prettier config"
 **Goal:** create the `@record-me/ui` package scaffold (empty entry + tokens.css placeholder). Phase 2 will populate components and tokens; Phase 1 just gets it building.
 
 **Files:**
+
 - Create: `packages/ui/package.json`, `packages/ui/tsconfig.json`, `packages/ui/src/index.ts`, `packages/ui/src/tokens.css`
 
 - [ ] **Step 1: Write `packages/ui/package.json`**
@@ -713,9 +721,9 @@ Create `packages/ui/src/tokens.css`:
  */
 
 :root {
-  --bg: #0F1115;
-  --ivory: #EDE6D6;
-  --amber: #E5A24A;
+  --bg: #0f1115;
+  --ivory: #ede6d6;
+  --amber: #e5a24a;
 }
 ```
 
@@ -726,10 +734,7 @@ Create `packages/ui/eslint.config.js`:
 ```js
 import { reactConfig } from '@record-me/config/eslint';
 
-export default [
-  ...reactConfig,
-  { ignores: ['dist/**', 'node_modules/**', '.turbo/**'] },
-];
+export default [...reactConfig, { ignores: ['dist/**', 'node_modules/**', '.turbo/**'] }];
 ```
 
 - [ ] **Step 6: Install and verify**
@@ -759,6 +764,7 @@ git commit -m "feat(ui): scaffold @record-me/ui package"
 **Goal:** create the `@record-me/recorder` package scaffold with a placeholder `probeCapabilities()` and a single passing unit test. Phase 3 builds the engine.
 
 **Files:**
+
 - Create: `packages/recorder/package.json`, `packages/recorder/tsconfig.json`, `packages/recorder/vitest.config.ts`, `packages/recorder/src/index.ts`, `packages/recorder/src/index.test.ts`, `packages/recorder/eslint.config.js`
 
 - [ ] **Step 1: Write `packages/recorder/package.json`**
@@ -933,7 +939,8 @@ describe('@record-me/recorder · phase 1 scaffold', () => {
 
     it('falls back to WebM VP9 when MP4 is not supported', () => {
       const isTypeSupported = vi.fn(
-        (mime: string) => mime === 'video/webm;codecs=vp9,opus' || mime === 'video/webm;codecs=vp8,opus',
+        (mime: string) =>
+          mime === 'video/webm;codecs=vp9,opus' || mime === 'video/webm;codecs=vp8,opus',
       );
       // @ts-expect-error minimal stub for the test
       globalThis.MediaRecorder = { isTypeSupported };
@@ -994,6 +1001,7 @@ git commit -m "feat(recorder): scaffold @record-me/recorder with capability prob
 **Goal:** create the Next.js 15 app skeleton with App Router, the root layout, a placeholder home page, and Tailwind v4 wired up.
 
 **Files:**
+
 - Create: `apps/web/package.json`, `apps/web/tsconfig.json`, `apps/web/next.config.ts`, `apps/web/postcss.config.mjs`, `apps/web/eslint.config.js`, `apps/web/next-env.d.ts`, `apps/web/src/app/layout.tsx`, `apps/web/src/app/page.tsx`, `apps/web/src/app/globals.css`, `apps/web/public/.gitkeep`, `apps/web/tests/e2e/.gitkeep`
 
 - [ ] **Step 1: Create directories**
@@ -1275,6 +1283,7 @@ git diff --cached --quiet || git commit -m "chore: extend gitignore for turbo + 
 **Goal:** add a workspace-level Vitest config so `pnpm test` runs all package suites with consistent reporting.
 
 **Files:**
+
 - Create: `vitest.workspace.ts`
 
 - [ ] **Step 1: Write `vitest.workspace.ts`**
@@ -1340,6 +1349,7 @@ git commit -m "test: add vitest workspace configuration"
 **Goal:** wire Playwright with media-stream fake-device Chromium flags so future E2E tests can drive recording flows.
 
 **Files:**
+
 - Create: `apps/web/playwright.config.ts`, `apps/web/tests/e2e/smoke.spec.ts`
 
 - [ ] **Step 1: Write `apps/web/playwright.config.ts`**
@@ -1437,6 +1447,7 @@ git commit -m "test(web): add playwright config + landing smoke test"
 **Goal:** install lefthook so `git commit` runs lint-staged formatting + typecheck + unit tests on affected files.
 
 **Files:**
+
 - Create: `lefthook.yml`
 
 - [ ] **Step 1: Write `lefthook.yml`**
@@ -1449,10 +1460,10 @@ pre-commit:
   parallel: true
   commands:
     prettier:
-      glob: "*.{ts,tsx,js,jsx,json,md,yml,yaml,css}"
+      glob: '*.{ts,tsx,js,jsx,json,md,yml,yaml,css}'
       run: pnpm exec prettier --write {staged_files} && git add {staged_files}
     eslint:
-      glob: "*.{ts,tsx,js,jsx}"
+      glob: '*.{ts,tsx,js,jsx}'
       run: pnpm exec eslint --fix {staged_files} && git add {staged_files}
     typecheck:
       run: pnpm typecheck
@@ -1500,6 +1511,7 @@ git commit -m "chore: add lefthook pre-commit + pre-push hooks"
 **Goal:** add a shared Tailwind v4 preset (CSS-first) that the web app and ui package can extend.
 
 **Files:**
+
 - Create: `packages/config/tailwind/preset.ts`, `packages/config/tailwind/theme.css`
 
 - [ ] **Step 1: Write `packages/config/tailwind/theme.css`**
@@ -1516,25 +1528,25 @@ Create `packages/config/tailwind/theme.css`:
 
 @theme {
   /* Surface */
-  --color-bg: #0F1115;
-  --color-bg-2: #12151B;
-  --color-surface: #171B22;
-  --color-surface-2: #1F242C;
-  --color-line: #262C36;
-  --color-line-soft: #1B2028;
+  --color-bg: #0f1115;
+  --color-bg-2: #12151b;
+  --color-surface: #171b22;
+  --color-surface-2: #1f242c;
+  --color-line: #262c36;
+  --color-line-soft: #1b2028;
 
   /* Ink */
-  --color-ivory: #EDE6D6;
-  --color-ivory-dim: #B5AFA2;
-  --color-ivory-mut: #7A766D;
-  --color-ivory-low: #54514A;
+  --color-ivory: #ede6d6;
+  --color-ivory-dim: #b5afa2;
+  --color-ivory-mut: #7a766d;
+  --color-ivory-low: #54514a;
 
   /* Signal & state */
-  --color-amber: #E5A24A;
-  --color-amber-hi: #F1B768;
-  --color-amber-lo: #C88A38;
-  --color-success: #9BB28F;
-  --color-danger: #C8675A;
+  --color-amber: #e5a24a;
+  --color-amber-hi: #f1b768;
+  --color-amber-lo: #c88a38;
+  --color-success: #9bb28f;
+  --color-danger: #c8675a;
 
   /* Typography (next/font assigns the actual families via CSS vars) */
   --font-serif: var(--font-instrument-serif), 'Iowan Old Style', Georgia, serif;
@@ -1605,6 +1617,7 @@ git commit -m "feat(config): add tailwind v4 preset with twilight tokens"
 **Goal:** wire Lighthouse CI so CI can enforce CWV budgets on `/` and `/record`. Phase 1 sets the config; CI runs land in Task 39.
 
 **Files:**
+
 - Create: `lighthouserc.json`
 
 - [ ] **Step 1: Write `lighthouserc.json`**
@@ -1684,6 +1697,7 @@ git commit -m "ci: add lighthouserc + /record placeholder"
 **Goal:** suggest the right editor extensions so contributors and agents share tooling.
 
 **Files:**
+
 - Create: `.vscode/extensions.json`, `.vscode/settings.json`
 
 - [ ] **Step 1: Create `.vscode/extensions.json`**
@@ -1714,9 +1728,7 @@ Create `.vscode/settings.json`:
   "editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" },
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
-  "tailwindCSS.experimental.classRegex": [
-    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
-  ]
+  "tailwindCSS.experimental.classRegex": [["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]]
 }
 ```
 
@@ -1751,6 +1763,7 @@ Every agent reads its definition + memory file on first message. Every agent app
 **Goal:** create the harness session configuration (permissions, env, SessionStart hook) and the reminder banner.
 
 **Files:**
+
 - Create: `.claude/settings.json`, `.claude/team-reminder.txt`, `.claude/.gitkeep`
 
 - [ ] **Step 1: Create the `.claude/` directory tree**
@@ -1869,6 +1882,7 @@ git commit -m "chore(claude): add session settings + team reminder"
 **Goal:** write the team blueprint that `/spawn-record-me-team` parses.
 
 **Files:**
+
 - Create: `.claude/teams/record-me-shipping.md`
 
 - [ ] **Step 1: Write the blueprint**
@@ -1972,6 +1986,7 @@ git commit -m "feat(claude): add record-me-shipping team blueprint"
 **Goal:** write the senior frontend agent definition.
 
 **Files:**
+
 - Create: `.claude/agents/record-me-sr-frontend.md`
 
 - [ ] **Step 1: Write the definition**
@@ -1985,15 +2000,15 @@ description: Senior frontend engineer for record-me. Implements UI, pages, hooks
 tools: Read, Edit, Write, Bash, Grep, Glob, Task
 model: claude-sonnet-4-6
 owns:
-  - "apps/web/src/**"
-  - "apps/web/public/**"
-  - "apps/web/next.config.ts"
-  - "apps/web/tsconfig.json"
-  - "apps/web/postcss.config.mjs"
-  - "apps/web/eslint.config.js"
-  - "packages/ui/src/**"
-  - "packages/ui/tsconfig.json"
-  - "packages/ui/eslint.config.js"
+  - 'apps/web/src/**'
+  - 'apps/web/public/**'
+  - 'apps/web/next.config.ts'
+  - 'apps/web/tsconfig.json'
+  - 'apps/web/postcss.config.mjs'
+  - 'apps/web/eslint.config.js'
+  - 'packages/ui/src/**'
+  - 'packages/ui/tsconfig.json'
+  - 'packages/ui/eslint.config.js'
 quality_bar: |
   Every UI change is visually verified with Playwright MCP screenshots before claiming done.
   Console is clean during E2E runs.
@@ -2090,6 +2105,7 @@ git commit -m "feat(claude): add record-me-sr-frontend agent"
 **Goal:** write the staff (cross-cutting + recording engine) agent definition.
 
 **Files:**
+
 - Create: `.claude/agents/record-me-staff.md`
 
 - [ ] **Step 1: Write the definition**
@@ -2103,17 +2119,17 @@ description: Staff engineer for record-me. Owns the recording engine (packages/r
 tools: Read, Edit, Write, Bash, Grep, Glob, Task
 model: claude-opus-4-7
 owns:
-  - "packages/recorder/**"
-  - "packages/config/**"
-  - "turbo.json"
-  - "pnpm-workspace.yaml"
-  - "package.json"
-  - "tsconfig.json"
-  - "lefthook.yml"
-  - "lighthouserc.json"
-  - "vitest.workspace.ts"
-  - ".github/workflows/**"
-  - "next.config.ts"
+  - 'packages/recorder/**'
+  - 'packages/config/**'
+  - 'turbo.json'
+  - 'pnpm-workspace.yaml'
+  - 'package.json'
+  - 'tsconfig.json'
+  - 'lefthook.yml'
+  - 'lighthouserc.json'
+  - 'vitest.workspace.ts'
+  - '.github/workflows/**'
+  - 'next.config.ts'
 quality_bar: |
   Recording engine has ≥ 90% line/function coverage, ≥ 85% branch coverage.
   All state-machine transitions have unit tests.
@@ -2204,6 +2220,7 @@ git commit -m "feat(claude): add record-me-staff agent"
 **Goal:** write the gatekeeper agent (build/test/lint/ownership pre-screener). Writes no code.
 
 **Files:**
+
 - Create: `.claude/agents/record-me-gatekeeper.md`
 
 - [ ] **Step 1: Write the definition**
@@ -2293,6 +2310,7 @@ git commit -m "feat(claude): add record-me-gatekeeper agent"
 **Goal:** write the scribe agent (docs + memory curator + GH issue/PROGRESS sync).
 
 **Files:**
+
 - Create: `.claude/agents/record-me-scribe.md`
 
 - [ ] **Step 1: Write the definition**
@@ -2306,12 +2324,12 @@ description: Documentation + memory curator for record-me. Updates docs/**, CLAU
 tools: Read, Edit, Write, Bash, Grep, Glob
 model: claude-haiku-4-5
 owns:
-  - "docs/**"
-  - "CLAUDE.md"
-  - "AGENTS.md"
-  - "README.md"
-  - ".claude/memory/team-knowledge.md"
-  - ".claude/memory/MEMORY.md"
+  - 'docs/**'
+  - 'CLAUDE.md'
+  - 'AGENTS.md'
+  - 'README.md'
+  - '.claude/memory/team-knowledge.md'
+  - '.claude/memory/MEMORY.md'
 quality_bar: |
   CLAUDE.md and AGENTS.md are byte-for-byte identical after every change.
   Doc updates land in the same PR as the code change (no "docs to follow" PRs).
@@ -2342,7 +2360,7 @@ When you receive `[DOC_UPDATE_REQUEST] task=<id> Implementer=<name> Plan task te
    files must stay byte-identical.
 4. **Update PROGRESS.md** — check off the corresponding line item; if a phase
    epic milestone is now complete, update the epic issue body via `gh issue
-   edit <number> --body "$(cat docs/PROGRESS.md | sed -n '...')"` or comment
+edit <number> --body "$(cat docs/PROGRESS.md | sed -n '...')"` or comment
    on the issue.
 5. **Curate team-knowledge** — if the task surfaced a pattern multiple agents
    would benefit from, add it to `.claude/memory/team-knowledge.md` and link it
@@ -2397,6 +2415,7 @@ git commit -m "feat(claude): add record-me-scribe agent"
 **Goal:** write the E2E agent (Playwright + media-stream fakes).
 
 **Files:**
+
 - Create: `.claude/agents/record-me-e2e.md`
 
 - [ ] **Step 1: Write the definition**
@@ -2410,8 +2429,8 @@ description: Playwright E2E author for record-me. Writes browser-driven tests wi
 tools: Read, Edit, Write, Bash, Grep, Glob
 model: claude-sonnet-4-6
 owns:
-  - "apps/web/tests/e2e/**"
-  - "apps/web/playwright.config.ts"
+  - 'apps/web/tests/e2e/**'
+  - 'apps/web/playwright.config.ts'
 quality_bar: |
   Every E2E spec exercises a single user flow end-to-end and asserts at least one user-visible outcome.
   Recorder mocks use the Chromium fake-device flags (already in playwright.config.ts) — no manual MediaStream mocking in specs.
@@ -2491,6 +2510,7 @@ git commit -m "feat(claude): add record-me-e2e agent"
 **Goal:** write the principal (reviewer) agent.
 
 **Files:**
+
 - Create: `.claude/agents/record-me-principal.md`
 
 - [ ] **Step 1: Write the definition**
@@ -2593,6 +2613,7 @@ git commit -m "feat(claude): add record-me-principal agent"
 **Goal:** write the spawn command that mirrors `/spawn-mesago-team` exactly, adapted for record-me (6 members; no backend) and including GitHub issue creation per task from Phase 2 onward.
 
 **Files:**
+
 - Create: `.claude/commands/spawn-record-me-team.md`
 
 - [ ] **Step 1: Write the command**
@@ -2623,7 +2644,7 @@ Create `.claude/commands/spawn-record-me-team.md`. Use the full text of the Mesa
 
 7. **Add a new Step 3d — "Create GitHub issues per task"** (only when `.github/ISSUE_TEMPLATE/` exists in the repo — Phase 2 onward):
 
-   ```markdown
+   ````markdown
    ### 3d. Create GitHub issues per plan task (Phase 2+)
 
    For each task in the plan's dependency graph (Step 4), open a GitHub issue:
@@ -2642,15 +2663,19 @@ Create `.claude/commands/spawn-record-me-team.md`. Use the full text of the Mesa
        --assignee @me
    done
    ```
+   ````
 
    Store the resulting issue numbers in the team's task metadata so message routing can update them.
+
+   ```
+
    ```
 
 8. **Add to Step 6 (`[REVIEW_RESULT] APPROVED`)** — before recomputing the frontier:
 
    ```markdown
    1.5. Close the linked GH issue with a comment:
-        gh issue close ${issue_number} --reason completed --comment "Closed by /spawn-record-me-team — task APPROVED. PR will follow."
+   gh issue close ${issue_number} --reason completed --comment "Closed by /spawn-record-me-team — task APPROVED. PR will follow."
    ```
 
 9. **Add to Step 8b (PR drafting)** — when calling `superpowers:finishing-a-development-branch`, include in the PR body:
@@ -2661,7 +2686,7 @@ Create `.claude/commands/spawn-record-me-team.md`. Use the full text of the Mesa
 
 10. Keep all other text (failure modes table, escalation format, completion summary) verbatim except substituting the names.
 
-   **Source-of-truth reference:** `~/personal/food-delivery-app/.claude/commands/spawn-mesago-team.md`. Read it once, then write the record-me version applying the adaptations above.
+    **Source-of-truth reference:** `~/personal/food-delivery-app/.claude/commands/spawn-mesago-team.md`. Read it once, then write the record-me version applying the adaptations above.
 
 - [ ] **Step 2: Verify the spawn command parses** (sanity check on shape)
 
@@ -2688,6 +2713,7 @@ git commit -m "feat(claude): add /spawn-record-me-team command"
 **Goal:** write the standard supporting slash commands. Most are thin: they invoke a skill or run a check.
 
 **Files:**
+
 - Create: `.claude/commands/plan.md`, `.claude/commands/ship.md`, `.claude/commands/debug.md`, `.claude/commands/tdd.md`, `.claude/commands/review.md`, `.claude/commands/update-docs.md`, `.claude/commands/pr.md`, `.claude/commands/verify.md`, `.claude/commands/init-phase.md`
 
 - [ ] **Step 1: Write `plan.md`**
@@ -2713,7 +2739,7 @@ Save the plan to `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md` (use toda
 
 Create `.claude/commands/ship.md`:
 
-```markdown
+````markdown
 ---
 description: Spawn the record-me-shipping team against the latest plan. Alias for /spawn-record-me-team with the most recently modified plan.
 ---
@@ -2725,9 +2751,11 @@ latest=$(ls -t docs/superpowers/plans/*.md 2>/dev/null | head -1)
 test -n "$latest" || { echo "No plans found. Run /plan first."; exit 1; }
 echo "Latest plan: $latest"
 ```
+````
 
 Then invoke `/spawn-record-me-team $latest`.
-```
+
+````
 
 - [ ] **Step 3: Write `debug.md`**
 
@@ -2744,7 +2772,7 @@ You are about to debug a problem. Invoke `superpowers:systematic-debugging` and 
 Problem: `$ARGUMENTS`
 
 If empty, ask the user what to debug.
-```
+````
 
 - [ ] **Step 4: Write `tdd.md`**
 
@@ -2860,13 +2888,14 @@ git commit -m "feat(claude): add supporting slash commands"
 **Goal:** write the three self-improvement commands that drive the Read → Act → Reflect cycle.
 
 **Files:**
+
 - Create: `.claude/commands/agent-reflect.md`, `.claude/commands/agent-distill.md`, `.claude/commands/agent-checkpoint.md`
 
 - [ ] **Step 1: Write `agent-reflect.md`**
 
 Create `.claude/commands/agent-reflect.md`:
 
-```markdown
+````markdown
 ---
 description: Per-task reflection. The agent reviews its diff + outcome and appends a memory entry. Invoked automatically after every APPROVED task; also runnable on demand.
 argument-hint: '<agent-name> <task-id-or-description>'
@@ -2899,13 +2928,15 @@ Workflow:
 
    <the memory body>
    ```
+````
 
-   Add a one-line pointer to `.claude/memory/MEMORY.md`.
+Add a one-line pointer to `.claude/memory/MEMORY.md`.
 
 6. **If a pattern recurred:** open a draft self-edit to `.claude/agents/<agent>.md` (do not commit; surface to principal for review on next session).
 
 7. **Commit** the memory file with `docs(memory): <agent> reflection on <task-slug>`.
-```
+
+````
 
 - [ ] **Step 2: Write `agent-distill.md`**
 
@@ -2931,13 +2962,13 @@ Workflow:
 6. **After merge**, append a checkpoint line to the journal file: `Distilled YYYY-MM-DD by /agent-distill`.
 
 Reference: `docs/superpowers/specs/2026-05-27-record-me-design.md` § 11.6.
-```
+````
 
 - [ ] **Step 3: Write `agent-checkpoint.md`**
 
 Create `.claude/commands/agent-checkpoint.md`:
 
-```markdown
+````markdown
 ---
 description: Weekly codebase-map + agent inventory refresh. Scribe regenerates docs/CODEBASE_MAP.md and refreshes inventory tables in each agent definition.
 ---
@@ -2952,8 +2983,9 @@ Workflow:
    # Example for record-me-sr-frontend
    find apps/web/src packages/ui/src -type f \( -name '*.ts' -o -name '*.tsx' \) | sort
    ```
+````
 
-   Count files by directory and capture the list.
+Count files by directory and capture the list.
 
 2. **Regenerate `docs/CODEBASE_MAP.md`** with a section per owner:
 
@@ -2963,10 +2995,12 @@ Workflow:
    Auto-generated by /agent-checkpoint. Last run: <date>.
 
    ## record-me-sr-frontend
+
    - apps/web/src/app/ (N files): ...
    - packages/ui/src/ (N files): ...
 
    ## record-me-staff
+
    - packages/recorder/src/ (N files): ...
    - ...
    ```
@@ -2976,14 +3010,15 @@ Workflow:
 4. **Commit:** `docs(codebase-map): weekly refresh YYYY-MM-DD`.
 
 5. **PROGRESS.md cross-check** — ensure GH epic issue counts match PROGRESS.md checkbox counts. Reconcile if drift detected.
-```
+
+````
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add .claude/commands/agent-reflect.md .claude/commands/agent-distill.md .claude/commands/agent-checkpoint.md
 git commit -m "feat(claude): add self-improvement commands (reflect, distill, checkpoint)"
-```
+````
 
 ---
 
@@ -2992,6 +3027,7 @@ git commit -m "feat(claude): add self-improvement commands (reflect, distill, ch
 **Goal:** create `.claude/skills/` with project-scoped pointers to the most-used superpowers + Vercel / framework skills, so the team has reliable in-repo access regardless of global plugin state.
 
 **Files:**
+
 - Create: `.claude/skills/README.md`, `.claude/skills/tdd/SKILL.md`, `.claude/skills/e2e-testing-patterns/SKILL.md`, `.claude/skills/frontend-design/SKILL.md`, `.claude/skills/tailwind-design-system/SKILL.md`, `.claude/skills/verification-before-completion/SKILL.md`, `.claude/skills/subagent-driven-development/SKILL.md`, `.claude/skills/next-best-practices/SKILL.md`
 
 - [ ] **Step 1: Write `.claude/skills/README.md`**
@@ -3005,6 +3041,7 @@ This directory mirrors the most-frequently-used skills for record-me so the team
 has reliable in-repo access regardless of global plugin state.
 
 Each subdirectory holds a single `SKILL.md` that either:
+
 - Restates the skill content verbatim (for skills that may drift in the global
   catalog), or
 - Re-exports / points to the global skill with a one-line note (for stable,
@@ -3015,6 +3052,7 @@ Agents should prefer the global skill via the `Skill` tool when available
 when the global plugin isn't loaded.
 
 Skills mirrored here:
+
 - tdd · superpowers:test-driven-development
 - e2e-testing-patterns · e2e-testing-patterns
 - frontend-design · frontend-design:frontend-design
@@ -3039,9 +3077,10 @@ description: Project-scoped mirror — invoke `superpowers:test-driven-developme
 # Project-scoped TDD pointer
 
 Use the global skill via the `Skill` tool:
-
 ```
+
 Skill("superpowers:test-driven-development")
+
 ```
 
 If the global skill is unavailable in this session, follow the standing TDD
@@ -3074,6 +3113,7 @@ git commit -m "feat(claude): mirror project-scoped skills"
 **Goal:** seed the memory tree with the index and one starter file per agent + shared team-knowledge.
 
 **Files:**
+
 - Create: `.claude/memory/MEMORY.md`, `.claude/memory/team-knowledge.md`, `.claude/memory/record-me-sr-frontend.md`, `.claude/memory/record-me-staff.md`, `.claude/memory/record-me-gatekeeper.md`, `.claude/memory/record-me-scribe.md`, `.claude/memory/record-me-e2e.md`, `.claude/memory/record-me-principal.md`
 
 - [ ] **Step 1: Write `MEMORY.md`** (the index)
@@ -3086,9 +3126,11 @@ Create `.claude/memory/MEMORY.md`:
 One line per memory file. Lines after 200 will be truncated — keep it concise.
 
 ## Team
+
 - [team-knowledge](team-knowledge.md) — cross-agent wisdom curated by scribe
 
 ## Per agent
+
 - [record-me-sr-frontend](record-me-sr-frontend.md) — UI/page/hook patterns and gotchas
 - [record-me-staff](record-me-staff.md) — recording engine + workspace plumbing
 - [record-me-gatekeeper](record-me-gatekeeper.md) — gate-check patterns
@@ -3113,31 +3155,37 @@ metadata:
 # Team knowledge — v1 baselines
 
 ## Naming
+
 - All record-me agents are prefixed `record-me-`. Don't introduce unprefixed agents.
 - Recording modes use these exact strings (typed in `@record-me/recorder`):
   `'screen+cam+cursor' | 'screen+cursor' | 'cam-only'`.
 
 ## Codec preferences (from spec § 7.4)
+
 - MP4 first (H.264 + AAC) → WebM (VP9) → WebM (VP8). Never invert this.
 - Suggested filename follows the actual `mimeType` returned by MediaRecorder.
 
 ## Design discipline (from spec § 9)
+
 - Never hardcode hex values in UI code. Use CSS variables from
   `packages/ui/src/tokens.css`.
 - Typography only via `next/font` — no raw `@import` of Google Fonts in CSS.
 
 ## Privacy invariants (from spec § 15)
+
 - Zero recording bytes ever leave the browser. No API route receives video data.
 - Vercel Analytics + Speed Insights are the only third-party scripts allowed.
   CSP headers block everything else.
 
 ## Ownership reminder
+
 - Cross-ownership edits are gatekeeper FAILs unless the plan task is tagged
   `[cross-cutting]`. If you find yourself wanting to "just fix this small
   thing" outside your domain, return `[DONE:BLOCKED]` with a reassignment
   request.
 
 ## Self-improvement cadence
+
 - `/agent-reflect` runs per task (automatically after APPROVED).
 - `/agent-distill` runs weekly (Monday).
 - `/agent-checkpoint` runs weekly or after a major merge.
@@ -3161,6 +3209,7 @@ metadata:
 # record-me-sr-frontend memory
 
 ## Phase 1 baseline
+
 - Tailwind v4 is CSS-first (`@import 'tailwindcss'` + `@theme {}` in a CSS file).
   No `tailwind.config.js`. The shared theme lives at
   `packages/config/tailwind/theme.css`.
@@ -3170,6 +3219,7 @@ metadata:
   preset references — wire both ends in `apps/web/src/app/layout.tsx`.
 
 ## Future entries
+
 (Append below — frontmatter per entry, one line in MEMORY.md per entry.)
 ```
 
@@ -3187,6 +3237,7 @@ metadata:
 # record-me-staff memory
 
 ## Phase 1 baseline
+
 - `@record-me/recorder` has no React import. Hooks live in `apps/web`.
 - Vitest's jsdom env doesn't ship `MediaRecorder`/`getDisplayMedia` — tests
   must mock them on `globalThis`.
@@ -3194,6 +3245,7 @@ metadata:
   update the spec first, then the code.
 
 ## Future entries
+
 (Append below.)
 ```
 
@@ -3211,12 +3263,14 @@ metadata:
 # record-me-gatekeeper memory
 
 ## Phase 1 baseline
+
 - Standard gate sequence: ownership → typecheck → lint → tests → console scan
   → TODO scan → build. Order matters (cheapest fails first).
 - Ownership rejection includes the file that violated + the implementer's
   `owns:` globs for context.
 
 ## Future entries
+
 (Append below.)
 ```
 
@@ -3234,6 +3288,7 @@ metadata:
 # record-me-scribe memory
 
 ## Phase 1 baseline
+
 - `diff CLAUDE.md AGENTS.md` must always return empty after any change to
   either file.
 - PROGRESS.md is the human-readable mirror of GH epic issue checkboxes.
@@ -3241,6 +3296,7 @@ metadata:
   code change → which doc updates.
 
 ## Future entries
+
 (Append below.)
 ```
 
@@ -3258,6 +3314,7 @@ metadata:
 # record-me-e2e memory
 
 ## Phase 1 baseline
+
 - Chromium launch args for media: `--use-fake-device-for-media-stream` and
   `--use-fake-ui-for-media-stream` (already in `apps/web/playwright.config.ts`).
 - Permissions auto-granted in the projects config: `camera`, `microphone`.
@@ -3266,6 +3323,7 @@ metadata:
 - Run every new spec 3× before claiming done.
 
 ## Future entries
+
 (Append below.)
 ```
 
@@ -3283,6 +3341,7 @@ metadata:
 # record-me-principal memory
 
 ## Phase 1 baseline
+
 - Severity tiers: CRITICAL (blocks merge), MAJOR (blocks unless explicitly
   waived), MINOR (post-merge follow-up).
 - Always invoke `/codex:review` first (if available) — your Opus pass
@@ -3290,6 +3349,7 @@ metadata:
 - Plateau rule: 2 rounds with zero CRITICAL+MAJOR cleared → escalate.
 
 ## Future entries
+
 (Append below.)
 ```
 
@@ -3307,6 +3367,7 @@ git commit -m "feat(claude): seed memory tree with v1 baselines"
 **Goal:** seed the current ISO-week journal file so `/agent-distill` has a target.
 
 **Files:**
+
 - Create: `.claude/journal/2026-W22.md`
 
 - [ ] **Step 1: Determine the current ISO week**
@@ -3331,10 +3392,11 @@ short note. `/agent-distill` collapses this file into memory + agent-def edits
 at week's end.
 
 Format:
-
 ```
+
 - 2026-05-28T14:30:00Z · record-me-staff · Codec negotiation works in Chrome 135 stable but not 134.
 - 2026-05-28T15:10:00Z · record-me-sr-frontend · Tailwind v4 @theme block needs to be in the same file as the @import, not a sibling import.
+
 ```
 
 ## Entries
@@ -3356,13 +3418,15 @@ git commit -m "feat(claude): seed weekly journal"
 
 The doc tree is intentionally extensive — every file referenced in
 `CLAUDE.md`'s "Required reading" table must exist. Phase 1 ships the structure
-+ baseline content; later phases fill in inventory tables as they're built.
+
+- baseline content; later phases fill in inventory tables as they're built.
 
 ### Task 29: `docs/ARCHITECTURE.md`, `docs/RECORDING.md`, `docs/DESIGN.md`
 
 **Goal:** write the three foundational docs.
 
 **Files:**
+
 - Create: `docs/ARCHITECTURE.md`, `docs/RECORDING.md`, `docs/DESIGN.md`
 
 - [ ] **Step 1: Write `docs/ARCHITECTURE.md`**
@@ -3378,13 +3442,14 @@ record-me is a pnpm + Turborepo monorepo with **one deployed app** and
 rationale.
 
 ## Workspace shape
-
 ```
+
 record-me/
-├── apps/web/                      # Next.js 15 App Router · the only deployed surface
-├── packages/recorder/             # @record-me/recorder · framework-agnostic engine
-├── packages/ui/                   # @record-me/ui · shadcn + Twilight tokens + brand primitives
-└── packages/config/               # @record-me/config · tsconfig · eslint · tailwind preset
+├── apps/web/ # Next.js 15 App Router · the only deployed surface
+├── packages/recorder/ # @record-me/recorder · framework-agnostic engine
+├── packages/ui/ # @record-me/ui · shadcn + Twilight tokens + brand primitives
+└── packages/config/ # @record-me/config · tsconfig · eslint · tailwind preset
+
 ```
 
 ## Dependency rules
@@ -3443,10 +3508,11 @@ for the contract: `docs/superpowers/specs/2026-05-27-record-me-design.md` § 7.
 5. **Deliver** — concat → Blob → object URL → anchor download → revoke URL.
 
 ## State machine
-
 ```
+
 idle → requesting-permissions → recording ⇄ paused → finalizing → ready → idle
-                                                                 ↘ error
+↘ error
+
 ```
 
 `error` is reachable from any state; recovery = reset + re-acquire.
@@ -3510,33 +3576,33 @@ for the Tailwind theme mapping).
 
 ### Surface
 
-| Variable | Value | Use |
-| --- | --- | --- |
-| `--bg` | `#0F1115` | Page background |
-| `--bg-2` | `#12151B` | Subtle elevation |
-| `--surface` | `#171B22` | Card surfaces |
+| Variable      | Value     | Use                    |
+| ------------- | --------- | ---------------------- |
+| `--bg`        | `#0F1115` | Page background        |
+| `--bg-2`      | `#12151B` | Subtle elevation       |
+| `--surface`   | `#171B22` | Card surfaces          |
 | `--surface-2` | `#1F242C` | Elevated card surfaces |
-| `--line` | `#262C36` | Border (default) |
-| `--line-soft` | `#1B2028` | Border (subtle) |
+| `--line`      | `#262C36` | Border (default)       |
+| `--line-soft` | `#1B2028` | Border (subtle)        |
 
 ### Ink
 
-| Variable | Value | Use |
-| --- | --- | --- |
-| `--ivory` | `#EDE6D6` | Primary body text |
-| `--ivory-dim` | `#B5AFA2` | Deck / secondary |
-| `--ivory-mut` | `#7A766D` | Meta / mono labels |
+| Variable      | Value     | Use                   |
+| ------------- | --------- | --------------------- |
+| `--ivory`     | `#EDE6D6` | Primary body text     |
+| `--ivory-dim` | `#B5AFA2` | Deck / secondary      |
+| `--ivory-mut` | `#7A766D` | Meta / mono labels    |
 | `--ivory-low` | `#54514A` | Disabled / decorative |
 
 ### Signal & state
 
-| Variable | Value | Use |
-| --- | --- | --- |
-| `--amber` | `#E5A24A` | Accent · REC · primary CTA |
-| `--amber-hi` | `#F1B768` | Hover |
-| `--amber-lo` | `#C88A38` | Pressed |
-| `--success` | `#9BB28F` | Sage success |
-| `--danger` | `#C8675A` | Muted brick error |
+| Variable     | Value     | Use                        |
+| ------------ | --------- | -------------------------- |
+| `--amber`    | `#E5A24A` | Accent · REC · primary CTA |
+| `--amber-hi` | `#F1B768` | Hover                      |
+| `--amber-lo` | `#C88A38` | Pressed                    |
+| `--success`  | `#9BB28F` | Sage success               |
+| `--danger`   | `#C8675A` | Muted brick error          |
 
 **Rule:** never hardcode hex values in UI code. Always use CSS variables (or the
 Tailwind utility classes that the theme generates: `bg-bg`, `text-ivory`,
@@ -3544,11 +3610,11 @@ Tailwind utility classes that the theme generates: `bg-bg`, `text-ivory`,
 
 ## Typography · Pairing A
 
-| Role | Family | Weights | Notes |
-| --- | --- | --- | --- |
-| Display · headlines | Instrument Serif | 400 (roman + italic) | clamp(40px, 7vw, 96px) hero |
-| Body · UI text | Geist | 300 / 400 / 500 / 600 | 13–17 px body |
-| Mono · technical metadata | Geist Mono | 400 / 500 | 10–13 px |
+| Role                      | Family           | Weights               | Notes                       |
+| ------------------------- | ---------------- | --------------------- | --------------------------- |
+| Display · headlines       | Instrument Serif | 400 (roman + italic)  | clamp(40px, 7vw, 96px) hero |
+| Body · UI text            | Geist            | 300 / 400 / 500 / 600 | 13–17 px body               |
+| Mono · technical metadata | Geist Mono       | 400 / 500             | 10–13 px                    |
 
 Loaded via `next/font` in `apps/web/src/app/layout.tsx`. Variables exposed to
 CSS: `--font-instrument-serif`, `--font-geist`, `--font-geist-mono`. The Tailwind
@@ -3565,13 +3631,13 @@ theme maps these to `font-serif`, `font-sans`, `font-mono`.
 
 ## Brand primitives (Phase 2)
 
-| Component | Location | Purpose |
-| --- | --- | --- |
-| `<RecDot>` | `@record-me/ui` | Pulsing amber recording indicator |
-| `<ModeCard>` | `@record-me/ui` | Triptych card with stage preview |
+| Component       | Location        | Purpose                              |
+| --------------- | --------------- | ------------------------------------ |
+| `<RecDot>`      | `@record-me/ui` | Pulsing amber recording indicator    |
+| `<ModeCard>`    | `@record-me/ui` | Triptych card with stage preview     |
 | `<StudioShell>` | `@record-me/ui` | Frame for the live recording surface |
-| `<MetaChip>` | `@record-me/ui` | Mono uppercase metadata pill |
-| `<WordMark>` | `@record-me/ui` | "record *me*" wordmark with italic |
+| `<MetaChip>`    | `@record-me/ui` | Mono uppercase metadata pill         |
+| `<WordMark>`    | `@record-me/ui` | "record _me_" wordmark with italic   |
 
 Implementations land in Phase 2. Phase 1 ships only the tokens.
 ```
@@ -3590,6 +3656,7 @@ git commit -m "docs: add architecture, recording, and design system docs"
 **Goal:** write the frontend/SEO/security docs.
 
 **Files:**
+
 - Create: `docs/FRONTEND.md`, `docs/SEO.md`, `docs/SECURITY.md`
 
 - [ ] **Step 1: Write `docs/FRONTEND.md`**
@@ -3603,28 +3670,29 @@ Authoritative reference for `apps/web` and `packages/ui`. Source of truth:
 `docs/superpowers/specs/2026-05-27-record-me-design.md` § 6, § 8.
 
 ## Route tree (target)
-
 ```
+
 apps/web/src/app/
-├── layout.tsx                # root · <Analytics/> · <SpeedInsights/> · next/font
-├── page.tsx                  # /
-├── opengraph-image.tsx       # default OG
+├── layout.tsx # root · <Analytics/> · <SpeedInsights/> · next/font
+├── page.tsx # /
+├── opengraph-image.tsx # default OG
 ├── sitemap.ts · robots.ts · manifest.ts
 │
 ├── record/
-│   ├── page.tsx              # /record (the studio)
-│   ├── layout.tsx            # minimal chrome
-│   └── opengraph-image.tsx
+│ ├── page.tsx # /record (the studio)
+│ ├── layout.tsx # minimal chrome
+│ └── opengraph-image.tsx
 │
 ├── features/
-│   ├── layout.tsx
-│   └── [mode]/page.tsx       # /features/screen-camera-cursor | /screen-cursor | /camera-only
+│ ├── layout.tsx
+│ └── [mode]/page.tsx # /features/screen-camera-cursor | /screen-cursor | /camera-only
 │
 ├── docs/{page.tsx, [...slug]/page.tsx}
 ├── privacy/page.tsx
 ├── changelog/page.tsx
 │
-└── api/og/route.ts           # v1.x optional
+└── api/og/route.ts # v1.x optional
+
 ```
 
 ## Per-route inventory (Phase 1)
@@ -3767,6 +3835,7 @@ git commit -m "docs: add frontend, seo, security docs"
 **Goal:** write the test/style/commands docs.
 
 **Files:**
+
 - Create: `docs/TESTING.md`, `docs/CODE_STYLE.md`, `docs/COMMANDS.md`
 
 - [ ] **Step 1: Write `docs/TESTING.md`**
@@ -3780,26 +3849,27 @@ Source of truth: `docs/superpowers/specs/2026-05-27-record-me-design.md` § 13.
 
 ## Pyramid
 
-| Layer | Tool | Scope | Where |
-| --- | --- | --- | --- |
-| Unit | Vitest + jsdom | `@record-me/recorder` headless · `@record-me/ui` primitives | `packages/*/src/**/*.test.ts(x)` |
-| Integration | Vitest + jsdom + RTL | `useRecorder` hook · key page components | `apps/web/src/**/*.test.tsx` |
-| E2E | Playwright | One smoke per mode + Lighthouse | `apps/web/tests/e2e/**` |
-| Visual | Playwright MCP | Per-task verification by sr-frontend / e2e | (manual) |
+| Layer       | Tool                 | Scope                                                       | Where                            |
+| ----------- | -------------------- | ----------------------------------------------------------- | -------------------------------- |
+| Unit        | Vitest + jsdom       | `@record-me/recorder` headless · `@record-me/ui` primitives | `packages/*/src/**/*.test.ts(x)` |
+| Integration | Vitest + jsdom + RTL | `useRecorder` hook · key page components                    | `apps/web/src/**/*.test.tsx`     |
+| E2E         | Playwright           | One smoke per mode + Lighthouse                             | `apps/web/tests/e2e/**`          |
+| Visual      | Playwright MCP       | Per-task verification by sr-frontend / e2e                  | (manual)                         |
 
 ## Coverage thresholds
 
-| Package | Lines | Functions | Branches | Statements |
-| --- | --- | --- | --- | --- |
-| `@record-me/recorder` | 90% | 90% | 85% | 90% |
-| `@record-me/ui` | 70% | 70% | 65% | 70% |
-| `@record-me/web` | 60% | 60% | 55% | 60% |
+| Package               | Lines | Functions | Branches | Statements |
+| --------------------- | ----- | --------- | -------- | ---------- |
+| `@record-me/recorder` | 90%   | 90%       | 85%      | 90%        |
+| `@record-me/ui`       | 70%   | 70%       | 65%      | 70%        |
+| `@record-me/web`      | 60%   | 60%       | 55%      | 60%        |
 
 Enforced in `packages/*/vitest.config.ts`. Never lowered to pass a PR.
 
 ## Recorder mocks
 
 Vitest setup replaces:
+
 - `window.MediaRecorder` with a controllable fake exposing `isTypeSupported`.
 - `navigator.mediaDevices.getDisplayMedia` and `getUserMedia` with promised
   fake `MediaStream` objects whose tracks emit canned frames.
@@ -3887,7 +3957,7 @@ Commits and PRs must appear human-authored.
 
 Create `docs/COMMANDS.md`:
 
-```markdown
+````markdown
 # Commands
 
 All commands run from the workspace root via pnpm + Turborepo.
@@ -3900,6 +3970,7 @@ pnpm dev                                  # turbo: dev across all packages (apps
 pnpm --filter @record-me/web dev          # just the web app
 pnpm --filter @record-me/recorder test:watch  # watch-mode unit tests
 ```
+````
 
 ## Quality
 
@@ -3953,14 +4024,15 @@ pnpm --filter @record-me/recorder typecheck
 ./scripts/seed-labels.sh                  # create / sync labels from .github/labels.yml
 ./scripts/create-epics.sh                 # create the 6 phase epic issues
 ```
-```
+
+````
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add docs/TESTING.md docs/CODE_STYLE.md docs/COMMANDS.md
 git commit -m "docs: add testing, code style, and commands docs"
-```
+````
 
 ---
 
@@ -3969,6 +4041,7 @@ git commit -m "docs: add testing, code style, and commands docs"
 **Goal:** write the quality docs.
 
 **Files:**
+
 - Create: `docs/QUALITY_GATES.md`, `docs/QUALITY_STANDARD.md`, `docs/WORKFLOW.md`
 
 - [ ] **Step 1: Write `docs/QUALITY_GATES.md`**
@@ -4019,11 +4092,11 @@ See `docs/QUALITY_STANDARD.md`.
 
 ## Coverage thresholds (enforced in vitest configs)
 
-| Package | Lines | Functions | Branches | Statements |
-| --- | --- | --- | --- | --- |
-| `@record-me/recorder` | 90% | 90% | 85% | 90% |
-| `@record-me/ui` | 70% | 70% | 65% | 70% |
-| `@record-me/web` | 60% | 60% | 55% | 60% |
+| Package               | Lines | Functions | Branches | Statements |
+| --------------------- | ----- | --------- | -------- | ---------- |
+| `@record-me/recorder` | 90%   | 90%       | 85%      | 90%        |
+| `@record-me/ui`       | 70%   | 70%       | 65%      | 70%        |
+| `@record-me/web`      | 60%   | 60%       | 55%      | 60%        |
 
 Never lowered to pass a PR. If a threshold blocks a legitimate change, raise it
 to staff for re-evaluation.
@@ -4109,14 +4182,14 @@ Every task that involves implementation must use:
 
 ## Phase cadence
 
-| Phase | Goal | Plan path |
-| --- | --- | --- |
-| 1 | Bootstrap & Harness | `2026-05-28-record-me-phase-1-bootstrap.md` |
-| 2 | Design system & brand primitives | (to be written) |
-| 3 | Recording engine | (to be written) |
-| 4 | Studio (`/record`) | (to be written) |
-| 5 | Marketing surface | (to be written) |
-| 6 | Analytics & polish | (to be written) |
+| Phase | Goal                             | Plan path                                   |
+| ----- | -------------------------------- | ------------------------------------------- |
+| 1     | Bootstrap & Harness              | `2026-05-28-record-me-phase-1-bootstrap.md` |
+| 2     | Design system & brand primitives | (to be written)                             |
+| 3     | Recording engine                 | (to be written)                             |
+| 4     | Studio (`/record`)               | (to be written)                             |
+| 5     | Marketing surface                | (to be written)                             |
+| 6     | Analytics & polish               | (to be written)                             |
 
 ## When to escalate to the user
 
@@ -4147,6 +4220,7 @@ git commit -m "docs: add quality gates, quality standard, and workflow docs"
 **Goal:** write the living docs (PROGRESS for milestones, CODEBASE_MAP for inventory, AGENT_JOURNAL for chronological decisions).
 
 **Files:**
+
 - Create: `docs/PROGRESS.md`, `docs/CODEBASE_MAP.md`, `docs/AGENT_JOURNAL.md`
 
 - [ ] **Step 1: Write `docs/PROGRESS.md`**
@@ -4254,22 +4328,26 @@ Last regenerated: 2026-05-28 (Phase 1 bootstrap)
 ## record-me-sr-frontend
 
 ### apps/web/src (Phase 1: placeholders)
+
 - `app/layout.tsx`
 - `app/page.tsx`
 - `app/record/page.tsx`
 - `app/globals.css`
 
 ### packages/ui/src (Phase 1: scaffold only)
+
 - `index.ts`
 - `tokens.css`
 
 ## record-me-staff
 
 ### packages/recorder/src (Phase 1: capability probe only)
+
 - `index.ts`
 - `index.test.ts`
 
 ### packages/config (Phase 1)
+
 - `tsconfig/base.json`
 - `tsconfig/next.json`
 - `tsconfig/package.json`
@@ -4279,6 +4357,7 @@ Last regenerated: 2026-05-28 (Phase 1 bootstrap)
 - `tailwind/theme.css`
 
 ### Root configs
+
 - `package.json`
 - `pnpm-workspace.yaml`
 - `turbo.json`
@@ -4290,6 +4369,7 @@ Last regenerated: 2026-05-28 (Phase 1 bootstrap)
 ## record-me-scribe
 
 ### docs/
+
 - `ARCHITECTURE.md`, `DESIGN.md`, `FRONTEND.md`, `RECORDING.md`, `SEO.md`,
   `SECURITY.md`, `TESTING.md`, `CODE_STYLE.md`, `COMMANDS.md`,
   `QUALITY_GATES.md`, `QUALITY_STANDARD.md`, `WORKFLOW.md`, `PROGRESS.md`,
@@ -4298,11 +4378,13 @@ Last regenerated: 2026-05-28 (Phase 1 bootstrap)
 - `superpowers/plans/2026-05-28-record-me-phase-1-bootstrap.md`
 
 ### Root
+
 - `CLAUDE.md`, `AGENTS.md`, `README.md`, `LICENSE`
 
 ## record-me-e2e
 
 ### apps/web/tests/e2e (Phase 1: smoke only)
+
 - `smoke.spec.ts`
 ```
 
@@ -4344,6 +4426,7 @@ git commit -m "docs: add progress, codebase map, and agent journal"
 **Goal:** write the root `CLAUDE.md` — the entry point every Claude Code session reads.
 
 **Files:**
+
 - Create: `CLAUDE.md`
 
 - [ ] **Step 1: Write `CLAUDE.md`**
@@ -4384,18 +4467,18 @@ agent harness at `.claude/` with six specialists.
 
 ## Before you act — required reading
 
-| If you're working on... | Read first |
-| --- | --- |
-| UI components, styling, tokens, theming | [docs/DESIGN.md](docs/DESIGN.md) |
-| Routes, pages, navigation, layouts | [docs/FRONTEND.md](docs/FRONTEND.md) |
-| Recording engine, MediaRecorder, canvas compositing | [docs/RECORDING.md](docs/RECORDING.md) |
-| App-wide layout, root configs, Turbo pipeline | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| Writing tests | [docs/TESTING.md](docs/TESTING.md) |
-| Running commands | [docs/COMMANDS.md](docs/COMMANDS.md) |
-| Privacy, headers, CSP | [docs/SECURITY.md](docs/SECURITY.md) |
-| Quality gates, CI | [docs/QUALITY_GATES.md](docs/QUALITY_GATES.md) |
-| Planning, workflow, skills | [docs/WORKFLOW.md](docs/WORKFLOW.md) |
-| Quality verification, Playwright MCP | [docs/QUALITY_STANDARD.md](docs/QUALITY_STANDARD.md) |
+| If you're working on...                             | Read first                                           |
+| --------------------------------------------------- | ---------------------------------------------------- |
+| UI components, styling, tokens, theming             | [docs/DESIGN.md](docs/DESIGN.md)                     |
+| Routes, pages, navigation, layouts                  | [docs/FRONTEND.md](docs/FRONTEND.md)                 |
+| Recording engine, MediaRecorder, canvas compositing | [docs/RECORDING.md](docs/RECORDING.md)               |
+| App-wide layout, root configs, Turbo pipeline       | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)         |
+| Writing tests                                       | [docs/TESTING.md](docs/TESTING.md)                   |
+| Running commands                                    | [docs/COMMANDS.md](docs/COMMANDS.md)                 |
+| Privacy, headers, CSP                               | [docs/SECURITY.md](docs/SECURITY.md)                 |
+| Quality gates, CI                                   | [docs/QUALITY_GATES.md](docs/QUALITY_GATES.md)       |
+| Planning, workflow, skills                          | [docs/WORKFLOW.md](docs/WORKFLOW.md)                 |
+| Quality verification, Playwright MCP                | [docs/QUALITY_STANDARD.md](docs/QUALITY_STANDARD.md) |
 
 ## Git conventions
 
@@ -4494,6 +4577,7 @@ git commit -m "docs: add root CLAUDE.md entry point"
 **Goal:** mirror CLAUDE.md → AGENTS.md, write README, write LICENSE.
 
 **Files:**
+
 - Create: `AGENTS.md`, `README.md`, `LICENSE`
 
 - [ ] **Step 1: Mirror CLAUDE.md → AGENTS.md**
@@ -4511,7 +4595,7 @@ Expected: `diff` returns empty.
 
 Create `README.md`:
 
-```markdown
+````markdown
 # record me
 
 > An editorial recording instrument that lives in your browser.
@@ -4552,6 +4636,7 @@ pnpm test         # vitest
 pnpm test:e2e     # playwright
 pnpm build        # production build
 ```
+````
 
 ## Project structure
 
@@ -4585,6 +4670,7 @@ MIT — see [LICENSE](LICENSE).
 ---
 
 Built in the open. Composed in Brooklyn &amp; Manila. Printed by Vercel.
+
 ```
 
 - [ ] **Step 3: Write `LICENSE`**
@@ -4592,6 +4678,7 @@ Built in the open. Composed in Brooklyn &amp; Manila. Printed by Vercel.
 Create `LICENSE`:
 
 ```
+
 MIT License
 
 Copyright (c) 2026 Carlo Miguel Dy
@@ -4613,7 +4700,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-```
+
+````
 
 - [ ] **Step 4: Verify CLAUDE.md ↔ AGENTS.md byte-identical**
 
@@ -4621,7 +4709,7 @@ Run:
 
 ```bash
 diff CLAUDE.md AGENTS.md && echo "OK identical"
-```
+````
 
 Expected: `OK identical` printed.
 
@@ -4641,6 +4729,7 @@ git commit -m "docs: add AGENTS.md mirror, README, and MIT LICENSE"
 **Goal:** create five issue templates so contributors and agents file consistent issues.
 
 **Files:**
+
 - Create: `.github/ISSUE_TEMPLATE/bug.yml`, `.github/ISSUE_TEMPLATE/feature.yml`, `.github/ISSUE_TEMPLATE/chore.yml`, `.github/ISSUE_TEMPLATE/docs.yml`, `.github/ISSUE_TEMPLATE/epic.yml`, `.github/ISSUE_TEMPLATE/config.yml`
 
 - [ ] **Step 1: Create directory**
@@ -4658,15 +4747,15 @@ Create `.github/ISSUE_TEMPLATE/bug.yml`:
 ```yaml
 name: Bug report
 description: Something is broken or behaving unexpectedly
-title: "[bug] "
-labels: ["bug", "triage"]
+title: '[bug] '
+labels: ['bug', 'triage']
 body:
   - type: textarea
     id: what-happened
     attributes:
       label: What happened?
       description: A clear, factual description of the bug.
-      placeholder: "When I clicked Start Recording in Mode A, the camera permission dialog never appeared."
+      placeholder: 'When I clicked Start Recording in Mode A, the camera permission dialog never appeared.'
     validations:
       required: true
   - type: textarea
@@ -4691,14 +4780,14 @@ body:
     id: browser
     attributes:
       label: Browser + version
-      placeholder: "Chrome 135 / Firefox 132 / Safari 17.4"
+      placeholder: 'Chrome 135 / Firefox 132 / Safari 17.4'
     validations:
       required: true
   - type: input
     id: os
     attributes:
       label: OS + version
-      placeholder: "macOS 14.6 / Windows 11 / Ubuntu 24.04"
+      placeholder: 'macOS 14.6 / Windows 11 / Ubuntu 24.04'
     validations:
       required: true
   - type: textarea
@@ -4712,9 +4801,9 @@ body:
     attributes:
       label: Severity
       options:
-        - "Blocking — feature unusable"
-        - "Major — degraded experience"
-        - "Minor — cosmetic / inconvenient"
+        - 'Blocking — feature unusable'
+        - 'Major — degraded experience'
+        - 'Minor — cosmetic / inconvenient'
     validations:
       required: true
 ```
@@ -4726,8 +4815,8 @@ Create `.github/ISSUE_TEMPLATE/feature.yml`:
 ```yaml
 name: Feature request
 description: Propose a new capability or improvement
-title: "[feature] "
-labels: ["feature", "triage"]
+title: '[feature] '
+labels: ['feature', 'triage']
 body:
   - type: textarea
     id: problem
@@ -4753,9 +4842,9 @@ body:
     attributes:
       label: Scope
       options:
-        - "v1 — should ship before launch"
-        - "v2 — post-launch enhancement"
-        - "Exploratory — needs research first"
+        - 'v1 — should ship before launch'
+        - 'v2 — post-launch enhancement'
+        - 'Exploratory — needs research first'
     validations:
       required: true
   - type: textarea
@@ -4772,8 +4861,8 @@ Create `.github/ISSUE_TEMPLATE/chore.yml`:
 ```yaml
 name: Chore
 description: Maintenance, refactoring, dependency bumps, or other internal work
-title: "[chore] "
-labels: ["chore", "triage"]
+title: '[chore] '
+labels: ['chore', 'triage']
 body:
   - type: textarea
     id: what
@@ -4792,7 +4881,7 @@ body:
     id: affected
     attributes:
       label: Affected files / areas
-      placeholder: "packages/recorder/src/*, turbo.json, ..."
+      placeholder: 'packages/recorder/src/*, turbo.json, ...'
 ```
 
 - [ ] **Step 5: Write `docs.yml`**
@@ -4802,14 +4891,14 @@ Create `.github/ISSUE_TEMPLATE/docs.yml`:
 ```yaml
 name: Docs
 description: Missing, wrong, or unclear documentation
-title: "[docs] "
-labels: ["docs", "triage"]
+title: '[docs] '
+labels: ['docs', 'triage']
 body:
   - type: input
     id: file
     attributes:
       label: Which doc?
-      placeholder: "docs/RECORDING.md, README.md, etc."
+      placeholder: 'docs/RECORDING.md, README.md, etc.'
     validations:
       required: true
   - type: textarea
@@ -4831,21 +4920,21 @@ Create `.github/ISSUE_TEMPLATE/epic.yml`:
 ```yaml
 name: Phase epic
 description: Tracks an entire phase of the record-me roadmap. Used to group per-task issues opened by /spawn-record-me-team.
-title: "[epic] Phase N · "
-labels: ["epic", "triage"]
+title: '[epic] Phase N · '
+labels: ['epic', 'triage']
 body:
   - type: input
     id: phase
     attributes:
       label: Phase number
-      placeholder: "1, 2, 3, 4, 5, or 6"
+      placeholder: '1, 2, 3, 4, 5, or 6'
     validations:
       required: true
   - type: input
     id: plan
     attributes:
       label: Plan path
-      placeholder: "docs/superpowers/plans/YYYY-MM-DD-record-me-phase-N-<name>.md"
+      placeholder: 'docs/superpowers/plans/YYYY-MM-DD-record-me-phase-N-<name>.md'
     validations:
       required: true
   - type: textarea
@@ -4906,6 +4995,7 @@ git commit -m "chore(gh): add issue templates (bug, feature, chore, docs, epic)"
 **Goal:** create the standard PR body skeleton.
 
 **Files:**
+
 - Create: `.github/pull_request_template.md`
 
 - [ ] **Step 1: Write the template**
@@ -4992,6 +5082,7 @@ git commit -m "chore(gh): add PR template with phase + test plan checklist"
 **Goal:** define the label set and write executable scripts to seed labels and create phase epic issues.
 
 **Files:**
+
 - Create: `.github/labels.yml`, `scripts/seed-labels.sh`, `scripts/create-epics.sh`
 
 - [ ] **Step 1: Write `.github/labels.yml`**
@@ -5029,67 +5120,67 @@ Create `.github/labels.yml`:
   description: CI/CD pipeline changes
 
 # Priority
-- name: "priority: high"
+- name: 'priority: high'
   color: C8675A
   description: Address before next merge
-- name: "priority: medium"
+- name: 'priority: medium'
   color: E5A24A
   description: Address this phase
-- name: "priority: low"
+- name: 'priority: low'
   color: 7A766D
   description: Backlog
 
 # Status
-- name: "status: blocked"
+- name: 'status: blocked'
   color: 262C36
   description: Cannot progress until something unblocks
-- name: "status: in-progress"
+- name: 'status: in-progress'
   color: F1B768
   description: Actively being worked on
-- name: "status: ready-for-review"
+- name: 'status: ready-for-review'
   color: 9BB28F
   description: Implementation complete, awaiting review
 
 # Phase
-- name: "phase-1: bootstrap"
+- name: 'phase-1: bootstrap'
   color: 0F1115
   description: Bootstrap & harness
-- name: "phase-2: design-system"
+- name: 'phase-2: design-system'
   color: 0F1115
   description: Design system & brand primitives
-- name: "phase-3: recorder"
+- name: 'phase-3: recorder'
   color: 0F1115
   description: Recording engine
-- name: "phase-4: studio"
+- name: 'phase-4: studio'
   color: 0F1115
   description: The /record studio
-- name: "phase-5: marketing"
+- name: 'phase-5: marketing'
   color: 0F1115
   description: Marketing surface (/ + features + docs)
-- name: "phase-6: analytics"
+- name: 'phase-6: analytics'
   color: 0F1115
   description: Analytics & final polish
 
 # Area
-- name: "area: web"
+- name: 'area: web'
   color: 1F242C
   description: apps/web
-- name: "area: ui"
+- name: 'area: ui'
   color: 1F242C
   description: packages/ui
-- name: "area: recorder"
+- name: 'area: recorder'
   color: 1F242C
   description: packages/recorder
-- name: "area: config"
+- name: 'area: config'
   color: 1F242C
   description: packages/config
-- name: "area: docs"
+- name: 'area: docs'
   color: 1F242C
   description: docs/
-- name: "area: harness"
+- name: 'area: harness'
   color: 1F242C
   description: .claude/
-- name: "area: ci"
+- name: 'area: ci'
   color: 1F242C
   description: .github/workflows
 
@@ -5103,10 +5194,10 @@ Create `.github/labels.yml`:
 - name: triage
   color: B5AFA2
   description: Newly opened, needs labels and assignment
-- name: "good first issue"
+- name: 'good first issue'
   color: 9BB28F
   description: Friendly to new contributors
-- name: "help wanted"
+- name: 'help wanted'
   color: F1B768
   description: Maintainers welcome outside help
 ```
@@ -5260,6 +5351,7 @@ git commit -m "chore(gh): add labels.yml and seed/epic scripts"
 **Goal:** write the CI workflow that runs on every PR + push to main.
 
 **Files:**
+
 - Create: `.github/workflows/ci.yml`
 
 - [ ] **Step 1: Write the workflow**
@@ -5395,6 +5487,7 @@ git commit -m "ci: add GitHub Actions workflow (quality, e2e, lighthouse)"
 **Goal:** mark Section A through E complete as a checkpoint, leaving Section F (repo creation) for the next tasks.
 
 **Files:**
+
 - Modify: `docs/PROGRESS.md`
 
 - [ ] **Step 1: Edit `docs/PROGRESS.md`**
@@ -5536,6 +5629,7 @@ Expected: returns the protection rule JSON. `gh api repos/${GH_LOGIN}/record-me/
 - [ ] **Step 7: Verify in browser**
 
 Open `https://github.com/${GH_LOGIN}/record-me` and confirm:
+
 - Repo is public
 - About description and homepage are set
 - Topics show
@@ -5643,6 +5737,7 @@ git diff --quiet || git commit -am "chore: post-vercel-link tweaks"
 **Goal:** end-to-end sanity check, mark Phase 1 complete in PROGRESS.md, close epic #1, push final commit.
 
 **Files:**
+
 - Modify: `docs/PROGRESS.md`, `docs/AGENT_JOURNAL.md`
 
 - [ ] **Step 1: Run the full local pipeline**
@@ -5721,6 +5816,7 @@ infrastructure operational, CI green on the first push. Vercel linked.
 Ready for Phase 2 (`/init-phase 2 design-system`).
 
 Notable decisions during bootstrap (appended from `.claude/journal/`):
+
 - (any clusters surfaced by `/agent-distill` if it ran during Phase 1)
 ```
 
@@ -5791,6 +5887,3 @@ No spec sections left without a task. Plan ready.
 For Phase 1 specifically, **Inline Execution is the right pick** — there's no team to spawn until Phase 1 finishes installing one. From Phase 2 onward, **Subagent-Driven via `/spawn-record-me-team`** is the default.
 
 **Which approach for Phase 1?**
-
-
-

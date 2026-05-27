@@ -9,7 +9,7 @@
 
 ## 1 · Summary
 
-**record-me** is an editorial, privacy-first, browser-native video recording instrument deployed to Vercel. v1 ships three recording modes — *Screen + Camera + Cursor*, *Screen + Cursor*, and *Camera only* — with a one-tap download. No accounts. No upload. The recording never leaves the user's browser.
+**record-me** is an editorial, privacy-first, browser-native video recording instrument deployed to Vercel. v1 ships three recording modes — _Screen + Camera + Cursor_, _Screen + Cursor_, and _Camera only_ — with a one-tap download. No accounts. No upload. The recording never leaves the user's browser.
 
 The product surface is wrapped in an SEO-strong site with per-mode landing pages, docs, privacy, and a changelog — built on Next.js 15 App Router with strong Core Web Vitals defended by Vercel Speed Insights and Lighthouse CI.
 
@@ -21,11 +21,11 @@ The codebase ships as a **pnpm + Turborepo monorepo** with one deployed app (`ap
 
 ### 2.1 Goals (v1)
 
-1. Deliver a polished, *editorial-feeling* recording experience in any modern Chromium browser and Firefox; degrade gracefully on Safari 17+.
+1. Deliver a polished, _editorial-feeling_ recording experience in any modern Chromium browser and Firefox; degrade gracefully on Safari 17+.
 2. Three recording modes work reliably with download-to-disk in under 90 seconds first-try.
 3. Strong SEO: indexable site with per-mode landing pages, OG images, sitemap, JSON-LD, and a Lighthouse score ≥ 95 on `/`.
 4. Privacy as a feature, not a footnote: cookieless analytics, no upload, codified in `/privacy` and `docs/SECURITY.md`.
-5. A multi-agent shipping harness that gets *sharper* as the codebase grows (memory, ownership, reflection, distillation).
+5. A multi-agent shipping harness that gets _sharper_ as the codebase grows (memory, ownership, reflection, distillation).
 
 ### 2.2 Non-goals (deferred to v2+)
 
@@ -47,15 +47,15 @@ A web-savvy creator, indie hacker, or async-first team member who wants to recor
 
 ### 3.2 Success criteria
 
-| Criterion | Measure |
-| --- | --- |
-| Cold start → downloaded clip | < 90s, first-try, in Chrome latest |
-| Landing page Lighthouse | ≥ 95 (Performance, Accessibility, Best Practices, SEO) |
-| `/record` Lighthouse | ≥ 90 |
-| Core Web Vitals | LCP < 1.8s · INP < 200ms · CLS < 0.05 (Speed Insights p75) |
-| Mode A end-to-end E2E (Playwright) | Green on every PR |
-| Recorder unit-test coverage | ≥ 90% |
-| Permission-denied analytics rate | Tracked baseline; iterate UX if > 25% drop-off |
+| Criterion                          | Measure                                                    |
+| ---------------------------------- | ---------------------------------------------------------- |
+| Cold start → downloaded clip       | < 90s, first-try, in Chrome latest                         |
+| Landing page Lighthouse            | ≥ 95 (Performance, Accessibility, Best Practices, SEO)     |
+| `/record` Lighthouse               | ≥ 90                                                       |
+| Core Web Vitals                    | LCP < 1.8s · INP < 200ms · CLS < 0.05 (Speed Insights p75) |
+| Mode A end-to-end E2E (Playwright) | Green on every PR                                          |
+| Recorder unit-test coverage        | ≥ 90%                                                      |
+| Permission-denied analytics rate   | Tracked baseline; iterate UX if > 25% drop-off             |
 
 ---
 
@@ -93,12 +93,12 @@ record-me/
 
 ### 5.2 Package responsibilities & dependencies
 
-| Package | Depends on | Responsibilities |
-| --- | --- | --- |
-| `apps/web` | `@record-me/ui`, `@record-me/recorder`, `@record-me/config` | All routes, layouts, metadata, OG images, sitemaps, server actions, `useRecorder()` React hook. The only thing Vercel deploys. |
-| `@record-me/recorder` | `@record-me/config` | Framework-agnostic recording engine. MediaRecorder + 2D canvas + cursor overlay + IndexedDB chunk spill. **No React import.** Unit-tested in jsdom with MediaStream mocks. |
-| `@record-me/ui` | `@record-me/config` | shadcn/ui components, Twilight design tokens (CSS variables), Tailwind v4 preset, brand primitives (REC dot, mode card, studio shell, mono metadata chip). |
-| `@record-me/config` | ∅ | Shared `tsconfig` bases, eslint flat config, prettier config, tailwind preset, type-only design tokens. Zero runtime deps. |
+| Package               | Depends on                                                  | Responsibilities                                                                                                                                                           |
+| --------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/web`            | `@record-me/ui`, `@record-me/recorder`, `@record-me/config` | All routes, layouts, metadata, OG images, sitemaps, server actions, `useRecorder()` React hook. The only thing Vercel deploys.                                             |
+| `@record-me/recorder` | `@record-me/config`                                         | Framework-agnostic recording engine. MediaRecorder + 2D canvas + cursor overlay + IndexedDB chunk spill. **No React import.** Unit-tested in jsdom with MediaStream mocks. |
+| `@record-me/ui`       | `@record-me/config`                                         | shadcn/ui components, Twilight design tokens (CSS variables), Tailwind v4 preset, brand primitives (REC dot, mode card, studio shell, mono metadata chip).                 |
+| `@record-me/config`   | ∅                                                           | Shared `tsconfig` bases, eslint flat config, prettier config, tailwind preset, type-only design tokens. Zero runtime deps.                                                 |
 
 ### 5.3 Why this shape
 
@@ -112,11 +112,11 @@ record-me/
 
 ### 6.1 Three modes
 
-| Mode | Tracks acquired | Canvas layers | Output |
-| --- | --- | --- | --- |
-| **A · Screen + Camera + Cursor** | `getDisplayMedia({video, cursor:'always'})` + `getUserMedia({video, audio})` | screen (full) → cam PiP (bottom-right circle, 120px) → cursor ripples (in-tab clicks only) | Composite video + mixed audio |
-| **B · Screen + Cursor** | `getDisplayMedia({video, cursor:'always'})` + optional `getUserMedia({audio})` | screen (full) → cursor ripples (in-tab clicks only) | Composite video + optional mic audio |
-| **C · Camera only** | `getUserMedia({video:{aspectRatio:1}, audio})` | cam (square crop, centered, subtle vignette overlay) | Square video + mic audio |
+| Mode                             | Tracks acquired                                                                | Canvas layers                                                                              | Output                               |
+| -------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ | ------------------------------------ |
+| **A · Screen + Camera + Cursor** | `getDisplayMedia({video, cursor:'always'})` + `getUserMedia({video, audio})`   | screen (full) → cam PiP (bottom-right circle, 120px) → cursor ripples (in-tab clicks only) | Composite video + mixed audio        |
+| **B · Screen + Cursor**          | `getDisplayMedia({video, cursor:'always'})` + optional `getUserMedia({audio})` | screen (full) → cursor ripples (in-tab clicks only)                                        | Composite video + optional mic audio |
+| **C · Camera only**              | `getUserMedia({video:{aspectRatio:1}, audio})`                                 | cam (square crop, centered, subtle vignette overlay)                                       | Square video + mic audio             |
 
 ### 6.2 User journey (anonymous, client-side)
 
@@ -149,13 +149,13 @@ record-me/
 
 ### 7.1 Five-stage pipeline (shared across modes)
 
-| # | Stage | What | API |
-| --- | --- | --- | --- |
-| 1 | Acquire | Request screen and/or camera/mic per mode | `getDisplayMedia`, `getUserMedia` |
-| 2 | Composite | 2D canvas matching target resolution; `requestAnimationFrame` loop draws screen → cam PiP → cursor ripples | `CanvasRenderingContext2D` |
-| 3 | Stream | Composite stream from canvas; mix mic + camera audio | `canvas.captureStream(fps)`, `AudioContext` |
-| 4 | Encode | `MediaRecorder` with negotiated mimeType, 30 fps, configurable bitrate, chunks every 1s | `MediaRecorder` |
-| 5 | Deliver | Concat chunks → Blob → object URL → anchor download → revoke URL | `Blob`, `URL.createObjectURL` |
+| #   | Stage     | What                                                                                                       | API                                         |
+| --- | --------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| 1   | Acquire   | Request screen and/or camera/mic per mode                                                                  | `getDisplayMedia`, `getUserMedia`           |
+| 2   | Composite | 2D canvas matching target resolution; `requestAnimationFrame` loop draws screen → cam PiP → cursor ripples | `CanvasRenderingContext2D`                  |
+| 3   | Stream    | Composite stream from canvas; mix mic + camera audio                                                       | `canvas.captureStream(fps)`, `AudioContext` |
+| 4   | Encode    | `MediaRecorder` with negotiated mimeType, 30 fps, configurable bitrate, chunks every 1s                    | `MediaRecorder`                             |
+| 5   | Deliver   | Concat chunks → Blob → object URL → anchor download → revoke URL                                           | `Blob`, `URL.createObjectURL`               |
 
 ### 7.2 State machine
 
@@ -178,7 +178,7 @@ error  (reachable from any state; recovery = reset + re-acquire)
 
 - Click ripples (amber rings, 2s fade) are drawn into the composite canvas when the user clicks **inside the record-me tab**. Useful for in-app demos and meta-recordings.
 - For arbitrary screen/window captures, the OS cursor is still visible in the recording, but no ripples are drawn.
-- The `/record` UI carries a calm note: *"Click highlights work when you record this tab. For highlights in other apps, install the record-me extension (coming soon)."*
+- The `/record` UI carries a calm note: _"Click highlights work when you record this tab. For highlights in other apps, install the record-me extension (coming soon)."_
 - Setting `cursorHighlights: false` in `RecorderOptions` opts out entirely.
 
 **v2 path:** ship a companion Chrome extension at `apps/extension` that has tab-level event access and can feed coordinates back to the recorder via `chrome.runtime` messaging.
@@ -187,12 +187,12 @@ error  (reachable from any state; recovery = reset + re-acquire)
 
 `supportedMimeType()` walks this list and returns the first supported entry:
 
-| Order | MIME | Rationale |
-| --- | --- | --- |
-| 1 | `video/mp4;codecs=avc1.42E01E,mp4a.40.2` | H.264 baseline + AAC — universal playback (Safari, QuickTime, every editor, every social platform) |
-| 2 | `video/mp4;codecs=h264,aac` | Broader matcher for browsers that report short codec strings |
-| 3 | `video/webm;codecs=vp9,opus` | Fallback for older Chromium without MediaRecorder MP4 support |
-| 4 | `video/webm;codecs=vp8,opus` | Last-resort fallback for very old browsers |
+| Order | MIME                                     | Rationale                                                                                          |
+| ----- | ---------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| 1     | `video/mp4;codecs=avc1.42E01E,mp4a.40.2` | H.264 baseline + AAC — universal playback (Safari, QuickTime, every editor, every social platform) |
+| 2     | `video/mp4;codecs=h264,aac`              | Broader matcher for browsers that report short codec strings                                       |
+| 3     | `video/webm;codecs=vp9,opus`             | Fallback for older Chromium without MediaRecorder MP4 support                                      |
+| 4     | `video/webm;codecs=vp8,opus`             | Last-resort fallback for very old browsers                                                         |
 
 **Notes for `docs/RECORDING.md`:**
 
@@ -202,14 +202,14 @@ error  (reachable from any state; recovery = reset + re-acquire)
 
 ### 7.5 Memory strategy & caps
 
-| Setting | Default | Max | Behaviour |
-| --- | --- | --- | --- |
-| `maxDurationMs` | 10 min | 60 min | UI shows a select (10/20/30/45/60); selecting > 10 m surfaces a warning *"Longer recordings depend on your machine. Download and processing may take a while. We recommend 10 minutes for the smoothest result."* |
-| Resolution auto-step | 1080p | — | If selected cap ≥ 30 min, default drops to 720p / 2 Mbps. User can override. |
-| Chunk storage | in-memory | — | For caps ≤ 10 min: keep `ondataavailable` chunks in a JS array. |
-| Chunk spill | IndexedDB | — | For caps > 10 min: each chunk written to an IndexedDB object store. Reassembled into Blob on `stop()`. Trades stop-latency for memory safety. |
-| Hard cap | 10/20/30/45/60 min | — | Recorder auto-stops 100ms before the cap and transitions to `finalizing`. |
-| Live indicator | — | — | Mono readout in the studio shows estimated MB so far + projected final MB at current bitrate. |
+| Setting              | Default            | Max    | Behaviour                                                                                                                                                                                                         |
+| -------------------- | ------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `maxDurationMs`      | 10 min             | 60 min | UI shows a select (10/20/30/45/60); selecting > 10 m surfaces a warning _"Longer recordings depend on your machine. Download and processing may take a while. We recommend 10 minutes for the smoothest result."_ |
+| Resolution auto-step | 1080p              | —      | If selected cap ≥ 30 min, default drops to 720p / 2 Mbps. User can override.                                                                                                                                      |
+| Chunk storage        | in-memory          | —      | For caps ≤ 10 min: keep `ondataavailable` chunks in a JS array.                                                                                                                                                   |
+| Chunk spill          | IndexedDB          | —      | For caps > 10 min: each chunk written to an IndexedDB object store. Reassembled into Blob on `stop()`. Trades stop-latency for memory safety.                                                                     |
+| Hard cap             | 10/20/30/45/60 min | —      | Recorder auto-stops 100ms before the cap and transitions to `finalizing`.                                                                                                                                         |
+| Live indicator       | —                  | —      | Mono readout in the studio shows estimated MB so far + projected final MB at current bitrate.                                                                                                                     |
 
 ### 7.6 `@record-me/recorder` public API
 
@@ -228,12 +228,12 @@ export type RecorderState =
 
 export interface RecorderOptions {
   mode: RecordMode;
-  resolution?: '720p' | '1080p';      // default '1080p', clamped to source track
-  fps?: number;                        // default 30
-  videoBitsPerSecond?: number;         // default 4_000_000
-  maxDurationMs?: number;              // default 600_000 (10m). Allowed: 10/20/30/45/60 minutes.
-  cursorHighlights?: boolean;          // default true; only meaningful when capturing the record-me tab
-  storage?: 'auto' | 'memory' | 'indexeddb';  // default 'auto' (spills if maxDurationMs > 600_000)
+  resolution?: '720p' | '1080p'; // default '1080p', clamped to source track
+  fps?: number; // default 30
+  videoBitsPerSecond?: number; // default 4_000_000
+  maxDurationMs?: number; // default 600_000 (10m). Allowed: 10/20/30/45/60 minutes.
+  cursorHighlights?: boolean; // default true; only meaningful when capturing the record-me tab
+  storage?: 'auto' | 'memory' | 'indexeddb'; // default 'auto' (spills if maxDurationMs > 600_000)
   onStateChange?: (s: RecorderState) => void;
   onDurationTick?: (ms: number) => void;
   onBytesTick?: (bytes: number) => void;
@@ -242,12 +242,12 @@ export interface RecorderOptions {
 
 export interface RecordingResult {
   blob: Blob;
-  url: string;                         // object URL, valid until .release()
+  url: string; // object URL, valid until .release()
   mimeType: string;
   durationMs: number;
   bytes: number;
-  suggestedFilename: string;           // e.g. "record-me-2026-05-27-001.mp4"
-  release: () => void;                 // URL.revokeObjectURL + IndexedDB cleanup
+  suggestedFilename: string; // e.g. "record-me-2026-05-27-001.mp4"
+  release: () => void; // URL.revokeObjectURL + IndexedDB cleanup
 }
 
 export interface RecorderHandle {
@@ -256,7 +256,7 @@ export interface RecorderHandle {
   pause: () => void;
   resume: () => void;
   stop: () => Promise<RecordingResult>;
-  dispose: () => void;                 // stop tracks, revoke URLs, clear IndexedDB
+  dispose: () => void; // stop tracks, revoke URLs, clear IndexedDB
 }
 
 export interface CapabilityReport {
@@ -315,17 +315,17 @@ apps/web/src/app/
 
 Every route exports `generateMetadata`. No silent inheritance. Per-page: title, description, OG image, Twitter card, canonical URL.
 
-| Route | Title | Sitemap priority | Indexed |
-| --- | --- | --- | --- |
-| `/` | record me — record your screen, beautifully | 1.0 | yes |
-| `/features/screen-camera-cursor` | Mode A — Screen, Camera & Cursor | 0.8 | yes |
-| `/features/screen-cursor` | Mode B — Screen & Cursor | 0.8 | yes |
-| `/features/camera-only` | Mode C — Camera Only | 0.8 | yes |
-| `/record` | The studio — record me | 0.7 | yes (noimageindex) |
-| `/docs` | Documentation | 0.6 | yes |
-| `/docs/[...slug]` | (slug-driven) | 0.6 | yes |
-| `/changelog` | Changelog | 0.5 | yes |
-| `/privacy` | Privacy | 0.4 | yes |
+| Route                            | Title                                       | Sitemap priority | Indexed            |
+| -------------------------------- | ------------------------------------------- | ---------------- | ------------------ |
+| `/`                              | record me — record your screen, beautifully | 1.0              | yes                |
+| `/features/screen-camera-cursor` | Mode A — Screen, Camera & Cursor            | 0.8              | yes                |
+| `/features/screen-cursor`        | Mode B — Screen & Cursor                    | 0.8              | yes                |
+| `/features/camera-only`          | Mode C — Camera Only                        | 0.8              | yes                |
+| `/record`                        | The studio — record me                      | 0.7              | yes (noimageindex) |
+| `/docs`                          | Documentation                               | 0.6              | yes                |
+| `/docs/[...slug]`                | (slug-driven)                               | 0.6              | yes                |
+| `/changelog`                     | Changelog                                   | 0.5              | yes                |
+| `/privacy`                       | Privacy                                     | 0.4              | yes                |
 
 ### 8.3 OG images
 
@@ -354,7 +354,7 @@ Injected via `<script type="application/ld+json">` in each route's `page.tsx`.
 
 ### 8.7 Landing page · 10/10 marketing polish
 
-The hi-fi mockup at `.superpowers/brainstorm/.../preview-hifi-pairing-a.html` is the *visual baseline*. The shipped `/` must elevate that with motion, illustrations, and signature moments.
+The hi-fi mockup at `.superpowers/brainstorm/.../preview-hifi-pairing-a.html` is the _visual baseline_. The shipped `/` must elevate that with motion, illustrations, and signature moments.
 
 **Requirements:**
 
@@ -378,41 +378,41 @@ The hi-fi mockup at `.superpowers/brainstorm/.../preview-hifi-pairing-a.html` is
 
 **Surface**
 
-| Variable | Value | Use |
-| --- | --- | --- |
-| `--bg` | `#0F1115` | Page background |
-| `--bg-2` | `#12151B` | Subtle elevation |
-| `--surface` | `#171B22` | Card surfaces |
-| `--surface-2` | `#1F242C` | Elevated card surfaces |
-| `--line` | `#262C36` | Border (default) |
+| Variable      | Value     | Use                      |
+| ------------- | --------- | ------------------------ |
+| `--bg`        | `#0F1115` | Page background          |
+| `--bg-2`      | `#12151B` | Subtle elevation         |
+| `--surface`   | `#171B22` | Card surfaces            |
+| `--surface-2` | `#1F242C` | Elevated card surfaces   |
+| `--line`      | `#262C36` | Border (default)         |
 | `--line-soft` | `#1B2028` | Border (subtle dividers) |
 
 **Ink**
 
-| Variable | Value | Use |
-| --- | --- | --- |
-| `--ivory` | `#EDE6D6` | Primary body text |
-| `--ivory-dim` | `#B5AFA2` | Deck / secondary |
-| `--ivory-mut` | `#7A766D` | Meta / mono labels |
+| Variable      | Value     | Use                   |
+| ------------- | --------- | --------------------- |
+| `--ivory`     | `#EDE6D6` | Primary body text     |
+| `--ivory-dim` | `#B5AFA2` | Deck / secondary      |
+| `--ivory-mut` | `#7A766D` | Meta / mono labels    |
 | `--ivory-low` | `#54514A` | Disabled / decorative |
 
 **Signal & state**
 
-| Variable | Value | Use |
-| --- | --- | --- |
-| `--amber` | `#E5A24A` | Accent · REC dot · primary CTA · italic-color highlights |
-| `--amber-hi` | `#F1B768` | Hover |
-| `--amber-lo` | `#C88A38` | Active / pressed |
-| `--success` | `#9BB28F` | Sage success |
-| `--danger` | `#C8675A` | Muted brick error |
+| Variable     | Value     | Use                                                      |
+| ------------ | --------- | -------------------------------------------------------- |
+| `--amber`    | `#E5A24A` | Accent · REC dot · primary CTA · italic-color highlights |
+| `--amber-hi` | `#F1B768` | Hover                                                    |
+| `--amber-lo` | `#C88A38` | Active / pressed                                         |
+| `--success`  | `#9BB28F` | Sage success                                             |
+| `--danger`   | `#C8675A` | Muted brick error                                        |
 
 ### 9.2 Typography (Pairing A)
 
-| Role | Family | Weights | Notes |
-| --- | --- | --- | --- |
-| Display · headlines | Instrument Serif | 400 (roman + italic) | clamp(40px, 7vw, 96px) hero · 32–52px section |
-| Body · UI text | Geist | 300 / 400 / 500 / 600 | 13–17 px body · loaded via `next/font` |
-| Mono · technical metadata | Geist Mono | 400 / 500 | 10–13 px · timestamps · sizes · codecs · field labels |
+| Role                      | Family           | Weights               | Notes                                                 |
+| ------------------------- | ---------------- | --------------------- | ----------------------------------------------------- |
+| Display · headlines       | Instrument Serif | 400 (roman + italic)  | clamp(40px, 7vw, 96px) hero · 32–52px section         |
+| Body · UI text            | Geist            | 300 / 400 / 500 / 600 | 13–17 px body · loaded via `next/font`                |
+| Mono · technical metadata | Geist Mono       | 400 / 500             | 10–13 px · timestamps · sizes · codecs · field labels |
 
 ### 9.3 Component conventions
 
@@ -424,13 +424,13 @@ The hi-fi mockup at `.superpowers/brainstorm/.../preview-hifi-pairing-a.html` is
 
 ### 9.4 Brand primitives
 
-| Component | Location | Purpose |
-| --- | --- | --- |
-| `<RecDot>` | `@record-me/ui` | Pulsing amber recording indicator with halo animation |
-| `<ModeCard>` | `@record-me/ui` | The triptych card with stage preview |
-| `<StudioShell>` | `@record-me/ui` | The framed surface that wraps the live recording |
-| `<MetaChip>` | `@record-me/ui` | Mono uppercase metadata pill |
-| `<WordMark>` | `@record-me/ui` | "record *me*" wordmark with italic |
+| Component       | Location        | Purpose                                               |
+| --------------- | --------------- | ----------------------------------------------------- |
+| `<RecDot>`      | `@record-me/ui` | Pulsing amber recording indicator with halo animation |
+| `<ModeCard>`    | `@record-me/ui` | The triptych card with stage preview                  |
+| `<StudioShell>` | `@record-me/ui` | The framed surface that wraps the live recording      |
+| `<MetaChip>`    | `@record-me/ui` | Mono uppercase metadata pill                          |
+| `<WordMark>`    | `@record-me/ui` | "record _me_" wordmark with italic                    |
 
 ---
 
@@ -445,19 +445,19 @@ The hi-fi mockup at `.superpowers/brainstorm/.../preview-hifi-pairing-a.html` is
 
 Typed helper at `apps/web/src/lib/analytics.ts` wraps `track()` from `@vercel/analytics`. All events carry zero PII.
 
-| Event | Properties | Why |
-| --- | --- | --- |
-| `mode_selected` | `mode: RecordMode` | Top-of-funnel intent (before recording starts) |
-| `recording_started` | `mode, resolution, cap_minutes` | Which mode wins · cap distribution |
-| `recording_stopped` | `mode, duration_seconds, bytes, mime_type, partial?` | Average session length → cap & quality presets; `partial: true` when stopped by an error rather than the user |
-| `recording_downloaded` | `mode, duration_seconds, bytes, mime_type` | Conversion funnel: started → completed → downloaded |
-| `permission_denied` | `kind: 'screen' \| 'camera' \| 'mic'` | Where users bounce — drives error UX iteration |
-| `browser_unsupported` | `feature, ua_browser` | Real demand for Safari / edge-case support |
-| `cursor_highlight_disabled` | `reason: 'opt-out' \| 'not-record-me-tab'` | How often is the cursor-highlight scope hit |
+| Event                       | Properties                                           | Why                                                                                                           |
+| --------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `mode_selected`             | `mode: RecordMode`                                   | Top-of-funnel intent (before recording starts)                                                                |
+| `recording_started`         | `mode, resolution, cap_minutes`                      | Which mode wins · cap distribution                                                                            |
+| `recording_stopped`         | `mode, duration_seconds, bytes, mime_type, partial?` | Average session length → cap & quality presets; `partial: true` when stopped by an error rather than the user |
+| `recording_downloaded`      | `mode, duration_seconds, bytes, mime_type`           | Conversion funnel: started → completed → downloaded                                                           |
+| `permission_denied`         | `kind: 'screen' \| 'camera' \| 'mic'`                | Where users bounce — drives error UX iteration                                                                |
+| `browser_unsupported`       | `feature, ua_browser`                                | Real demand for Safari / edge-case support                                                                    |
+| `cursor_highlight_disabled` | `reason: 'opt-out' \| 'not-record-me-tab'`           | How often is the cursor-highlight scope hit                                                                   |
 
 ### 10.3 Privacy implication
 
-Codified once in `docs/SECURITY.md` and `/privacy`: *"We use Vercel Analytics to count anonymous page views and Vercel Speed Insights to monitor performance. Both are cookieless. Recording content never leaves your browser."*
+Codified once in `docs/SECURITY.md` and `/privacy`: _"We use Vercel Analytics to count anonymous page views and Vercel Speed Insights to monitor performance. Both are cookieless. Recording content never leaves your browser."_
 
 ---
 
@@ -519,6 +519,7 @@ Codified once in `docs/SECURITY.md` and `/privacy`: *"We use Vercel Analytics to
 **Act** (during work): standing authority inside declared `owns:` globs. Refactors decay it spots; updates inventory tables in its own definition file as part of the work. Gatekeeper rejects cross-ownership edits unless task is tagged `[cross-cutting]` (routes to `record-me-staff`).
 
 **Reflect** (on task completion):
+
 - Append surprises / patterns to `.claude/memory/<agent>.md` (frontmatter: `name`, `description`, `type: pattern | gotcha | decision | inventory`).
 - If a pattern recurred, propose an edit to its own definition; principal reviews.
 - If the codebase shape shifted, ping scribe to update `docs/CODEBASE_MAP.md`.
@@ -530,27 +531,47 @@ Codified once in `docs/SECURITY.md` and `/privacy`: *"We use Vercel Analytics to
 name: record-me-shipping
 description: Plan-driven 6-teammate ship team for record-me (client-side only — no backend role)
 members:
-  - { name: record-me-sr-frontend,   agent_type: record-me-sr-frontend,   model: claude-sonnet-4-6, autonomous: true }
-  - { name: record-me-staff,         agent_type: record-me-staff,         model: claude-opus-4-7,   autonomous: true }
-  - { name: record-me-gatekeeper,    agent_type: record-me-gatekeeper,    model: claude-haiku-4-5,  autonomous: true }
-  - { name: record-me-scribe,        agent_type: record-me-scribe,        model: claude-haiku-4-5,  autonomous: true }
-  - { name: record-me-e2e,           agent_type: record-me-e2e,           model: claude-sonnet-4-6, autonomous: true }
-  - { name: record-me-principal,     agent_type: record-me-principal,     model: claude-opus-4-7,   autonomous: true }
+  - {
+      name: record-me-sr-frontend,
+      agent_type: record-me-sr-frontend,
+      model: claude-sonnet-4-6,
+      autonomous: true,
+    }
+  - { name: record-me-staff, agent_type: record-me-staff, model: claude-opus-4-7, autonomous: true }
+  - {
+      name: record-me-gatekeeper,
+      agent_type: record-me-gatekeeper,
+      model: claude-haiku-4-5,
+      autonomous: true,
+    }
+  - {
+      name: record-me-scribe,
+      agent_type: record-me-scribe,
+      model: claude-haiku-4-5,
+      autonomous: true,
+    }
+  - { name: record-me-e2e, agent_type: record-me-e2e, model: claude-sonnet-4-6, autonomous: true }
+  - {
+      name: record-me-principal,
+      agent_type: record-me-principal,
+      model: claude-opus-4-7,
+      autonomous: true,
+    }
 ---
 ```
 
 ### 11.4 Ownership matrix
 
-| Domain | Owner | Enforcement |
-| --- | --- | --- |
-| `apps/web/src/app/**` · `apps/web/src/components/**` | `record-me-sr-frontend` | Gatekeeper rejects cross-owner edits unless task is `[cross-cutting]` |
-| `packages/ui/**` | `record-me-sr-frontend` | Same |
-| `packages/recorder/**` | `record-me-staff` | Gatekeeper rejects edits from sr-frontend; recorder changes always need staff review |
-| `packages/config/**` · `turbo.json` · `pnpm-workspace.yaml` | `record-me-staff` | Cross-cutting, never an impl's by-the-way edit |
-| `apps/web/tests/e2e/**` | `record-me-e2e` | E2E specs only authored by e2e agent (impls request them via `[e2e]` tag) |
-| `docs/**` · `CLAUDE.md` · `AGENTS.md` | `record-me-scribe` | Impls flag doc updates needed; scribe authors them post-merge |
-| `.claude/memory/**` | `record-me-scribe` (curate) + each agent (append own) | Each agent owns their own memory file; scribe curates `team-knowledge.md` |
-| `.claude/agents/**` | `record-me-principal` (review) + each agent (self-edit) | Agents propose self-improvement edits; principal reviews before merge |
+| Domain                                                      | Owner                                                   | Enforcement                                                                          |
+| ----------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `apps/web/src/app/**` · `apps/web/src/components/**`        | `record-me-sr-frontend`                                 | Gatekeeper rejects cross-owner edits unless task is `[cross-cutting]`                |
+| `packages/ui/**`                                            | `record-me-sr-frontend`                                 | Same                                                                                 |
+| `packages/recorder/**`                                      | `record-me-staff`                                       | Gatekeeper rejects edits from sr-frontend; recorder changes always need staff review |
+| `packages/config/**` · `turbo.json` · `pnpm-workspace.yaml` | `record-me-staff`                                       | Cross-cutting, never an impl's by-the-way edit                                       |
+| `apps/web/tests/e2e/**`                                     | `record-me-e2e`                                         | E2E specs only authored by e2e agent (impls request them via `[e2e]` tag)            |
+| `docs/**` · `CLAUDE.md` · `AGENTS.md`                       | `record-me-scribe`                                      | Impls flag doc updates needed; scribe authors them post-merge                        |
+| `.claude/memory/**`                                         | `record-me-scribe` (curate) + each agent (append own)   | Each agent owns their own memory file; scribe curates `team-knowledge.md`            |
+| `.claude/agents/**`                                         | `record-me-principal` (review) + each agent (self-edit) | Agents propose self-improvement edits; principal reviews before merge                |
 
 ### 11.5 `/spawn-record-me-team` dispatch loop
 
@@ -575,20 +596,46 @@ Mirrors `/spawn-mesago-team` exactly (Steps 1–8: plan picker → preflight →
   "env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" },
   "permissions": {
     "allow": [
-      "Bash(pnpm:*)", "Bash(git status:*)", "Bash(git diff:*)", "Bash(git log:*)",
-      "Bash(git branch:*)", "Bash(git stash:*)", "Bash(gh:*)", "Bash(ls:*)",
-      "Bash(find:*)", "Bash(grep:*)", "Bash(wc:*)", "Bash(cat:*)", "Bash(head:*)",
-      "Bash(tail:*)", "Bash(diff:*)", "Bash(echo:*)", "Bash(test:*)",
-      "Bash(npx playwright:*)", "Bash(npx lhci:*)",
-      "Read", "Write", "Edit", "Glob", "Grep", "WebSearch"
+      "Bash(pnpm:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git stash:*)",
+      "Bash(gh:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(wc:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(diff:*)",
+      "Bash(echo:*)",
+      "Bash(test:*)",
+      "Bash(npx playwright:*)",
+      "Bash(npx lhci:*)",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "WebSearch"
     ],
     "deny": []
   },
   "hooks": {
-    "SessionStart": [{
-      "matcher": "*",
-      "hooks": [{ "type": "command", "command": "test -f .claude/commands/spawn-record-me-team.md && test -f .claude/team-reminder.txt && cat .claude/team-reminder.txt" }]
-    }]
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "test -f .claude/commands/spawn-record-me-team.md && test -f .claude/team-reminder.txt && cat .claude/team-reminder.txt"
+          }
+        ]
+      }
+    ]
   }
 }
 ```
@@ -632,12 +679,12 @@ Mirrors `/spawn-mesago-team` exactly (Steps 1–8: plan picker → preflight →
 
 ## 13 · Testing strategy
 
-| Layer | Tool | Scope | Where |
-| --- | --- | --- | --- |
-| Unit | Vitest + jsdom | `@record-me/recorder` headless with MediaStream/MediaRecorder mocks · `@record-me/ui` primitives | `packages/*/src/**/*.test.ts(x)` |
-| Integration | Vitest + jsdom + React Testing Library | `useRecorder` hook · key page components with mocked recorder | `apps/web/src/**/*.test.tsx` |
-| E2E | Playwright | One smoke flow per mode · Lighthouse on `/` and `/record` | `apps/web/tests/e2e/**` |
-| Visual | Playwright MCP | Per-task ad-hoc verification by sr-frontend / e2e | (manual via /verify or /run) |
+| Layer       | Tool                                   | Scope                                                                                            | Where                            |
+| ----------- | -------------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------- |
+| Unit        | Vitest + jsdom                         | `@record-me/recorder` headless with MediaStream/MediaRecorder mocks · `@record-me/ui` primitives | `packages/*/src/**/*.test.ts(x)` |
+| Integration | Vitest + jsdom + React Testing Library | `useRecorder` hook · key page components with mocked recorder                                    | `apps/web/src/**/*.test.tsx`     |
+| E2E         | Playwright                             | One smoke flow per mode · Lighthouse on `/` and `/record`                                        | `apps/web/tests/e2e/**`          |
+| Visual      | Playwright MCP                         | Per-task ad-hoc verification by sr-frontend / e2e                                                | (manual via /verify or /run)     |
 
 **Mock strategy** for recorder: Vitest setup file replaces `window.MediaRecorder`, `navigator.mediaDevices.getDisplayMedia`, and `navigator.mediaDevices.getUserMedia` with controllable fakes. Each test asserts state transitions and final Blob shape.
 
@@ -647,14 +694,14 @@ Mirrors `/spawn-mesago-team` exactly (Steps 1–8: plan picker → preflight →
 
 Every error becomes a calm, editorial UI state. Never a console trace surfaced to the user.
 
-| Failure | UI response | Analytics |
-| --- | --- | --- |
-| Permission denied (screen / camera / mic) | "We need [kind] access to record this mode" + "Try again" affordance | `permission_denied { kind }` |
+| Failure                                              | UI response                                                                                      | Analytics                                     |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------- |
+| Permission denied (screen / camera / mic)            | "We need [kind] access to record this mode" + "Try again" affordance                             | `permission_denied { kind }`                  |
 | Browser missing `MediaRecorder` or `getDisplayMedia` | "Your browser doesn't support this. Try Chrome, Edge, Firefox, or Arc." + supported browser list | `browser_unsupported { feature, ua_browser }` |
-| Track failure mid-recording | Keep what we have · "Save partial recording" + "Start over" | `recording_stopped` with partial flag |
-| Memory pressure (chunk count threshold) | Calm banner above the studio: "Recording is getting long. We recommend stopping soon." | (logged only) |
-| IndexedDB write failure (long-recording mode) | Fall back to in-memory with explicit warning toast | (logged only) |
-| Unsupported recording cap on this device | Cap select disables options that exceed estimated safe memory budget for the user agent | (none) |
+| Track failure mid-recording                          | Keep what we have · "Save partial recording" + "Start over"                                      | `recording_stopped` with partial flag         |
+| Memory pressure (chunk count threshold)              | Calm banner above the studio: "Recording is getting long. We recommend stopping soon."           | (logged only)                                 |
+| IndexedDB write failure (long-recording mode)        | Fall back to in-memory with explicit warning toast                                               | (logged only)                                 |
+| Unsupported recording cap on this device             | Cap select disables options that exceed estimated safe memory budget for the user agent          | (none)                                        |
 
 ---
 
@@ -675,27 +722,27 @@ Codified in `docs/SECURITY.md` and surfaced verbatim on `/privacy`:
 
 Where v2 features plug in without rewriting v1:
 
-| v2 feature | v1 hook point |
-| --- | --- |
+| v2 feature                                           | v1 hook point                                                                                                                                                |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Filters · AR backgrounds · blur · custom backgrounds | `packages/recorder` composites in canvas. Insert a `FilterPipeline` step between source draw and PiP overlay. Pipeline contract: `(ImageData) => ImageData`. |
-| Cropping / post-recording editor | New `apps/web/src/app/record/edit/page.tsx` route + new `@record-me/editor` package. Re-encode via ffmpeg.wasm. |
-| Cursor highlights for any captured surface | Companion Chrome extension at `apps/extension`. Coordinates fed back via `chrome.runtime` messaging. |
-| Cloud share links | New `apps/web/src/app/api/share/route.ts` + Vercel Blob (24h expiry cron via `vercel.ts`). |
-| User accounts + recording history | Clerk (Vercel Marketplace) at the layout boundary; existing routes unaffected. |
-| OffscreenCanvas/Worker compositing | Move canvas + render loop into a Web Worker; recorder package surface unchanged. |
-| Mobile | Mode C (camera only) works on mobile out of the box; Mode A/B require platform helpers — out of v2 scope. |
+| Cropping / post-recording editor                     | New `apps/web/src/app/record/edit/page.tsx` route + new `@record-me/editor` package. Re-encode via ffmpeg.wasm.                                              |
+| Cursor highlights for any captured surface           | Companion Chrome extension at `apps/extension`. Coordinates fed back via `chrome.runtime` messaging.                                                         |
+| Cloud share links                                    | New `apps/web/src/app/api/share/route.ts` + Vercel Blob (24h expiry cron via `vercel.ts`).                                                                   |
+| User accounts + recording history                    | Clerk (Vercel Marketplace) at the layout boundary; existing routes unaffected.                                                                               |
+| OffscreenCanvas/Worker compositing                   | Move canvas + render loop into a Web Worker; recorder package surface unchanged.                                                                             |
+| Mobile                                               | Mode C (camera only) works on mobile out of the box; Mode A/B require platform helpers — out of v2 scope.                                                    |
 
 ---
 
 ## 17 · Open risks
 
-| Risk | Mitigation |
-| --- | --- |
-| MP4 via MediaRecorder is recent — older Chromium / Firefox versions silently fall back to WebM | Document in `/docs/codecs`; track `mime_type` in `recording_downloaded` event to see real distribution |
-| IndexedDB write performance varies by device — long recordings on low-spec machines may stutter | Cap option disables values that exceed safe estimated budget; live memory indicator gives user a heads-up |
-| Safari `getDisplayMedia` UX differs from Chromium | `probeCapabilities()` surfaces this; `/docs/safari` page documents known differences |
-| Landing-page motion budget vs. CWV target | Motion only via transform/opacity; LCP element renders without waiting on JS; `motion` bundle stays < 50 KB gzip; Lighthouse CI blocks regressions |
-| Agent self-edits to `.claude/agents/*.md` could regress quality if unreviewed | Principal reviews every self-edit before merge; `/agent-distill` runs principal-supervised |
+| Risk                                                                                            | Mitigation                                                                                                                                         |
+| ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MP4 via MediaRecorder is recent — older Chromium / Firefox versions silently fall back to WebM  | Document in `/docs/codecs`; track `mime_type` in `recording_downloaded` event to see real distribution                                             |
+| IndexedDB write performance varies by device — long recordings on low-spec machines may stutter | Cap option disables values that exceed safe estimated budget; live memory indicator gives user a heads-up                                          |
+| Safari `getDisplayMedia` UX differs from Chromium                                               | `probeCapabilities()` surfaces this; `/docs/safari` page documents known differences                                                               |
+| Landing-page motion budget vs. CWV target                                                       | Motion only via transform/opacity; LCP element renders without waiting on JS; `motion` bundle stays < 50 KB gzip; Lighthouse CI blocks regressions |
+| Agent self-edits to `.claude/agents/*.md` could regress quality if unreviewed                   | Principal reviews every self-edit before merge; `/agent-distill` runs principal-supervised                                                         |
 
 ---
 
@@ -741,7 +788,7 @@ Implementation steps (owned by `record-me-staff` in the bootstrap plan):
      --homepage "https://record-me.app" \
      --license MIT
    ```
-   *(Substitute the actual homepage once the Vercel domain is decided. If MIT LICENSE was already committed locally, omit `--license MIT` to avoid the conflict.)*
+   _(Substitute the actual homepage once the Vercel domain is decided. If MIT LICENSE was already committed locally, omit `--license MIT` to avoid the conflict.)_
 3. Link as origin and push:
    ```bash
    git remote add origin git@github.com:<owner>/record-me.git
@@ -760,7 +807,7 @@ Implementation steps (owned by `record-me-staff` in the bootstrap plan):
 
 **Required structure** (sr-frontend authors, principal reviews; lives at `/README.md`):
 
-```markdown
+````markdown
 # record me
 
 > An editorial recording instrument that lives in your browser.
@@ -771,9 +818,10 @@ Implementation steps (owned by `record-me-staff` in the bootstrap plan):
 [![Vercel](https://img.shields.io/badge/deployed%20on-Vercel-0F1115?style=flat-square)](https://vercel.com)
 
 <!-- Hero preview · 1200×630 PNG · generated during build from /opengraph-image.tsx -->
-![record me — the studio](./apps/web/public/og/hero.png)
-<!-- If the static file isn't present at README render time, swap to a `next/image` of the live OG endpoint -->
 
+![record me — the studio](./apps/web/public/og/hero.png)
+
+<!-- If the static file isn't present at README render time, swap to a `next/image` of the live OG endpoint -->
 
 A quietly editorial screen recorder for the web. Press record, capture your screen,
 your camera, and your cursor — render a polished clip in the browser. No accounts,
@@ -803,6 +851,7 @@ pnpm test         # vitest
 pnpm test:e2e     # playwright
 pnpm build        # production build
 ```
+````
 
 ## Project structure
 
@@ -836,6 +885,7 @@ MIT — see [LICENSE](LICENSE).
 ---
 
 Built in the open. Composed in Brooklyn &amp; Manila. Printed by Vercel.
+
 ```
 
 ### 19.3 GitHub About description
@@ -870,3 +920,4 @@ Tag the repo with: `screen-recorder`, `video-recording`, `nextjs`, `vercel`, `re
   - `design-4-system-team-quality.html` — tokens + team + gates + privacy + v2 hooks
 - MesaGo reference (pattern source): `~/personal/food-delivery-app/.claude/`
 - Superpowers `writing-plans` skill — next step after spec sign-off
+```

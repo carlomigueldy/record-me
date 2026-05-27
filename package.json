@@ -2,6 +2,7 @@
   "name": "record-me",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "An editorial, browser-native recorder. Screen, camera, cursor. No accounts, no upload.",
   "packageManager": "pnpm@9.15.0",
   "engines": {
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@lhci/cli": "^0.14.0",
+    "@record-me/config": "workspace:*",
     "lefthook": "^1.8.0",
     "prettier": "^3.4.0",
     "turbo": "^2.3.0",
