@@ -3,17 +3,18 @@
 Living document mirroring GitHub phase epic issue state. Scribe updates this
 after every approved task.
 
-## Phase 1 · Bootstrap & Harness · in progress
+## Phase 1 · Bootstrap & Harness · complete
 
 Plan: `docs/superpowers/plans/2026-05-28-record-me-phase-1-bootstrap.md`
-Epic: #1 (created in Task 41)
+Epic: #1 (closed)
+Completed: 2026-05-28
 
 - [x] Section A · Monorepo skeleton (Tasks 1–8)
 - [x] Section B · Tooling (Tasks 9–14)
 - [x] Section C · Agent harness (Tasks 15–28)
 - [x] Section D · Documentation (Tasks 29–35)
 - [x] Section E · GitHub workflow surfaces (Tasks 36–40)
-- [ ] Section F · Repository creation + deployment (Tasks 41–43)
+- [x] Section F · Repository creation + deployment (Tasks 41–43)
 
 ## Phase 2 · Design system & brand primitives · planned
 
