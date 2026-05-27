@@ -1,0 +1,17 @@
+record-me shipping team is available for plan-driven feature work.
+
+  Spawn the team:   /spawn-record-me-team
+  Write a plan:     superpowers:writing-plans
+  Team blueprint:   .claude/teams/record-me-shipping.md
+  Full spec:        docs/superpowers/specs/2026-05-27-record-me-design.md
+
+The team has 6 specialists (sr-frontend, staff, gatekeeper, scribe, e2e, principal)
+that iterate until the reviewer clears CRITICAL+MAJOR issues. Agents read their own
+memory at .claude/memory/ on session start; they append learnings after every task.
+
+GitHub issues mirror plan tasks (Phase 2+): the spawn command opens an issue per
+task, labels it, links it to the phase epic, and closes it on approval. Phase 1
+tracks via docs/PROGRESS.md only (chicken-and-egg).
+
+To silence this reminder for a session, override the SessionStart hook in
+.claude/settings.local.json (gitignored, user-specific).
