@@ -1,0 +1,22 @@
+name: Docs
+description: Missing, wrong, or unclear documentation
+title: '[docs] '
+labels: ['docs', 'triage']
+body:
+  - type: input
+    id: file
+    attributes:
+      label: Which doc?
+      placeholder: 'docs/RECORDING.md, README.md, etc.'
+    validations:
+      required: true
+  - type: textarea
+    id: gap
+    attributes:
+      label: What's wrong / missing?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Proposed update

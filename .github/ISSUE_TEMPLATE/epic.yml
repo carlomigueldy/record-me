@@ -1,0 +1,44 @@
+name: Phase epic
+description: Tracks an entire phase of the record-me roadmap. Used to group per-task issues opened by /spawn-record-me-team.
+title: '[epic] Phase N · '
+labels: ['epic', 'triage']
+body:
+  - type: input
+    id: phase
+    attributes:
+      label: Phase number
+      placeholder: '1, 2, 3, 4, 5, or 6'
+    validations:
+      required: true
+  - type: input
+    id: plan
+    attributes:
+      label: Plan path
+      placeholder: 'docs/superpowers/plans/YYYY-MM-DD-record-me-phase-N-<name>.md'
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: Phase goal
+      description: One sentence — what does this phase ship?
+    validations:
+      required: true
+  - type: textarea
+    id: checklist
+    attributes:
+      label: Milestones
+      description: High-level checklist mirrored from PROGRESS.md. /spawn-record-me-team opens detail-level issues under this epic.
+      value: |
+        - [ ] Section A · ...
+        - [ ] Section B · ...
+        - [ ] Section C · ...
+    validations:
+      required: true
+  - type: textarea
+    id: success
+    attributes:
+      label: Definition of done
+      description: How will we know this phase is complete?
+    validations:
+      required: true

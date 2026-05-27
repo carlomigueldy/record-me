@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/carlomigueldy/record-me/security/advisories/new
+    about: Please report security issues privately via Security Advisories, not public issues.
+  - name: Documentation
+    url: https://github.com/carlomigueldy/record-me/tree/main/docs
+    about: Browse the project documentation.

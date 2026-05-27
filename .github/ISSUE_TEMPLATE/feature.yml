@@ -1,0 +1,39 @@
+name: Feature request
+description: Propose a new capability or improvement
+title: '[feature] '
+labels: ['feature', 'triage']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the user pain. Not the proposed solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How would you address the problem? Sketch the UX or API.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What else did you think about and reject? Why?
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - 'v1 — should ship before launch'
+        - 'v2 — post-launch enhancement'
+        - 'Exploratory — needs research first'
+    validations:
+      required: true
+  - type: textarea
+    id: spec-touch
+    attributes:
+      label: Spec impact
+      description: Which sections of docs/superpowers/specs/2026-05-27-record-me-design.md would change?

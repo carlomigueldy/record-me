@@ -1,0 +1,23 @@
+name: Chore
+description: Maintenance, refactoring, dependency bumps, or other internal work
+title: '[chore] '
+labels: ['chore', 'triage']
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What needs doing?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why now?
+      description: Why is this worth a maintenance cycle?
+    validations:
+      required: true
+  - type: textarea
+    id: affected
+    attributes:
+      label: Affected files / areas
+      placeholder: 'packages/recorder/src/*, turbo.json, ...'

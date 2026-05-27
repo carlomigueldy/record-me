@@ -1,0 +1,61 @@
+name: Bug report
+description: Something is broken or behaving unexpectedly
+title: '[bug] '
+labels: ['bug', 'triage']
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear, factual description of the bug.
+      placeholder: 'When I clicked Start Recording in Mode A, the camera permission dialog never appeared.'
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Step-by-step. Include the route, the mode, and any input.
+      value: |
+        1. Open https://record-me.app/record
+        2. Pick Mode A
+        3. Click "Start recording"
+        4. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser + version
+      placeholder: 'Chrome 135 / Firefox 132 / Safari 17.4'
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS + version
+      placeholder: 'macOS 14.6 / Windows 11 / Ubuntu 24.04'
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: Console output
+      description: Paste any relevant browser console errors. Redact PII.
+      render: shell
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - 'Blocking — feature unusable'
+        - 'Major — degraded experience'
+        - 'Minor — cosmetic / inconvenient'
+    validations:
+      required: true
