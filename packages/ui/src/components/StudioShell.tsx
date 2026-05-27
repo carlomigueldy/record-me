@@ -25,7 +25,7 @@ export const StudioShell = React.forwardRef<HTMLElement, StudioShellProps>(
         <div className="relative flex-1 bg-bg">{children}</div>
 
         {footer ? (
-          <footer className="flex items-center justify-between gap-4 border-t border-line-soft bg-surface px-4 py-3 text-xs text-ivory-mut">
+          <footer className="flex items-center justify-between gap-4 border-t border-line-soft bg-surface px-4 py-3 text-xs text-ivory-dim">
             {footer}
           </footer>
         ) : null}

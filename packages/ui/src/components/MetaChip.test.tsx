@@ -16,10 +16,14 @@ describe('MetaChip', () => {
     expect(chip.className).toMatch(/tracking-wider/);
   });
 
-  it('defaults to the muted tone', () => {
+  it('defaults to the muted tone (ivory-dim for WCAG AA contrast on bg)', () => {
     const { container } = render(<MetaChip>x</MetaChip>);
     const chip = container.firstChild as HTMLElement;
-    expect(chip.className).toMatch(/text-ivory-mut/);
+    // ivory-dim (#B5AFA2) gives ~8.2:1 contrast on --bg (#0F1115) — passes WCAG AAA.
+    // ivory-mut (#7A766D) was tried first but yields ~4.0:1 — fails AA's 4.5:1 floor
+    // for the 10px text used in MetaChip.
+    expect(chip.className).toMatch(/text-ivory-dim/);
+    expect(chip.className).not.toMatch(/text-ivory-mut/);
   });
 
   it('supports amber, success, and danger tones', () => {

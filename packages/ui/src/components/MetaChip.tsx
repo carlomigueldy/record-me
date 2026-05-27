@@ -11,7 +11,7 @@ const metaChipVariants = cva(
   {
     variants: {
       tone: {
-        muted: 'text-ivory-mut bg-transparent',
+        muted: 'text-ivory-dim bg-transparent',
         amber: 'text-amber bg-amber/5 border-amber/30',
         success: 'text-success bg-success/5 border-success/30',
         danger: 'text-danger bg-danger/5 border-danger/30',
