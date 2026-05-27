@@ -59,7 +59,7 @@ See docs/PROGRESS.md "Phase ${num}" section. This epic mirrors that checklist.
 
 ## Definition of done
 
-All milestones checked, all per-task issues closed via /spawn-record-me-team's review loop, PR merged, docs updated.
+All milestones checked, all per-task issues closed via the /spawn-record-me-team review loop, PR merged, docs updated.
 EOF
 )
 
