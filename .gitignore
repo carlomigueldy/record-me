@@ -13,3 +13,6 @@ test-results/
 dist/
 .claude/settings.local.json
 .claude/worktrees/
+.claude/teams/record-me-shipping-*
+.playwright-mcp/
+/phase-2-*.png
