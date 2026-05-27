@@ -1,0 +1,11 @@
+/*
+ * @record-me/ui · Twilight design tokens
+ * Phase 1 placeholder. Phase 2 populates with the full token set per
+ * docs/superpowers/specs/2026-05-27-record-me-design.md § 9.1.
+ */
+
+:root {
+  --bg: #0f1115;
+  --ivory: #ede6d6;
+  --amber: #e5a24a;
+}
