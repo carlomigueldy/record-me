@@ -5,3 +5,4 @@ export { WordMark, type WordMarkProps } from './components/WordMark';
 export { MetaChip, type MetaChipProps } from './components/MetaChip';
 export { RecDot, type RecDotProps } from './components/RecDot';
 export { ModeCard, type ModeCardProps } from './components/ModeCard';
+export { StudioShell, type StudioShellProps } from './components/StudioShell';
