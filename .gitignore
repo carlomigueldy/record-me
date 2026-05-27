@@ -12,3 +12,4 @@ test-results/
 *.tsbuildinfo
 dist/
 .claude/settings.local.json
+.claude/worktrees/

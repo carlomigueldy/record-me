@@ -8,11 +8,11 @@ after every approved task.
 Plan: `docs/superpowers/plans/2026-05-28-record-me-phase-1-bootstrap.md`
 Epic: #1 (created in Task 41)
 
-- [ ] Section A · Monorepo skeleton (Tasks 1–8)
-- [ ] Section B · Tooling (Tasks 9–14)
-- [ ] Section C · Agent harness (Tasks 15–28)
-- [ ] Section D · Documentation (Tasks 29–35)
-- [ ] Section E · GitHub workflow surfaces (Tasks 36–40)
+- [x] Section A · Monorepo skeleton (Tasks 1–8)
+- [x] Section B · Tooling (Tasks 9–14)
+- [x] Section C · Agent harness (Tasks 15–28)
+- [x] Section D · Documentation (Tasks 29–35)
+- [x] Section E · GitHub workflow surfaces (Tasks 36–40)
 - [ ] Section F · Repository creation + deployment (Tasks 41–43)
 
 ## Phase 2 · Design system & brand primitives · planned
