@@ -16,16 +16,17 @@ Completed: 2026-05-28
 - [x] Section E · GitHub workflow surfaces (Tasks 36–40)
 - [x] Section F · Repository creation + deployment (Tasks 41–43)
 
-## Phase 2 · Design system & brand primitives · planned
+## Phase 2 · Design system & brand primitives · complete
 
-Plan: (to be written)
-Epic: #2
+Plan: `docs/superpowers/plans/2026-05-28-record-me-phase-2-design-system.md`
+Epic: #2 (closed)
+Completed: 2026-05-28
 
-- [ ] Tailwind v4 preset extended with full token set
-- [ ] shadcn/ui components installed in `@record-me/ui`
-- [ ] Brand primitives: RecDot, ModeCard, StudioShell, MetaChip, WordMark
-- [ ] Unit tests for brand primitives
-- [ ] Storybook-free visual verification via Playwright MCP
+- [x] Tailwind v4 preset extended with full token set
+- [x] shadcn/ui components installed in `@record-me/ui` (Button baseline)
+- [x] Brand primitives: RecDot, ModeCard, StudioShell, MetaChip, WordMark
+- [x] Unit tests for brand primitives
+- [x] Storybook-free visual verification via Playwright MCP
 
 ## Phase 3 · Recording engine · planned
 

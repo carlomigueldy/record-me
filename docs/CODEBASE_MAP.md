@@ -2,21 +2,39 @@
 
 Auto-maintained by `/agent-checkpoint` (run weekly or after major merges).
 
-Last regenerated: 2026-05-28 (Phase 1 bootstrap)
+Last regenerated: 2026-05-28 (Phase 2 design system)
 
 ## record-me-sr-frontend
 
-### apps/web/src (Phase 1: placeholders)
+### apps/web/src
 
-- `app/layout.tsx`
-- `app/page.tsx`
-- `app/record/page.tsx`
-- `app/globals.css`
+- `app/layout.tsx` — root layout, next/font wiring (Instrument Serif, Geist, Geist Mono)
+- `app/page.tsx` — home page scaffold (Phase 5 replaces with editorial landing)
+- `app/globals.css` — CSS imports: tokens → tailwindcss → theme
+- `app/record/page.tsx` — /record placeholder
+- `app/dev/layout.tsx` — dev-only layout (404 in production)
+- `app/dev/primitives/page.tsx` — brand primitives showcase
 
-### packages/ui/src (Phase 1: scaffold only)
+### packages/ui/src
 
-- `index.ts`
-- `tokens.css`
+- `index.ts` — public surface re-exports
+- `tokens.css` — Twilight design tokens (canonical CSS vars + keyframes)
+- `lib/cn.ts` — clsx + tailwind-merge helper
+- `lib/cn.test.ts` — unit tests for cn()
+- `components/Button.tsx` — shadcn Button (Twilight CVA)
+- `components/Button.test.tsx` — unit tests
+- `components/WordMark.tsx` — brand wordmark
+- `components/WordMark.test.tsx` — unit tests
+- `components/MetaChip.tsx` — mono metadata pill
+- `components/MetaChip.test.tsx` — unit tests
+- `components/RecDot.tsx` — recording indicator
+- `components/RecDot.test.tsx` — unit tests
+- `components/ModeCard.tsx` — triptych card
+- `components/ModeCard.test.tsx` — unit tests
+- `components/StudioShell.tsx` — recording surface frame
+- `components/StudioShell.test.tsx` — unit tests
+- `test/setup.ts` — jest-dom matcher setup
+- `../vitest.config.ts` — vitest jsdom + RTL config
 
 ## record-me-staff
 
@@ -32,8 +50,7 @@ Last regenerated: 2026-05-28 (Phase 1 bootstrap)
 - `tsconfig/package.json`
 - `eslint/index.js`
 - `prettier/index.js`
-- `tailwind/preset.ts`
-- `tailwind/theme.css`
+- `tailwind/theme.css` — Tailwind v4 @theme block (references vars from tokens.css)
 
 ### Root configs
 
