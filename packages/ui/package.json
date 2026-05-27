@@ -13,8 +13,8 @@
     "build": "echo 'no-op (consumed as source)'",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test": "vitest run --passWithNoTests",
-    "clean": "rm -rf .turbo dist"
+    "test": "vitest run --coverage --passWithNoTests",
+    "clean": "rm -rf .turbo dist coverage"
   },
   "dependencies": {
     "@record-me/config": "workspace:*"
