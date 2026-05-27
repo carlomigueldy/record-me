@@ -1,11 +1,62 @@
 /*
  * @record-me/ui · Twilight design tokens
- * Phase 1 placeholder. Phase 2 populates with the full token set per
- * docs/superpowers/specs/2026-05-27-record-me-design.md § 9.1.
+ * Canonical source for the design system per
+ * docs/superpowers/specs/2026-05-27-record-me-design.md § 9.1
+ *
+ * Naming convention is spec-faithful: --bg, --ivory, --amber, etc.
+ * Tailwind utility names (bg-bg, text-ivory) are wired by
+ * @record-me/config/tailwind/theme.css which references these vars
+ * via @theme { --color-bg: var(--bg); ... }
  */
 
 :root {
+  /* Surface */
   --bg: #0f1115;
+  --bg-2: #12151b;
+  --surface: #171b22;
+  --surface-2: #1f242c;
+  --line: #262c36;
+  --line-soft: #1b2028;
+
+  /* Ink */
   --ivory: #ede6d6;
+  --ivory-dim: #b5afa2;
+  --ivory-mut: #7a766d;
+  --ivory-low: #54514a;
+
+  /* Signal & state */
   --amber: #e5a24a;
+  --amber-hi: #f1b768;
+  --amber-lo: #c88a38;
+  --success: #9bb28f;
+  --danger: #c8675a;
+}
+
+/*
+ * Animations · brand-owned, used by RecDot and any future "live" indicators.
+ * Keyframes are always declared, but components reference them via Tailwind's
+ * `motion-safe:` modifier so users with `prefers-reduced-motion: reduce`
+ * see a still indicator (the dot remains visible — only the motion is paused).
+ */
+@keyframes record-me-rec-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.92);
+    opacity: 0.85;
+  }
+}
+
+@keyframes record-me-rec-halo {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
 }
