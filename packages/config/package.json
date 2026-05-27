@@ -9,7 +9,8 @@
     "./tsconfig/package.json": "./tsconfig/package.json",
     "./eslint": "./eslint/index.js",
     "./prettier": "./prettier/index.js",
-    "./tailwind/preset": "./tailwind/preset.ts"
+    "./tailwind/preset": "./tailwind/preset.ts",
+    "./tailwind/theme.css": "./tailwind/theme.css"
   },
   "scripts": {
     "typecheck": "echo 'no-op (config exports are typechecked by consumers)'",

@@ -24,6 +24,7 @@
   "devDependencies": {
     "@lhci/cli": "^0.14.0",
     "@record-me/config": "workspace:*",
+    "eslint": "^9.17.0",
     "lefthook": "^1.8.0",
     "prettier": "^3.4.0",
     "turbo": "^2.3.0",

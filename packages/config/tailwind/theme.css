@@ -1,0 +1,34 @@
+/*
+ * @record-me/config · Tailwind v4 theme tokens
+ * Maps the Twilight palette + Pairing A typography into Tailwind theme variables.
+ * Consumed by apps/web/src/app/globals.css via @import.
+ * Full token list in docs/superpowers/specs/2026-05-27-record-me-design.md § 9.1.
+ */
+
+@theme {
+  /* Surface */
+  --color-bg: #0f1115;
+  --color-bg-2: #12151b;
+  --color-surface: #171b22;
+  --color-surface-2: #1f242c;
+  --color-line: #262c36;
+  --color-line-soft: #1b2028;
+
+  /* Ink */
+  --color-ivory: #ede6d6;
+  --color-ivory-dim: #b5afa2;
+  --color-ivory-mut: #7a766d;
+  --color-ivory-low: #54514a;
+
+  /* Signal & state */
+  --color-amber: #e5a24a;
+  --color-amber-hi: #f1b768;
+  --color-amber-lo: #c88a38;
+  --color-success: #9bb28f;
+  --color-danger: #c8675a;
+
+  /* Typography (next/font assigns the actual families via CSS vars) */
+  --font-serif: var(--font-instrument-serif), 'Iowan Old Style', Georgia, serif;
+  --font-sans: var(--font-geist), -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+}
