@@ -1,13 +1,22 @@
+import { WordMark, MetaChip } from '@record-me/ui';
+
 export default function HomePage() {
   return (
-    <main style={{ padding: '64px 32px', maxWidth: 720, margin: '0 auto' }}>
-      <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 48, lineHeight: 1.05, margin: 0 }}>
-        record me
+    <main className="mx-auto flex max-w-2xl flex-col gap-8 px-6 py-24">
+      <h1 className="m-0">
+        <WordMark size="lg" />
       </h1>
-      <p style={{ marginTop: 16, color: '#B5AFA2', fontSize: 16, lineHeight: 1.6 }}>
-        Phase 1 scaffold. The editorial landing ships in Phase 5 per
-        docs/superpowers/specs/2026-05-27-record-me-design.md § 8.7.
+      <p className="max-w-prose text-base leading-relaxed text-ivory-dim">
+        Phase 2 scaffold. The editorial landing ships in Phase 5 per spec § 8.7. Until then, this
+        page proves the design system is wired: Twilight tokens, Instrument Serif headlines, Geist
+        body, Geist Mono for the technical bits.
       </p>
+      <div className="flex flex-wrap gap-2">
+        <MetaChip>twilight palette</MetaChip>
+        <MetaChip>instrument serif</MetaChip>
+        <MetaChip>geist · geist mono</MetaChip>
+        <MetaChip tone="amber">phase 2 live</MetaChip>
+      </div>
     </main>
   );
 }

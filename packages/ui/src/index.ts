@@ -1,4 +1,8 @@
 // @record-me/ui · public surface
-// Phase 1 scaffold. Components, tokens, brand primitives land in Phase 2.
-
-export const UI_PACKAGE_VERSION = '0.0.0';
+export { cn } from './lib/cn';
+export { Button, buttonVariants, type ButtonProps } from './components/Button';
+export { WordMark, type WordMarkProps } from './components/WordMark';
+export { MetaChip, type MetaChipProps } from './components/MetaChip';
+export { RecDot, type RecDotProps } from './components/RecDot';
+export { ModeCard, type ModeCardProps } from './components/ModeCard';
+export { StudioShell, type StudioShellProps } from './components/StudioShell';
