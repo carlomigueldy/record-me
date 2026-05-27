@@ -21,6 +21,7 @@ export const WordMark = React.forwardRef<HTMLSpanElement, WordMarkProps>(
     return (
       <span
         ref={ref}
+        role="img"
         aria-label="record me"
         className={cn(wordMarkVariants({ size }), className)}
         {...props}

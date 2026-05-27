@@ -3,9 +3,11 @@ import { render, screen } from '@testing-library/react';
 import { WordMark } from './WordMark';
 
 describe('WordMark', () => {
-  it('renders the wordmark with an accessible name', () => {
+  it('renders the wordmark as role=img with an accessible name (avoids aria-prohibited-attr)', () => {
     render(<WordMark />);
-    expect(screen.getByLabelText('record me')).toBeInTheDocument();
+    // role="img" makes `aria-label` ARIA-valid on this otherwise-generic element.
+    // Without the role, axe / Lighthouse flag aria-prohibited-attr.
+    expect(screen.getByRole('img', { name: 'record me' })).toBeInTheDocument();
   });
 
   it('renders "record" in roman and "me" in italic', () => {

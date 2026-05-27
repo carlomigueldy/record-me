@@ -3,7 +3,9 @@ import { WordMark, MetaChip } from '@record-me/ui';
 export default function HomePage() {
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-8 px-6 py-24">
-      <WordMark size="lg" />
+      <h1 className="m-0">
+        <WordMark size="lg" />
+      </h1>
       <p className="max-w-prose text-base leading-relaxed text-ivory-dim">
         Phase 2 scaffold. The editorial landing ships in Phase 5 per spec § 8.7. Until then, this
         page proves the design system is wired: Twilight tokens, Instrument Serif headlines, Geist
