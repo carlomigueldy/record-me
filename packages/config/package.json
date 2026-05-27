@@ -9,7 +9,6 @@
     "./tsconfig/package.json": "./tsconfig/package.json",
     "./eslint": "./eslint/index.js",
     "./prettier": "./prettier/index.js",
-    "./tailwind/preset": "./tailwind/preset.ts",
     "./tailwind/theme.css": "./tailwind/theme.css"
   },
   "scripts": {

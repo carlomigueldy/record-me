@@ -1,33 +1,34 @@
 /*
  * @record-me/config · Tailwind v4 theme tokens
  * Maps the Twilight palette + Pairing A typography into Tailwind theme variables.
- * Consumed by apps/web/src/app/globals.css via @import.
- * Full token list in docs/superpowers/specs/2026-05-27-record-me-design.md § 9.1.
+ * Single source of truth lives in @record-me/ui/tokens.css; this file references
+ * those vars via var(...) so we never duplicate hex values.
+ * Consumed by apps/web/src/app/globals.css. Full token list in spec § 9.1.
  */
 
 @theme {
   /* Surface */
-  --color-bg: #0f1115;
-  --color-bg-2: #12151b;
-  --color-surface: #171b22;
-  --color-surface-2: #1f242c;
-  --color-line: #262c36;
-  --color-line-soft: #1b2028;
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
 
   /* Ink */
-  --color-ivory: #ede6d6;
-  --color-ivory-dim: #b5afa2;
-  --color-ivory-mut: #7a766d;
-  --color-ivory-low: #54514a;
+  --color-ivory: var(--ivory);
+  --color-ivory-dim: var(--ivory-dim);
+  --color-ivory-mut: var(--ivory-mut);
+  --color-ivory-low: var(--ivory-low);
 
   /* Signal & state */
-  --color-amber: #e5a24a;
-  --color-amber-hi: #f1b768;
-  --color-amber-lo: #c88a38;
-  --color-success: #9bb28f;
-  --color-danger: #c8675a;
+  --color-amber: var(--amber);
+  --color-amber-hi: var(--amber-hi);
+  --color-amber-lo: var(--amber-lo);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
 
-  /* Typography (next/font assigns the actual families via CSS vars) */
+  /* Typography (next/font assigns the actual families via CSS vars on <html>) */
   --font-serif: var(--font-instrument-serif), 'Iowan Old Style', Georgia, serif;
   --font-sans: var(--font-geist), -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
