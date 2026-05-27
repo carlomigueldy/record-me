@@ -1,2 +1,3 @@
 // @record-me/ui · public surface
 export { cn } from './lib/cn';
+export { Button, buttonVariants, type ButtonProps } from './components/Button';
