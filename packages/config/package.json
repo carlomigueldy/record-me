@@ -1,0 +1,21 @@
+{
+  "name": "@record-me/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tsconfig/base.json": "./tsconfig/base.json",
+    "./tsconfig/next.json": "./tsconfig/next.json",
+    "./tsconfig/package.json": "./tsconfig/package.json",
+    "./eslint": "./eslint/index.js",
+    "./prettier": "./prettier/index.js",
+    "./tailwind/preset": "./tailwind/preset.ts"
+  },
+  "scripts": {
+    "typecheck": "echo 'no-op (config exports are typechecked by consumers)'",
+    "lint": "echo 'no-op'",
+    "test": "echo 'no-op'",
+    "build": "echo 'no-op'",
+    "clean": "rm -rf .turbo"
+  }
+}
