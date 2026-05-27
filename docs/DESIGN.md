@@ -63,14 +63,27 @@ theme maps these to `font-serif`, `font-sans`, `font-mono`.
 - `forwardRef` for any interactive primitive.
 - No hardcoded hex; use CSS variables exclusively.
 
-## Brand primitives (Phase 2)
+## Brand primitives
 
-| Component       | Location        | Purpose                              |
-| --------------- | --------------- | ------------------------------------ |
-| `<RecDot>`      | `@record-me/ui` | Pulsing amber recording indicator    |
-| `<ModeCard>`    | `@record-me/ui` | Triptych card with stage preview     |
-| `<StudioShell>` | `@record-me/ui` | Frame for the live recording surface |
-| `<MetaChip>`    | `@record-me/ui` | Mono uppercase metadata pill         |
-| `<WordMark>`    | `@record-me/ui` | "record _me_" wordmark with italic   |
+| Component       | Path                                         | Variants                                                                            |
+| --------------- | -------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `<WordMark>`    | `packages/ui/src/components/WordMark.tsx`    | `size: 'sm' \| 'md' \| 'lg'` (default `md`)                                         |
+| `<RecDot>`      | `packages/ui/src/components/RecDot.tsx`      | `size: 'sm' \| 'md' \| 'lg'`, `active?: boolean` (default `true`), `label?: string` |
+| `<MetaChip>`    | `packages/ui/src/components/MetaChip.tsx`    | `tone: 'muted' \| 'amber' \| 'success' \| 'danger'`                                 |
+| `<ModeCard>`    | `packages/ui/src/components/ModeCard.tsx`    | `accent?: boolean`; slots: `children` (stage), `footer`                             |
+| `<StudioShell>` | `packages/ui/src/components/StudioShell.tsx` | slots: `header`, `children` (stage), `footer`                                       |
 
-Implementations land in Phase 2. Phase 1 ships only the tokens.
+All primitives are React Server Components by default; `<Button>` opts into `'use client'` because of event handlers.
+
+## Interactive baseline
+
+| Component  | Path                                    | Variants                                                                                              |
+| ---------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `<Button>` | `packages/ui/src/components/Button.tsx` | `variant: 'primary' \| 'secondary' \| 'ghost'`, `size: 'sm' \| 'md' \| 'lg'`, `asChild?` (Radix Slot) |
+
+## Visual verification
+
+Use `/dev/primitives` (dev-only — returns 404 in production via the layout guard at
+`apps/web/src/app/dev/layout.tsx`) as the showcase canvas. Verify via Playwright MCP
+(`browser_navigate`, `browser_snapshot`, `browser_take_screenshot`, `browser_console_messages`)
+on every change to a primitive.
