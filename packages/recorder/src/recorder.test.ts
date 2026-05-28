@@ -394,4 +394,67 @@ describe('createRecorder · auto-stop and error surfaces', () => {
 
     handle.dispose();
   });
+
+  it('M5: chained dispose() preserves all prior IDB wipes in pendingCleanup', async () => {
+    // Regression guard. Two dispose() calls in succession (e.g. React
+    // StrictMode dev double-invoke) must NOT drop the first dispose's IDB
+    // wipe from the await chain. cleanupResources now chains rather than
+    // replaces pendingCleanup so start() awaits every prior wipe.
+    const handle = createRecorder({
+      mode: 'cam-only',
+      storage: 'indexeddb',
+      maxDurationMs: 60_000,
+    });
+    await handle.start();
+    // Emit a chunk and immediately double-dispose. Without M5, the 2nd
+    // dispose's pendingCleanup overwrites the 1st, and the 1st's clear()
+    // continues in the background instead of being awaited by the next
+    // start(). We can't observe the background promise directly, but a
+    // successful subsequent start() confirms the await chain held.
+    MockMediaRecorder.instances[0]!._emitChunk(64);
+    handle.dispose();
+    handle.dispose(); // double-dispose: must chain, not replace
+    expect(handle.state).toBe('idle');
+
+    // start() awaits internal.pendingCleanup before proceeding. If M5's
+    // chain works, the wait will encompass both dispose calls' wipes.
+    await handle.start();
+    expect(handle.state).toBe('recording');
+    handle.dispose();
+  });
+
+  it('M6: cross-session stale release() does not clobber a session-2 ready state', async () => {
+    // Regression guard. Scenario from principal review:
+    // 1. Session 1: start → stop → result1 (state=ready, store=S1)
+    // 2. dispose() (state=idle, store wiped)
+    // 3. Session 2: start → stop → result2 (state=ready, store=S2)
+    // 4. First-time call result1.release() — released starts at false.
+    // M4's state-only guard saw state==='ready' and clobbered session 2 to 'idle'.
+    // M6 requires the store-ownership check to gate the state transition too:
+    // if internal.store !== captured store, this release is stale and must
+    // not touch state.
+    const handle = createRecorder({ mode: 'cam-only' });
+    await handle.start();
+    const result1 = await handle.stop();
+    expect(handle.state).toBe('ready');
+
+    handle.dispose();
+    expect(handle.state).toBe('idle');
+
+    // Advance time so the second session's filename + start clock differ.
+    vi.setSystemTime(new Date('2026-05-28T12:00:00Z'));
+    await handle.start();
+    const result2 = await handle.stop();
+    expect(handle.state).toBe('ready'); // session 2's ready
+
+    // Stale release (first time for result1). M6 guard: internal.store now
+    // points at S2, captured store points at S1 — ownership mismatch.
+    await result1.release();
+    expect(handle.state).toBe('ready'); // NOT clobbered to 'idle'
+
+    // Cleanup session 2.
+    await result2.release();
+    expect(handle.state).toBe('idle');
+    handle.dispose();
+  });
 });

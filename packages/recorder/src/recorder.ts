@@ -156,14 +156,19 @@ export function createRecorder(opts: RecorderOptions): RecorderHandle {
     // docs/SECURITY.md). Tracked via pendingCleanup so a follow-up start()
     // can await the wipe before opening a new session DB.
     //
-    // IMPORTANT: drain in-flight appends FIRST. If a chunk's IDB transaction
-    // is mid-commit when we ask deleteDatabase() to run, the row briefly
-    // exists on disk before the delete proceeds. Awaiting the append-completion
-    // promises closes that cancel-mid-recording race (C2 from principal review).
+    // IMPORTANT (C2): drain in-flight appends FIRST so deleteDatabase doesn't
+    // race against a mid-commit append transaction.
+    //
+    // IMPORTANT (M5): CHAIN — don't replace — the prior pendingCleanup. A
+    // double-dispose (React StrictMode dev double-invoke, defensive caller)
+    // would otherwise drop the first wipe from the await chain, and start()
+    // would proceed with a detached (background-only) clear still in flight.
+    const prior = internal.pendingCleanup;
     const storeToWipe = internal.store;
     const appendsInFlight = [...internal.pendingAppends];
-    if (storeToWipe || appendsInFlight.length > 0) {
+    if (prior || storeToWipe || appendsInFlight.length > 0) {
       internal.pendingCleanup = (async () => {
+        if (prior) await prior;
         if (appendsInFlight.length > 0) {
           await Promise.allSettled(appendsInFlight);
         }
@@ -400,17 +405,17 @@ export function createRecorder(opts: RecorderOptions): RecorderHandle {
             /* c8 ignore next */
             // swallow; release() must not reject in normal flow
           }
-          // Only clear the store ref if we still own it. If a new session has
-          // already started (`internal.store` now points to a different
-          // ChunkStore), DO NOT touch internal — that's the new session's data.
+          // Ownership guard: only act on the recorder state if we still own
+          // it. The captured `store` is THIS release()'s session store. If
+          // it no longer matches `internal.store`, another session has taken
+          // over — this release is stale and must not touch internal state.
+          // The store-ref match IS the session-ownership signal. State guard
+          // alone (M4) was insufficient when the new session is also 'ready'
+          // (cross-session stale release, M6 from principal review).
           if (internal.store === store) {
             internal.store = undefined;
+            if (state === 'ready') setState('idle');
           }
-          // Only transition to idle if we're still in the post-stop 'ready'
-          // state. If the caller already started a new session (state is
-          // 'recording', 'paused', etc.), this stale release must not clobber
-          // the live state (M4 from principal review).
-          if (state === 'ready') setState('idle');
         },
       };
     },
