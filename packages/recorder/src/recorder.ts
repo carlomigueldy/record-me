@@ -37,6 +37,7 @@ interface InternalRecorderState {
   durationInterval: ReturnType<typeof setInterval> | undefined;
   autoStopTimeout: ReturnType<typeof setTimeout> | undefined;
   mimeType: string | undefined;
+  pendingAppends: Set<Promise<void>>;
 }
 
 export function createRecorder(opts: RecorderOptions): RecorderHandle {
@@ -65,6 +66,7 @@ export function createRecorder(opts: RecorderOptions): RecorderHandle {
     durationInterval: undefined,
     autoStopTimeout: undefined,
     mimeType: undefined,
+    pendingAppends: new Set(),
   };
 
   const setState = (next: RecorderState) => {
@@ -172,8 +174,12 @@ export function createRecorder(opts: RecorderOptions): RecorderHandle {
         videoBitsPerSecond: resolved.videoBitsPerSecond,
         timesliceMs: TIMESLICE_MS,
         onChunk: (chunk) => {
-          void internal.store?.append(chunk);
-          opts.onBytesTick?.(internal.store?.bytes ?? 0);
+          const store = internal.store;
+          if (!store) return;
+          const p = store.append(chunk);
+          internal.pendingAppends.add(p);
+          void p.finally(() => internal.pendingAppends.delete(p));
+          opts.onBytesTick?.(store.bytes);
         },
         onError: (err) => toError(err),
       });
@@ -234,6 +240,9 @@ export function createRecorder(opts: RecorderOptions): RecorderHandle {
       await internal.encoder?.stop();
       internal.composer?.stop();
       internal.highlights?.detach();
+
+      // Drain any in-flight async chunk appends (esp. IDB) before assembly.
+      await Promise.all([...internal.pendingAppends]);
 
       const mimeType = internal.mimeType ?? 'video/webm';
       const blob = (await internal.store?.assemble(mimeType)) ?? new Blob([], { type: mimeType });

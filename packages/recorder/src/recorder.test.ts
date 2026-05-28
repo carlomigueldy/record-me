@@ -196,8 +196,66 @@ describe('createRecorder · full lifecycle', () => {
     vi.advanceTimersByTime(500); // 500ms paused
     const result = await handle.stop();
     expect(handle.state).toBe('ready');
-    // durationMs should be near zero because the entire recording was paused.
     expect(result.durationMs).toBe(0);
+    handle.dispose();
+  });
+});
+
+describe('createRecorder · auto-stop and error surfaces', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({
+      toFake: [
+        'requestAnimationFrame',
+        'cancelAnimationFrame',
+        'performance',
+        'setInterval',
+        'clearInterval',
+        'setTimeout',
+        'clearTimeout',
+        'Date',
+      ],
+    });
+    vi.setSystemTime(new Date('2026-05-28T11:00:00Z'));
+    resetMediaDevices();
+    MockMediaRecorder.reset();
+    setUserMediaResponse({ kind: 'resolve', tracks: ['video', 'audio'] });
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('auto-stops 100ms before maxDurationMs', async () => {
+    const handle = createRecorder({ mode: 'cam-only', maxDurationMs: 5_000 });
+    await handle.start();
+    expect(handle.state).toBe('recording');
+
+    vi.advanceTimersByTime(4_900);
+    await flushAsync();
+    await flushAsync();
+    expect(['finalizing', 'ready']).toContain(handle.state);
+  });
+
+  it('onError fires when MediaRecorder emits error mid-recording', async () => {
+    const onError = vi.fn();
+    const handle = createRecorder({ mode: 'cam-only', onError });
+    await handle.start();
+    MockMediaRecorder.instances[0]!._emitError('UnknownError', 'kaboom');
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError.mock.calls[0]![0]).toMatchObject({ kind: 'recorder-failed' });
+    expect(handle.state).toBe('error');
+    handle.dispose();
+  });
+
+  it('storage strategy "indexeddb" uses IndexedDbChunkStore for assembly', async () => {
+    const handle = createRecorder({
+      mode: 'cam-only',
+      storage: 'indexeddb',
+      maxDurationMs: 60_000,
+    });
+    await handle.start();
+    MockMediaRecorder.instances[0]!._emitChunk(256);
+    MockMediaRecorder.instances[0]!._emitChunk(256);
+    const result = await handle.stop();
+    expect(result.blob.size).toBe(512);
+    result.release();
     handle.dispose();
   });
 });
