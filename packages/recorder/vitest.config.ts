@@ -4,19 +4,19 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    setupFiles: ['./src/test/setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
-      // Phase 1 baseline. Spec § 12 sets Phase 3+ targets at 90/90/85/90 —
-      // raise when the full recorder engine lands.
+      // Spec § 12.3 — recorder ≥ 90% on lines/functions/branches/statements.
       thresholds: {
         lines: 90,
         functions: 90,
-        branches: 50,
+        branches: 90,
         statements: 90,
       },
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts', 'src/**/*.d.ts'],
+      exclude: ['src/**/*.test.ts', 'src/**/*.d.ts', 'src/index.ts', 'src/test/**'],
     },
   },
 });
