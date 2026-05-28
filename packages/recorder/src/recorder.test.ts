@@ -258,4 +258,24 @@ describe('createRecorder · auto-stop and error surfaces', () => {
     result.release();
     handle.dispose();
   });
+
+  it('start() throws RecorderError(unsupported-browser) when no MIME type is supported', async () => {
+    MockMediaRecorder.supportedMimeTypes = new Set();
+    const onError = vi.fn();
+    const handle = createRecorder({ mode: 'cam-only', onError });
+    await expect(handle.start()).rejects.toMatchObject({ kind: 'unsupported-browser' });
+    expect(handle.state).toBe('error');
+    expect(onError).toHaveBeenCalledTimes(1);
+    handle.dispose();
+  });
+
+  it('start() throws RecorderError(invalid-state) when called while already recording', async () => {
+    const handle = createRecorder({ mode: 'cam-only' });
+    await handle.start();
+    await expect(handle.start()).rejects.toMatchObject({
+      kind: 'invalid-state',
+      message: expect.stringContaining('recording'),
+    });
+    handle.dispose();
+  });
 });
