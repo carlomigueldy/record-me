@@ -2,8 +2,8 @@
 import type { RecordMode, RecordingResolution } from './types';
 
 export interface ComposerLayers {
-  screen?: MediaStreamTrack;
-  camera?: MediaStreamTrack;
+  screen?: MediaStreamTrack | undefined;
+  camera?: MediaStreamTrack | undefined;
 }
 
 export interface ComposerOptions {

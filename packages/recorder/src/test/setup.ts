@@ -17,6 +17,18 @@ installMediaDevices();
 installCanvasMocks();
 installAudioContextGlobal();
 
+// jsdom omits URL.createObjectURL / revokeObjectURL — stub minimal versions so
+// recorder.stop() can produce a `blob:` URL for the RecordingResult.
+let blobUrlSeq = 0;
+if (typeof URL.createObjectURL !== 'function') {
+  URL.createObjectURL = (_blob: Blob | MediaSource): string => `blob:mock/${++blobUrlSeq}`;
+}
+if (typeof URL.revokeObjectURL !== 'function') {
+  URL.revokeObjectURL = (_url: string): void => {
+    /* no-op — tests assert on call presence, not effect */
+  };
+}
+
 beforeEach(() => {
   resetMediaDevices();
   MockMediaRecorder.reset();
