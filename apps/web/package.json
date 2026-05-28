@@ -11,7 +11,7 @@
     "lint": "next lint --dir src",
     "test": "vitest run --passWithNoTests",
     "test:e2e": "playwright test",
-    "preview:screenshots": "echo 'Manual capture flow. Steps:\\n  1. pnpm dev (root)\\n  2. Playwright MCP browser_navigate to http://localhost:3000/dev/previews/{landing,modes,studio}\\n  3. browser_resize { width: 1440, height: 900 }\\n  4. browser_evaluate document.fonts.ready\\n  5. browser_take_screenshot -> .github/assets/readme/{hero,modes,studio}.png\\n  6. pngquant --quality=80-95 --skip-if-larger --output <file> --force <file>\\n  7. Verify each PNG <= 350 KB. Commit. See docs/superpowers/specs/2026-05-28-readme-screenshots-design.md sec 3.2.'",
+    "preview:screenshots": "echo 'Manual capture flow. Steps:\\n  1. pnpm dev (root)\\n  2. Playwright MCP browser_navigate to http://localhost:3000/dev/previews/{landing,modes,studio}\\n  3. browser_resize { width: 1440, height: 900 }\\n  4. browser_evaluate document.fonts.ready\\n  5. browser_take_screenshot → .github/assets/readme/{hero,modes,studio}.png\\n  6. pngquant --quality=80-95 --skip-if-larger --output <file> --force <file>\\n  7. Verify each PNG <= 350 KB. Commit. See docs/superpowers/specs/2026-05-28-readme-screenshots-design.md § 3.2.'",
     "clean": "rm -rf .next .turbo node_modules"
   },
   "dependencies": {
