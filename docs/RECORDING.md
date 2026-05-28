@@ -3,24 +3,40 @@
 Authoritative reference for the `@record-me/recorder` engine. Source of truth
 for the contract: `docs/superpowers/specs/2026-05-27-record-me-design.md` § 7.
 
+## Module map
+
+| Module                                    | Responsibility                                                        |
+| ----------------------------------------- | --------------------------------------------------------------------- |
+| `src/index.ts`                            | Public re-exports                                                     |
+| `src/types.ts`                            | Public types (`RecorderOptions`, `RecorderHandle`, `RecordingResult`) |
+| `src/capabilities.ts`                     | `supportedMimeType()` + `probeCapabilities()` (MP4-first negotiation) |
+| `src/errors.ts`                           | `RecorderError` + DOMException → kind mapping                         |
+| `src/filename.ts`                         | `suggestedFilename(date, seq, mime)` builder                          |
+| `src/acquire.ts`                          | Per-mode track acquisition (A/B/C)                                    |
+| `src/composer.ts`                         | 2D canvas composer (RAF, screen full, cam PiP, square crop)           |
+| `src/cursor-highlights.ts`                | In-tab click ripples — drawn into composer's overlay slot             |
+| `src/encoder.ts`                          | `MediaRecorder` wrapper with chunk + error dispatch                   |
+| `src/storage/{memory,indexeddb,index}.ts` | Pluggable chunk stores + auto-strategy factory                        |
+| `src/recorder.ts`                         | `createRecorder()` state machine wiring everything                    |
+
 ## Five stages
 
 1. **Acquire** — `getDisplayMedia` and/or `getUserMedia` per mode.
 2. **Composite** — 2D canvas, `requestAnimationFrame` draws screen → cam PiP
    → cursor ripples.
-3. **Stream** — `canvas.captureStream(fps)` + `AudioContext` audio merge.
+3. **Stream** — `canvas.captureStream(fps)` + audio track from `getUserMedia`.
 4. **Encode** — `MediaRecorder` with negotiated mimeType, 30 fps, 4 Mbps,
    chunks every 1 s.
-5. **Deliver** — concat → Blob → object URL → anchor download → revoke URL.
+5. **Deliver** — concat chunks → `Blob` → object URL → `release()` revokes.
 
 ## State machine
 
 ```
 idle → requesting-permissions → recording ⇄ paused → finalizing → ready → idle
-                                                      ↘ error
+↘ error
 ```
 
-`error` is reachable from any state; recovery = reset + re-acquire.
+`error` is reachable from any state; recovery = `dispose()` then create a new recorder.
 
 ## Codec negotiation
 
@@ -35,16 +51,19 @@ MP4 first for universal playback (Safari, QuickTime, social platforms). MP4 via
 MediaRecorder is recent (Chrome / Firefox added it in 2024–2025); older browsers
 silently fall back to WebM — this is fine.
 
-## Caps + memory strategy
+## Storage strategy
 
-| `maxDurationMs` (cap) | Storage                           | Quality default             |
-| --------------------- | --------------------------------- | --------------------------- |
-| ≤ 10 min              | in-memory array                   | 1080p @ 4 Mbps              |
-| > 10 min, ≤ 30 min    | in-memory or IndexedDB (auto)     | 1080p @ 4 Mbps              |
-| ≥ 30 min              | IndexedDB spill                   | 720p @ 2 Mbps (overridable) |
-| > 10 min always       | UI shows warning at cap selection | —                           |
+| `maxDurationMs` (cap) | `strategy: 'auto'` resolves to | Notes                                                    |
+| --------------------- | ------------------------------ | -------------------------------------------------------- |
+| ≤ 10 min              | in-memory (`MemoryChunkStore`) | Default fast path                                        |
+| > 10 min              | `IndexedDbChunkStore`          | One DB per session; cleared on `release()` / `dispose()` |
 
 Hard cap: 60 min. Recorder auto-stops 100 ms before the cap.
+
+Explicit overrides:
+
+- `storage: 'memory'` — always in-memory regardless of cap
+- `storage: 'indexeddb'` — always spill regardless of cap
 
 ## Cursor highlights — honest scope
 
@@ -54,11 +73,27 @@ v2 will ship a Chrome extension for arbitrary-surface highlights.
 
 ## Public API
 
-See the TypeScript declarations in `packages/recorder/src/index.ts` (kept in
-sync with spec § 7.6).
+See the TypeScript declarations in `packages/recorder/src/types.ts` and the
+factory at `packages/recorder/src/recorder.ts`. The public surface is:
+
+- `createRecorder(opts: RecorderOptions): RecorderHandle`
+- `supportedMimeType(): string | null`
+- `probeCapabilities(): CapabilityReport`
+- `suggestedFilename(date, seq, mime): string`
+- `RecorderError` class + `RecorderErrorKind` union
 
 ## Testing
 
-Unit tests run in jsdom with `MediaRecorder` and `navigator.mediaDevices.*`
-mocked on `globalThis`. E2E tests use Chromium fake-device flags. See
-`docs/TESTING.md`.
+Unit tests run in jsdom with `MediaRecorder`, `MediaStream`,
+`navigator.mediaDevices`, `HTMLCanvasElement.{getContext, captureStream}`,
+and `AudioContext` mocked globally in `src/test/setup.ts`. IndexedDB uses
+`fake-indexeddb/auto`. Coverage gate is 90% lines / functions / branches /
+statements per spec § 12.3.
+
+### Testing gotcha: fake-indexeddb Blob polyfill
+
+`fake-indexeddb` shadows the global `Blob` with a polyfill missing `arrayBuffer()`.
+Our `IndexedDbChunkStore` serializes chunks as `ArrayBuffer` (via
+`FileReader.readAsArrayBuffer`) before storing and reconstructs `Blob` on
+assemble. Future code that needs to round-trip `Blob`s through IDB in tests
+needs the same workaround.

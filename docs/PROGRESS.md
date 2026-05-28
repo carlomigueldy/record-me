@@ -28,20 +28,21 @@ Completed: 2026-05-28
 - [x] Unit tests for brand primitives
 - [x] Storybook-free visual verification via Playwright MCP
 
-## Phase 3 · Recording engine · planned
+## Phase 3 · Recording engine · complete
 
-Plan: (to be written)
-Epic: #3
+Plan: `docs/superpowers/plans/2026-05-28-record-me-phase-3-recorder.md`
+Epic: #3 (closed)
+Completed: 2026-05-28
 
-- [ ] `supportedMimeType()` + `probeCapabilities()` (✓ scaffolded in Phase 1)
-- [ ] `createRecorder()` state machine
-- [ ] Track acquisition per mode (A/B/C)
-- [ ] Canvas compositing pipeline
-- [ ] Cursor highlight overlay (in-tab clicks)
-- [ ] MediaRecorder integration + codec negotiation
-- [ ] IndexedDB chunk spill for long recordings
-- [ ] Memory mode + RecordingResult assembly
-- [ ] 90%+ unit test coverage
+- [x] `supportedMimeType()` + `probeCapabilities()` (extracted into `capabilities.ts`)
+- [x] `createRecorder()` state machine
+- [x] Track acquisition per mode (A/B/C)
+- [x] Canvas compositing pipeline (RAF + per-mode layouts)
+- [x] Cursor highlight overlay (in-tab clicks)
+- [x] MediaRecorder integration + codec negotiation
+- [x] IndexedDB chunk spill for long recordings
+- [x] Memory mode + RecordingResult assembly
+- [x] 90%+ unit test coverage
 
 ## Phase 4 · Studio (/record) · planned
 
