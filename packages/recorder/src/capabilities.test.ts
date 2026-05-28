@@ -81,4 +81,19 @@ describe('probeCapabilities', () => {
     );
     expect(probeCapabilities().isMobile).toBe(true);
   });
+
+  it('returns hasGetDisplayMedia=false / hasGetUserMedia=false when navigator is undefined', () => {
+    const original = globalThis.navigator;
+    // @ts-expect-error force undefined for this test
+    delete globalThis.navigator;
+    try {
+      const report = probeCapabilities();
+      expect(report.hasGetDisplayMedia).toBe(false);
+      expect(report.hasGetUserMedia).toBe(false);
+      expect(report.isSafari).toBe(false);
+      expect(report.isMobile).toBe(false);
+    } finally {
+      Object.defineProperty(globalThis, 'navigator', { value: original, configurable: true });
+    }
+  });
 });
