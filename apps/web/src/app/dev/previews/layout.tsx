@@ -15,5 +15,13 @@ export const metadata: Metadata = {
 // scrollable for ad-hoc review; `bg-bg` ensures the parent's content is fully
 // obscured for clean captures.
 export default function PreviewsLayout({ children }: { children: React.ReactNode }) {
-  return <div className="fixed inset-0 z-50 overflow-auto bg-bg text-ivory">{children}</div>;
+  return (
+    <div className="fixed inset-0 z-50 overflow-auto bg-bg text-ivory">
+      {/* Hide the Next.js dev-mode build indicator (<nextjs-portal>) so it doesn't
+          pollute screenshot captures. Scoped to /dev/previews/* only — other dev
+          routes (e.g. /dev/primitives) keep the badge for normal dev ergonomics. */}
+      <style>{`nextjs-portal { display: none !important; }`}</style>
+      {children}
+    </div>
+  );
 }
