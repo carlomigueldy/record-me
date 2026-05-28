@@ -6,15 +6,25 @@
 [![Next.js](https://img.shields.io/badge/Next.js-15-0F1115?style=flat-square)](https://nextjs.org)
 [![Vercel](https://img.shields.io/badge/deployed%20on-Vercel-0F1115?style=flat-square)](https://vercel.com)
 
-<!-- Hero preview · 1200×630 PNG · generated during build from /opengraph-image.tsx -->
-<!-- ![record me — the studio](./apps/web/public/og/hero.png) -->
-<!-- If the static file isn't present yet, this image renders blank — it's added in Phase 5. -->
+<p align="center">
+  <img src=".github/assets/readme/hero.png"
+       alt="record me — editorial landing with WordMark, tagline, and primary CTA over a twilight backdrop"
+       width="900" />
+</p>
+
+> _Preview · The landing ships in Phase 5. Mockup rendered from real Twilight
+> tokens via [`/dev/previews/landing`](apps/web/src/app/dev/previews/landing/page.tsx)._
 
 A quietly editorial screen recorder for the web. Press record, capture your screen,
 your camera, and your cursor — render a polished clip in the browser. No accounts,
 no upload, no compromise on craft.
 
 ## Three modes
+
+![The three recording modes: Screen + Camera + Cursor, Screen + Cursor, and Camera only — each as an editorial ModeCard](.github/assets/readme/modes.png)
+
+> _The `ModeCard` primitive shipped in Phase 2. Composition previewed via
+> [`/dev/previews/modes`](apps/web/src/app/dev/previews/modes/page.tsx)._
 
 - **Screen + Camera + Cursor** — the full recital. Picture-in-picture camera, click highlights.
 - **Screen + Cursor** — just the work. Clean walk-throughs and demos.
@@ -28,6 +38,16 @@ no upload, no compromise on craft.
   Geist Mono for the technical bits. The studio is composed like a piece of furniture.
 - **Web-native.** Built on Next.js 15 App Router, deployed to Vercel. MediaRecorder +
   canvas compositing on the main thread. Zero install.
+
+## The studio
+
+![The studio surface: REC indicator, monospace timer, MB counter, live preview canvas, and stop/restart/download controls](.github/assets/readme/studio.png)
+
+A composed cockpit, not a control panel. REC dot, monospace timer, MB indicator,
+live canvas preview, and three quiet controls — stop, restart, download.
+
+> _Preview · The studio ships in Phase 4. Mockup rendered from real Twilight
+> tokens via [`/dev/previews/studio`](apps/web/src/app/dev/previews/studio/page.tsx)._
 
 ## Quick start
 

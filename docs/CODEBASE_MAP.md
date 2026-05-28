@@ -14,6 +14,10 @@ Last regenerated: 2026-05-28 (Phase 2 design system)
 - `app/record/page.tsx` — /record placeholder
 - `app/dev/layout.tsx` — dev-only layout (404 in production)
 - `app/dev/primitives/page.tsx` — brand primitives showcase
+- `app/dev/previews/layout.tsx` — fixed-overlay shell escaping /dev chrome; noindex metadata
+- `app/dev/previews/landing/page.tsx` — Phase 5 landing hero mockup (real Twilight tokens)
+- `app/dev/previews/modes/page.tsx` — three-ModeCard composition (Phase 2 primitives)
+- `app/dev/previews/studio/page.tsx` — Phase 4 studio surface mockup
 
 ### packages/ui/src
 
@@ -35,6 +39,12 @@ Last regenerated: 2026-05-28 (Phase 2 design system)
 - `components/StudioShell.test.tsx` — unit tests
 - `test/setup.ts` — jest-dom matcher setup
 - `../vitest.config.ts` — vitest jsdom + RTL config
+
+### .github/assets/readme
+
+- `hero.png` — README hero capture (1440×900, ≤ 350 KB)
+- `modes.png` — README modes capture
+- `studio.png` — README studio capture
 
 ## record-me-staff
 

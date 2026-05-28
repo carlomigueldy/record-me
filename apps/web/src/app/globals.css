@@ -2,6 +2,12 @@
 @import 'tailwindcss';
 @import '@record-me/config/tailwind/theme.css';
 
+/* Tailwind v4 auto-detects sources adjacent to globals.css, but workspace
+   packages live outside the apps/web tree and are missed by default. Register
+   @record-me/ui's source so its brand-primitive classes (bg-amber, h-3, w-3,
+   the arbitrary motion-safe animations) are compiled into the bundle. */
+@source "../../../../packages/ui/src";
+
 html,
 body {
   background: var(--bg);

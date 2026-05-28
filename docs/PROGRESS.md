@@ -58,6 +58,7 @@ Epic: #4
 - [ ] Discard & re-record
 - [ ] Error states (permission denied, unsupported browser, mid-recording failure)
 - [ ] E2E smoke test per mode
+- [ ] Recapture `.github/assets/readme/studio.png` from `/record` (not `/dev/previews/studio`); drop the "Preview · ships in Phase 4" prefix in `README.md` and re-link to `apps/web/src/app/record/page.tsx`
 
 ## Phase 5 · Marketing surface · planned
 
@@ -73,6 +74,7 @@ Epic: #5
 - [ ] JSON-LD on landing + feature pages
 - [ ] View Transitions API on outbound links
 - [ ] Lighthouse ≥ 95 on `/`, ≥ 90 elsewhere
+- [ ] Recapture `.github/assets/readme/hero.png` from `/` (not `/dev/previews/landing`); drop the "Preview · ships in Phase 5" prefix in `README.md` and re-link to `apps/web/src/app/page.tsx`
 
 ## Phase 6 · Analytics & polish · planned
 
