@@ -55,7 +55,13 @@ export interface RecordingResult {
   durationMs: number;
   bytes: number;
   suggestedFilename: string;
-  release: () => void;
+  /**
+   * Release the recording: revokes the object URL, wipes IDB chunk storage
+   * (privacy contract — spec § 7.2 + docs/SECURITY.md), and transitions the
+   * recorder back to `idle`. Always await this before starting a new session
+   * to guarantee no bytes survive between recordings.
+   */
+  release: () => Promise<void>;
 }
 
 export interface RecorderHandle {

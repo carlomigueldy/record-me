@@ -278,4 +278,61 @@ describe('createRecorder · auto-stop and error surfaces', () => {
     });
     handle.dispose();
   });
+
+  it('release() transitions ready → idle after wiping IDB chunks', async () => {
+    // C1 + M1: privacy contract. release() must await store.clear() then
+    // setState('idle') so a new session can begin cleanly.
+    const handle = createRecorder({
+      mode: 'cam-only',
+      storage: 'indexeddb',
+      maxDurationMs: 60_000,
+    });
+    await handle.start();
+    MockMediaRecorder.instances[0]!._emitChunk(128);
+    const result = await handle.stop();
+    expect(handle.state).toBe('ready');
+    await result.release();
+    expect(handle.state).toBe('idle');
+    handle.dispose();
+  });
+
+  it('release() is idempotent — second call is a no-op', async () => {
+    const handle = createRecorder({ mode: 'cam-only' });
+    await handle.start();
+    const result = await handle.stop();
+    await result.release();
+    await result.release(); // must not throw or re-trigger setState
+    expect(handle.state).toBe('idle');
+    handle.dispose();
+  });
+
+  it('start() fails cleanly when post-permission setup throws — state=error', async () => {
+    // M2: regression guard. If new MediaRecorder() throws (or any other
+    // line between acquireTracks and setState('recording')), we MUST clean
+    // up acquired tracks. Otherwise the cam/mic light stays on.
+    const originalMR = globalThis.MediaRecorder;
+    // Force MediaRecorder construction to fail post-permission acquisition.
+    class FailingMediaRecorder {
+      constructor() {
+        throw new Error('synthetic ctor failure');
+      }
+      static isTypeSupported(): boolean {
+        return true;
+      }
+    }
+    // @ts-expect-error replacing the global for this test
+    globalThis.MediaRecorder = FailingMediaRecorder;
+    try {
+      const onError = vi.fn();
+      const handle = createRecorder({ mode: 'cam-only', onError });
+      await expect(handle.start()).rejects.toMatchObject({
+        kind: 'recorder-failed',
+      });
+      expect(handle.state).toBe('error');
+      expect(onError).toHaveBeenCalledTimes(1);
+      handle.dispose();
+    } finally {
+      globalThis.MediaRecorder = originalMR;
+    }
+  });
 });

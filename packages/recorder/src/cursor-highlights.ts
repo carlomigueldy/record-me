@@ -9,8 +9,10 @@ export interface CursorHighlightsOptions {
 }
 
 export interface Ripple {
-  x: number;
-  y: number;
+  /** Normalized horizontal position 0-1 (clientX / window.innerWidth at click time). */
+  xRatio: number;
+  /** Normalized vertical position 0-1 (clientY / window.innerHeight at click time). */
+  yRatio: number;
   startedAt: number;
   progress: number;
 }
@@ -33,11 +35,23 @@ const MAX_RADIUS = 56;
 export function createCursorHighlights(opts: CursorHighlightsOptions = {}): CursorHighlights {
   const enabled = opts.enabled ?? true;
   const durationMs = opts.durationMs ?? DEFAULT_DURATION_MS;
-  const ripples: { x: number; y: number; startedAt: number }[] = [];
+  // Store normalized ratios at click time. The viewport may differ from the
+  // capture-frame resolution (e.g. 1440×900 monitor, 1920×1080 frame), so
+  // raw clientX/clientY would render the ripple at the wrong place on the
+  // canvas. Normalization decouples the two coordinate systems.
+  const ripples: { xRatio: number; yRatio: number; startedAt: number }[] = [];
 
   const onClick = (e: MouseEvent) => {
     if (!enabled) return;
-    ripples.push({ x: e.clientX, y: e.clientY, startedAt: performance.now() });
+    // `|| 1` guards against the (impossible-in-browser) zero-viewport case.
+    /* c8 ignore next 2 */
+    const innerWidth = window.innerWidth || 1;
+    const innerHeight = window.innerHeight || 1;
+    ripples.push({
+      xRatio: e.clientX / innerWidth,
+      yRatio: e.clientY / innerHeight,
+      startedAt: performance.now(),
+    });
   };
 
   return {
@@ -51,13 +65,13 @@ export function createCursorHighlights(opts: CursorHighlightsOptions = {}): Curs
       const cutoff = nowMs - durationMs;
       const alive = ripples.filter((r) => r.startedAt > cutoff);
       return alive.map((r) => ({
-        x: r.x,
-        y: r.y,
+        xRatio: r.xRatio,
+        yRatio: r.yRatio,
         startedAt: r.startedAt,
         progress: Math.min(1, (nowMs - r.startedAt) / durationMs),
       }));
     },
-    draw(ctx, _frame, nowMs) {
+    draw(ctx, frame, nowMs) {
       const alive = this.activeRipples(nowMs);
       if (!alive.length) return;
       ctx.save();
@@ -67,7 +81,7 @@ export function createCursorHighlights(opts: CursorHighlightsOptions = {}): Curs
         ctx.lineWidth = 3 * (1 - r.progress);
         ctx.globalAlpha = 1 - r.progress;
         ctx.beginPath();
-        ctx.arc(r.x, r.y, radius, 0, Math.PI * 2);
+        ctx.arc(r.xRatio * frame.width, r.yRatio * frame.height, radius, 0, Math.PI * 2);
         ctx.closePath();
         ctx.stroke();
       }
