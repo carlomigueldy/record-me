@@ -15,6 +15,15 @@ record-me/
 └── packages/config/         # @record-me/config · tsconfig · eslint · tailwind preset
 ```
 
+## Package responsibilities
+
+| Package               | Depends on          | Responsibility                                                                                                                                                                                                                                                                                                                                                                       |
+| --------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `@record-me/recorder` | `@record-me/config` | Framework-agnostic recording engine. State machine + acquire + composer (RAF) + cursor highlights + MediaRecorder + pluggable chunk storage (in-memory or IndexedDB). **No React import.** Unit-tested in jsdom with MediaStream / MediaRecorder / canvas / IDB mocks. Public API: `createRecorder`, `supportedMimeType`, `probeCapabilities`, `RecorderError`, `suggestedFilename`. |
+| `@record-me/ui`       | `@record-me/config` | shadcn/ui + Twilight tokens + brand primitives (RecDot, ModeCard, StudioShell, MetaChip, WordMark, Button). Does not import `recorder`; UI consumes it via `apps/web` hooks only.                                                                                                                                                                                                    |
+| `@record-me/config`   | ∅                   | Shared TypeScript, ESLint, Prettier, Tailwind v4 preset with full token set.                                                                                                                                                                                                                                                                                                         |
+| `apps/web`            | All three packages  | Next.js 15 App Router. Single deployed surface for studio (`/record`), marketing, and dashboards. Wires recorder + UI + design tokens.                                                                                                                                                                                                                                               |
+
 ## Dependency rules
 
 | Package               | Depends on                                                  | Forbidden imports                                                    |

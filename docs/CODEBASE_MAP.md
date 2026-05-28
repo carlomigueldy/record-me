@@ -38,10 +38,24 @@ Last regenerated: 2026-05-28 (Phase 2 design system)
 
 ## record-me-staff
 
-### packages/recorder/src (Phase 1: capability probe only)
+### packages/recorder/src
 
-- `index.ts`
-- `index.test.ts`
+- `index.ts` — public surface (re-exports)
+- `types.ts` — public types
+- `capabilities.ts` — MP4-first MIME negotiation + capability probe
+- `errors.ts` — RecorderError + DOMException mapping
+- `filename.ts` — suggestedFilename builder
+- `acquire.ts` — per-mode track acquisition
+- `composer.ts` — 2D canvas RAF composer
+- `cursor-highlights.ts` — in-tab click ripples
+- `encoder.ts` — MediaRecorder wrapper
+- `recorder.ts` — createRecorder state machine
+- `storage/index.ts` — ChunkStore + factory
+- `storage/memory.ts` — in-memory chunk store
+- `storage/indexeddb.ts` — IndexedDB chunk store
+- `test/setup.ts` — vitest global mock setup
+- `test/mocks/**` — MediaRecorder / MediaStream / navigator.mediaDevices / canvas / AudioContext mocks
+- `vitest.config.ts` — vitest jsdom + 90% coverage gate
 
 ### packages/config (Phase 1)
 
