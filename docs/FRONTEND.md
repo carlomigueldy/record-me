@@ -30,15 +30,18 @@ apps/web/src/app/
 
 ## Per-route inventory
 
-| Route              | Type | Owner       | Status                                                                           |
-| ------------------ | ---- | ----------- | -------------------------------------------------------------------------------- |
-| `/`                | RSC  | sr-frontend | Phase 2 scaffold · Phase 5 ships the editorial landing                           |
-| `/dev/primitives`  | RSC  | sr-frontend | Dev-only showcase for brand primitives. 404 in production via `/dev/layout.tsx`. |
-| `/record`          | RSC  | sr-frontend | Phase 1 placeholder · Phase 4 ships the studio                                   |
-| `/features/[mode]` | RSC  | sr-frontend | Phase 5                                                                          |
-| `/docs`            | RSC  | sr-frontend | Phase 5                                                                          |
-| `/privacy`         | RSC  | sr-frontend | Phase 5                                                                          |
-| `/changelog`       | RSC  | sr-frontend | Phase 5                                                                          |
+| Route                   | Type | Owner       | Status                                                                           |
+| ----------------------- | ---- | ----------- | -------------------------------------------------------------------------------- |
+| `/`                     | RSC  | sr-frontend | Phase 2 scaffold · Phase 5 ships the editorial landing                           |
+| `/dev/primitives`       | RSC  | sr-frontend | Dev-only showcase for brand primitives. 404 in production via `/dev/layout.tsx`. |
+| `/dev/previews/landing` | RSC  | sr-frontend | Phase 5 landing hero mockup (dev-only)                                           |
+| `/dev/previews/modes`   | RSC  | sr-frontend | Three-ModeCard composition (dev-only)                                            |
+| `/dev/previews/studio`  | RSC  | sr-frontend | Phase 4 studio mockup (dev-only)                                                 |
+| `/record`               | RSC  | sr-frontend | Phase 1 placeholder · Phase 4 ships the studio                                   |
+| `/features/[mode]`      | RSC  | sr-frontend | Phase 5                                                                          |
+| `/docs`                 | RSC  | sr-frontend | Phase 5                                                                          |
+| `/privacy`              | RSC  | sr-frontend | Phase 5                                                                          |
+| `/changelog`            | RSC  | sr-frontend | Phase 5                                                                          |
 
 Update this table after every phase.
 
