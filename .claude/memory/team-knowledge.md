@@ -43,3 +43,14 @@ metadata:
 - `/agent-reflect` runs per task (automatically after APPROVED).
 - `/agent-distill` runs weekly (Monday).
 - `/agent-checkpoint` runs weekly or after a major merge.
+
+## Git safety: never `git reset --hard` during multi-task dispatch
+
+**Lesson from Phase 3 I3 postmortem:** A doc-update agent used `git reset --hard`
+to synchronize a worktree branch tip, which nuked all 19 preceding recorder
+implementation commits. Use `git restore <file>` to discard unstaged changes, or
+`git stash --keep-index` for selective work. Never reset the branch tip while
+a dispatch is in flight — just edit files and commit on top. **Reflog recovery
+works but is expensive and error-prone.** If a multi-commit feature branch needs
+doc updates, treat the docs as a separate set of commits that land on top of the
+feature history, not as a rewrite of it.
