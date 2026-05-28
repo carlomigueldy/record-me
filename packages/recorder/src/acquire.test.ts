@@ -96,4 +96,16 @@ describe('acquireTracks', () => {
       kind: 'track-failed',
     });
   });
+
+  it('mode B · stops the screen track when mic is denied', async () => {
+    setDisplayMediaResponse({ kind: 'resolve', tracks: ['video'] });
+    setUserMediaResponse({
+      kind: 'reject',
+      error: new DOMException('denied', 'NotAllowedError'),
+    });
+    await expect(acquireTracks({ mode: 'screen+cursor' })).rejects.toMatchObject({
+      kind: 'permission-denied',
+      message: expect.stringContaining('mic'),
+    });
+  });
 });

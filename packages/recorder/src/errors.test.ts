@@ -54,4 +54,10 @@ describe('mapDomException', () => {
     expect(err.kind).toBe('track-failed');
     expect(err.cause).toBeInstanceOf(Error);
   });
+
+  it('wraps a thrown primitive (non-Error) as track-failed', () => {
+    const err = mapDomException('a string thrown', 'mic');
+    expect(err.kind).toBe('track-failed');
+    expect(err.message).toContain('a string thrown');
+  });
 });

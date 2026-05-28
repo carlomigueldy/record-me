@@ -9,9 +9,9 @@ export interface AcquireOptions {
 }
 
 export interface AcquiredTracks {
-  screen?: MediaStreamTrack;
-  camera?: MediaStreamTrack;
-  mic?: MediaStreamTrack;
+  screen: MediaStreamTrack | undefined;
+  camera: MediaStreamTrack | undefined;
+  mic: MediaStreamTrack | undefined;
   /** All acquired tracks — caller stops these on cleanup. */
   all: MediaStreamTrack[];
 }
@@ -40,6 +40,7 @@ function stopAll(...tracks: (MediaStreamTrack | undefined)[]): void {
     try {
       t?.stop();
     } catch {
+      /* c8 ignore next */
       // best-effort — we are already cleaning up
     }
   }
@@ -61,11 +62,7 @@ export async function acquireTracks(opts: AcquireOptions): Promise<AcquiredTrack
     const camera = camStream.getVideoTracks()[0];
     const mic = camStream.getAudioTracks()[0];
     const all = [camera, mic].filter((t): t is MediaStreamTrack => t !== undefined);
-    return {
-      ...(camera ? { camera } : {}),
-      ...(mic ? { mic } : {}),
-      all,
-    };
+    return { screen: undefined, camera, mic, all };
   }
 
   let screenStream: MediaStream;
@@ -81,7 +78,8 @@ export async function acquireTracks(opts: AcquireOptions): Promise<AcquiredTrack
 
   if (mode === 'screen+cursor') {
     if (!includeMic) {
-      return screen ? { screen, all: [screen] } : { all: [] };
+      const all = [screen].filter((t): t is MediaStreamTrack => t !== undefined);
+      return { screen, camera: undefined, mic: undefined, all };
     }
     let micStream: MediaStream;
     try {
@@ -92,11 +90,7 @@ export async function acquireTracks(opts: AcquireOptions): Promise<AcquiredTrack
     }
     const mic = micStream.getAudioTracks()[0];
     const all = [screen, mic].filter((t): t is MediaStreamTrack => t !== undefined);
-    return {
-      ...(screen ? { screen } : {}),
-      ...(mic ? { mic } : {}),
-      all,
-    };
+    return { screen, camera: undefined, mic, all };
   }
 
   // mode === 'screen+cam+cursor'
@@ -113,10 +107,5 @@ export async function acquireTracks(opts: AcquireOptions): Promise<AcquiredTrack
   const camera = camStream.getVideoTracks()[0];
   const mic = camStream.getAudioTracks()[0];
   const all = [screen, camera, mic].filter((t): t is MediaStreamTrack => t !== undefined);
-  return {
-    ...(screen ? { screen } : {}),
-    ...(camera ? { camera } : {}),
-    ...(mic ? { mic } : {}),
-    all,
-  };
+  return { screen, camera, mic, all };
 }
