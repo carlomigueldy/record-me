@@ -1,6 +1,7 @@
 // packages/recorder/src/index.ts
 // @record-me/recorder · public surface
 
+export { createRecorder } from './recorder';
 export { supportedMimeType, probeCapabilities, MIME_PREFERENCE } from './capabilities';
 export type { CapabilityReport } from './capabilities';
 export type {
