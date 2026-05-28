@@ -155,9 +155,22 @@ export function createRecorder(opts: RecorderOptions): RecorderHandle {
     // Wipe IDB chunk storage as part of the privacy contract (spec § 7.2 +
     // docs/SECURITY.md). Tracked via pendingCleanup so a follow-up start()
     // can await the wipe before opening a new session DB.
+    //
+    // IMPORTANT: drain in-flight appends FIRST. If a chunk's IDB transaction
+    // is mid-commit when we ask deleteDatabase() to run, the row briefly
+    // exists on disk before the delete proceeds. Awaiting the append-completion
+    // promises closes that cancel-mid-recording race (C2 from principal review).
     const storeToWipe = internal.store;
-    if (storeToWipe) {
-      internal.pendingCleanup = storeToWipe.clear().catch(() => {
+    const appendsInFlight = [...internal.pendingAppends];
+    if (storeToWipe || appendsInFlight.length > 0) {
+      internal.pendingCleanup = (async () => {
+        if (appendsInFlight.length > 0) {
+          await Promise.allSettled(appendsInFlight);
+        }
+        if (storeToWipe) {
+          await storeToWipe.clear();
+        }
+      })().catch(() => {
         /* c8 ignore next */
         // best-effort; failures don't block lifecycle
       });
@@ -387,9 +400,17 @@ export function createRecorder(opts: RecorderOptions): RecorderHandle {
             /* c8 ignore next */
             // swallow; release() must not reject in normal flow
           }
-          internal.store = undefined;
-          // Transition back to idle so a new session can begin (spec § 7.2).
-          if (state !== 'idle') setState('idle');
+          // Only clear the store ref if we still own it. If a new session has
+          // already started (`internal.store` now points to a different
+          // ChunkStore), DO NOT touch internal — that's the new session's data.
+          if (internal.store === store) {
+            internal.store = undefined;
+          }
+          // Only transition to idle if we're still in the post-stop 'ready'
+          // state. If the caller already started a new session (state is
+          // 'recording', 'paused', etc.), this stale release must not clobber
+          // the live state (M4 from principal review).
+          if (state === 'ready') setState('idle');
         },
       };
     },
