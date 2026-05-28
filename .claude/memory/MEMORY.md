@@ -14,3 +14,7 @@ One line per memory file. Lines after 200 will be truncated — keep it concise.
 - [record-me-scribe](record-me-scribe.md) — doc-update patterns
 - [record-me-e2e](record-me-e2e.md) — Playwright patterns + selectors
 - [record-me-principal](record-me-principal.md) — review patterns
+
+## Phase records
+
+- [phase-3-patterns](phase-3-patterns.md) — fake-indexeddb Blob workaround, TS strictness, jsdom mocks
