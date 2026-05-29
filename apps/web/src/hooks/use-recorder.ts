@@ -37,31 +37,51 @@ export function useRecorder(): UseRecorderApi {
   const [previewStream, setPreviewStream] = useState<MediaStream | null>(null);
   const [result, setResult] = useState<RecordingResult | null>(null);
   const [error, setError] = useState<RecorderErrorLike | null>(null);
+
   const handleRef = useRef<RecorderHandle | null>(null);
-  // Mirror the latest result in a ref so the unmount cleanup can release it
-  // without capturing stale state in the effect closure.
+  // Mirrors the latest RecordingResult so unmount cleanup can release it
+  // without capturing stale closure state in the useEffect return.
   const resultRef = useRef<RecordingResult | null>(null);
-  // In-flight guard: prevents a concurrent start() from racing through cleanup
-  // and creating a second recorder while the first start() awaits async work.
+  // True while a start() is executing — drops concurrent calls synchronously.
   const startingRef = useRef(false);
+  // Monotonically-increasing generation counter. start() captures its own gen
+  // at entry; reset()/unmount bump it so any in-flight continuation can detect
+  // it has been superseded and abort before touching shared state.
+  const genRef = useRef(0);
+  // Set false in unmount cleanup; guards all post-await ref/setState writes.
+  const mountedRef = useRef(true);
 
   const start = useCallback(async (opts: StartOptions) => {
-    // Concurrency guard — drop the call if a start() is already in flight.
+    // ── Synchronous preamble (no awaits, no yield points) ──────────────────
+    // 1. Concurrency guard: drop if another start() is already executing.
     if (startingRef.current) return;
     startingRef.current = true;
 
-    // SYNCHRONOUSLY snapshot + null shared refs before any await so a concurrent
-    // call (which the guard above blocks, but we're defensive) cannot interleave.
+    // 2. Claim this generation. Any in-flight continuation from a prior call
+    //    that somehow bypassed the guard will see a mismatched gen and abort.
+    const myGen = ++genRef.current;
+
+    // 3. Snapshot + null shared refs before the first await. A stale
+    //    continuation cannot interleave on these refs after this point.
     const priorResult = resultRef.current;
     const priorHandle = handleRef.current;
     resultRef.current = null;
     handleRef.current = null;
+    // ── End synchronous preamble ────────────────────────────────────────────
 
     try {
-      // Release the prior result's object URL (may await IDB store.clear()).
-      // Works on local snapshot — shared refs are already nulled above.
+      // ── await 1: release prior result's object URL ──────────────────────
+      // release() may await IDB store.clear() — works on local snapshot.
       await priorResult?.release();
-      // Dispose prior session tracks + encoder (synchronous after release).
+
+      // Post-await guard: abort if unmounted or superseded during release().
+      if (!mountedRef.current || genRef.current !== myGen) {
+        priorHandle?.dispose();
+        return;
+      }
+      // ── End await 1 ─────────────────────────────────────────────────────
+
+      // Dispose prior session tracks (synchronous after release).
       priorHandle?.dispose();
 
       setDurationMs(0);
@@ -69,6 +89,8 @@ export function useRecorder(): UseRecorderApi {
       setResult(null);
       setError(null);
 
+      // Create the new recorder and store it immediately so unmount/reset can
+      // dispose it even if handle.start() is still awaiting.
       const handle = createRecorder({
         ...opts,
         onStateChange: setState,
@@ -83,13 +105,24 @@ export function useRecorder(): UseRecorderApi {
       });
       handleRef.current = handle;
 
-      // Failures surface through onError → `error`; swallow the rejection so the
-      // component tree never sees an unhandled promise.
+      // ── await 2: request permissions + start capture ────────────────────
+      // Failures surface through onError → `error`; swallow the rejection.
       try {
         await handle.start();
       } catch {
         /* surfaced via onError */
       }
+
+      // Post-await guard: if unmounted or superseded during handle.start(),
+      // dispose the handle immediately — never leave a live capture with no
+      // mounted hook owner. Clear handleRef only if it still points at us
+      // (a concurrent successor may have already replaced it).
+      if (!mountedRef.current || genRef.current !== myGen) {
+        handle.dispose();
+        if (handleRef.current === handle) handleRef.current = null;
+        return;
+      }
+      // ── End await 2 ─────────────────────────────────────────────────────
     } finally {
       startingRef.current = false;
     }
@@ -106,13 +139,15 @@ export function useRecorder(): UseRecorderApi {
   }, []);
 
   const reset = useCallback(async () => {
+    // Bump generation to cancel any in-flight start().
+    genRef.current++;
+    startingRef.current = false;
     // Release the object URL to free memory, then dispose the recorder to stop
     // any live tracks (camera/mic light off) before returning to idle.
     await result?.release();
     handleRef.current?.dispose();
     handleRef.current = null;
     resultRef.current = null;
-    startingRef.current = false;
     setPreviewStream(null);
     setResult(null);
     setError(null);
@@ -123,7 +158,11 @@ export function useRecorder(): UseRecorderApi {
 
   // Stop tracks + release blob URL if the user navigates away mid-session.
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      // Signal all in-flight start() continuations to abort.
+      mountedRef.current = false;
+      genRef.current++;
       void resultRef.current?.release();
       handleRef.current?.dispose();
     };

@@ -6,8 +6,20 @@ type MockHandle = RecorderHandle & { opts: RecorderOptions };
 
 // Capture each created handle so tests can drive its callbacks.
 const handles: MockHandle[] = [];
+
+// Optional one-shot override: if set, createRecorder uses this factory once then
+// falls back to the default. Used by the unmount-during-start() test.
+let createRecorderOverride: ((opts: RecorderOptions) => MockHandle) | null = null;
+
 vi.mock('@record-me/recorder', () => ({
   createRecorder: (opts: RecorderOptions) => {
+    if (createRecorderOverride) {
+      const factory = createRecorderOverride;
+      createRecorderOverride = null;
+      const handle = factory(opts);
+      handles.push(handle);
+      return handle;
+    }
     const handle = {
       opts,
       start: vi.fn(async () => {
@@ -43,6 +55,7 @@ import { useRecorder } from './use-recorder';
 
 beforeEach(() => {
   handles.length = 0;
+  createRecorderOverride = null;
 });
 
 describe('useRecorder', () => {
@@ -204,5 +217,61 @@ describe('useRecorder', () => {
     });
     // Only one recorder created; no orphaned second handle.
     expect(handles).toHaveLength(1);
+  });
+
+  // holistic redesign: start() whose handle.start() await resolves AFTER unmount
+  // must dispose the new handle immediately and never leave a live capture.
+  it('start() that resolves AFTER unmount disposes the handle and leaves no live capture', async () => {
+    // Use a deferred handle.start() so we can unmount in the middle of the await.
+    let resolveStart!: () => void;
+    const startBlocked = new Promise<void>((res) => {
+      resolveStart = res;
+    });
+
+    const blockedHandleDispose = vi.fn();
+
+    // Install a one-shot override: handle.start() blocks until resolveStart().
+    createRecorderOverride = (opts) =>
+      ({
+        opts,
+        start: vi.fn(async () => {
+          opts.onStateChange?.('requesting-permissions');
+          await startBlocked; // ← yields; unmount fires during this window
+        }),
+        pause: vi.fn(),
+        resume: vi.fn(),
+        stop: vi.fn(async () => ({
+          blob: new Blob(),
+          url: '',
+          mimeType: 'video/mp4',
+          durationMs: 0,
+          bytes: 0,
+          suggestedFilename: 'x.mp4',
+          release: vi.fn(async () => {}),
+        })),
+        dispose: blockedHandleDispose,
+      }) as unknown as MockHandle;
+
+    const { result, unmount } = renderHook(() => useRecorder());
+
+    // Kick off start() without awaiting — it will block inside handle.start().
+    // We deliberately do NOT wrap in act() here so we can unmount mid-flight.
+    void result.current.start({ mode: 'cam-only' });
+
+    // Yield to let start() reach the await handle.start() point and get blocked.
+    await Promise.resolve();
+
+    // Unmount while handle.start() is still awaiting — cleanup fires:
+    // mountedRef.current = false, genRef bumped, handleRef.current?.dispose().
+    unmount();
+
+    // Unblock handle.start() — post-await guard sees mountedRef.current=false,
+    // calls handle.dispose() a second time (or first if cleanup beat it).
+    resolveStart();
+    // Flush all remaining microtasks.
+    await act(async () => {});
+
+    // The handle must have been disposed (by cleanup or post-await guard).
+    expect(blockedHandleDispose).toHaveBeenCalled();
   });
 });
