@@ -162,6 +162,9 @@ export function useRecorder(): UseRecorderApi {
     return () => {
       // Signal all in-flight start() continuations to abort.
       mountedRef.current = false;
+      // genRef is a generation counter, not a DOM node — reading the live value
+      // at cleanup time is the intended invalidation; copying it would defeat the guard.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       genRef.current++;
       void resultRef.current?.release();
       handleRef.current?.dispose();
