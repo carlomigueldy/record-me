@@ -41,41 +41,57 @@ export function useRecorder(): UseRecorderApi {
   // Mirror the latest result in a ref so the unmount cleanup can release it
   // without capturing stale state in the effect closure.
   const resultRef = useRef<RecordingResult | null>(null);
+  // In-flight guard: prevents a concurrent start() from racing through cleanup
+  // and creating a second recorder while the first start() awaits async work.
+  const startingRef = useRef(false);
 
   const start = useCallback(async (opts: StartOptions) => {
-    // Release any prior result's object URL before disposing — dispose() only
-    // stops tracks/wipes IDB; revocation requires release(). Mirror reset().
-    await resultRef.current?.release();
+    // Concurrency guard — drop the call if a start() is already in flight.
+    if (startingRef.current) return;
+    startingRef.current = true;
+
+    // SYNCHRONOUSLY snapshot + null shared refs before any await so a concurrent
+    // call (which the guard above blocks, but we're defensive) cannot interleave.
+    const priorResult = resultRef.current;
+    const priorHandle = handleRef.current;
     resultRef.current = null;
-    // Dispose any prior session before starting a new one — prevents orphaned
-    // capture pipelines and camera/mic lights that stay on after re-record.
-    if (handleRef.current) {
-      handleRef.current.dispose();
-      handleRef.current = null;
-    }
-    setDurationMs(0);
-    setBytes(0);
-    setResult(null);
-    setError(null);
-    const handle = createRecorder({
-      ...opts,
-      onStateChange: setState,
-      onDurationTick: setDurationMs,
-      onBytesTick: setBytes,
-      onPreviewReady: setPreviewStream,
-      onResult: (r) => {
-        resultRef.current = r;
-        setResult(r);
-      },
-      onError: setError,
-    });
-    handleRef.current = handle;
-    // Failures surface through onError → `error`; swallow the rejection so the
-    // component tree never sees an unhandled promise.
+    handleRef.current = null;
+
     try {
-      await handle.start();
-    } catch {
-      /* surfaced via onError */
+      // Release the prior result's object URL (may await IDB store.clear()).
+      // Works on local snapshot — shared refs are already nulled above.
+      await priorResult?.release();
+      // Dispose prior session tracks + encoder (synchronous after release).
+      priorHandle?.dispose();
+
+      setDurationMs(0);
+      setBytes(0);
+      setResult(null);
+      setError(null);
+
+      const handle = createRecorder({
+        ...opts,
+        onStateChange: setState,
+        onDurationTick: setDurationMs,
+        onBytesTick: setBytes,
+        onPreviewReady: setPreviewStream,
+        onResult: (r) => {
+          resultRef.current = r;
+          setResult(r);
+        },
+        onError: setError,
+      });
+      handleRef.current = handle;
+
+      // Failures surface through onError → `error`; swallow the rejection so the
+      // component tree never sees an unhandled promise.
+      try {
+        await handle.start();
+      } catch {
+        /* surfaced via onError */
+      }
+    } finally {
+      startingRef.current = false;
     }
   }, []);
 
@@ -96,6 +112,7 @@ export function useRecorder(): UseRecorderApi {
     handleRef.current?.dispose();
     handleRef.current = null;
     resultRef.current = null;
+    startingRef.current = false;
     setPreviewStream(null);
     setResult(null);
     setError(null);

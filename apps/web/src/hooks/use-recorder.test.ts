@@ -193,4 +193,16 @@ describe('useRecorder', () => {
     await act(async () => {});
     expect(released).toHaveBeenCalledTimes(1);
   });
+
+  // fix: concurrent start() calls must not create two recorders (in-flight guard)
+  it('concurrent start() calls produce exactly one recorder with no orphan', async () => {
+    const { result } = renderHook(() => useRecorder());
+    // Fire two start()s without awaiting the first — the second must be dropped.
+    await act(async () => {
+      void result.current.start({ mode: 'cam-only' });
+      void result.current.start({ mode: 'cam-only' });
+    });
+    // Only one recorder created; no orphaned second handle.
+    expect(handles).toHaveLength(1);
+  });
 });
