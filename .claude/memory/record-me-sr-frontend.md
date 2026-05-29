@@ -47,3 +47,57 @@ The Next.js 15 dev build indicator (`<nextjs-portal>`) appears as a black circle
 ```
 
 Place it inside the fixed-overlay div in `/dev/previews/layout.tsx` — scoped to preview routes only so `/dev/primitives` and other dev routes retain the badge for normal development ergonomics.
+
+For production routes like `/record`, suppress it only at capture time via `page.addStyleTag({ content: 'nextjs-portal { display: none !important; }' })` — never commit the suppression to the layout.
+
+## Phase 4 learnings
+
+### Vitest + React JSX: @vitejs/plugin-react required
+
+The project tsconfig uses `jsx: "preserve"` for Next.js App Router compatibility. Vitest cannot transform JSX without `@vitejs/plugin-react` in `vitest.config.ts`. Without it, tests throw "React is not defined". Add to `plugins: [react()]` in the Vitest config.
+
+### Relative imports in Vitest (no @/ alias)
+
+`vitest.config.ts` has no path resolver, so `@/` alias imports (which work in the Next.js build) fail under Vitest. All `apps/web/src/app/record/_components/*` files must use relative imports (`../../../hooks/use-recorder`, etc.). This is noted in the plan but easy to forget.
+
+### ESLint no-explicit-any in vi.mock factories
+
+Plan scaffolding often uses `any` in `vi.mock()` factory `opts` parameters. The codebase's `@typescript-eslint/no-explicit-any` rule rejects these. Pattern: import the module type at the top (`import type * as Mod from '...'`) and type the factory parameter explicitly.
+
+### useMemo dep arrays and recorder methods
+
+When `Studio.tsx` closes over `recorder.pause/resume/stop/reset` inside a `useMemo`, ESLint `react-hooks/exhaustive-deps` flags `recorder` as missing. Fix: destructure the stable `useCallback` methods out of recorder before the memo (`const { pause: recorderPause, ... } = recorder`) and list those in the dep array.
+
+### useRecorder holistic lifecycle (the full airtight pattern)
+
+After 4 principal review rounds, the correct async-cancellation design for `start()`:
+
+1. **`startingRef`** — boolean, set synchronously at entry, cleared in `finally`. Drops concurrent calls before any yield.
+2. **`genRef`** — numeric generation counter, incremented synchronously at entry (`myGen = ++genRef.current`). Also bumped in `reset()` and unmount cleanup. After every `await`, check `mountedRef.current && genRef.current === myGen`.
+3. **`mountedRef`** — set `true` in `useEffect`, `false` in unmount return. Guards post-await state writes.
+4. **Synchronous snapshot** — before any `await`, snapshot prior handle + result into locals, null the shared refs.
+5. **Handle stored before `handle.start()` await** — so unmount cleanup can always find and dispose it.
+6. **Post-`handle.start()` guard** — if stale, dispose the new handle and clear `handleRef` if it still points at it.
+7. `reset()` bumps `genRef` + clears `startingRef` before its own cleanup.
+
+### analytics double-fire: startedTracked ref pattern
+
+`recording_started` must fire once per session despite `paused → recording` also being a valid state transition. The `prevState.current !== 'recording'` predicate is not sufficient — use a boolean `startedTracked` ref (mirror of `stoppedTracked`): fire on `state === 'recording' && !startedTracked.current`, set the flag, reset on `idle`.
+
+### WAI-ARIA radiogroup: roving tabindex + arrow keys
+
+For `ModePicker` (ModeCard triptych with `role="radio"`):
+
+- Selected card gets `tabIndex=0`; all others (available or not) get `tabIndex=-1`.
+- ArrowRight/Down → next available mode (clamped, no wrap); ArrowLeft/Up → previous.
+- Filter `availableModes` from the `available` prop to skip disabled modes.
+- Move DOM focus after `onSelect` via `cardRefs.current[idx]?.focus()`.
+- `ModeCard` is a `forwardRef<HTMLElement>` — the ref works cleanly.
+
+### WCAG AA contrast: text-ivory-mut vs text-ivory-dim
+
+`text-ivory-mut` (#7A766D) fails WCAG AA for small text (text-xs/mono) on dark surfaces. Use `text-ivory-dim` (#B5AFA2) for small labels that must meet contrast. `text-ivory-mut` is acceptable only for truly decorative/secondary copy at larger sizes.
+
+### README screenshot capture pipeline
+
+For production routes (not `/dev/previews/*`): viewport 1440×900, deviceScaleFactor 2, wait `document.fonts.ready` + 1500ms settle, suppress Next.js dev indicator via `page.addStyleTag` at capture time only, compress with `pngquant --quality=80-95 --skip-if-larger`. Target size ~19–60 KB, hard limit 350 KB.
