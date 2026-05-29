@@ -38,19 +38,32 @@ export function useRecorder(): UseRecorderApi {
   const [result, setResult] = useState<RecordingResult | null>(null);
   const [error, setError] = useState<RecorderErrorLike | null>(null);
   const handleRef = useRef<RecorderHandle | null>(null);
+  // Mirror the latest result in a ref so the unmount cleanup can release it
+  // without capturing stale state in the effect closure.
+  const resultRef = useRef<RecordingResult | null>(null);
 
   const start = useCallback(async (opts: StartOptions) => {
+    // Dispose any prior session before starting a new one — prevents orphaned
+    // capture pipelines and camera/mic lights that stay on after re-record.
+    if (handleRef.current) {
+      handleRef.current.dispose();
+      handleRef.current = null;
+    }
     setDurationMs(0);
     setBytes(0);
     setResult(null);
     setError(null);
+    resultRef.current = null;
     const handle = createRecorder({
       ...opts,
       onStateChange: setState,
       onDurationTick: setDurationMs,
       onBytesTick: setBytes,
       onPreviewReady: setPreviewStream,
-      onResult: setResult,
+      onResult: (r) => {
+        resultRef.current = r;
+        setResult(r);
+      },
       onError: setError,
     });
     handleRef.current = handle;
@@ -74,7 +87,12 @@ export function useRecorder(): UseRecorderApi {
   }, []);
 
   const reset = useCallback(async () => {
+    // Release the object URL to free memory, then dispose the recorder to stop
+    // any live tracks (camera/mic light off) before returning to idle.
     await result?.release();
+    handleRef.current?.dispose();
+    handleRef.current = null;
+    resultRef.current = null;
     setPreviewStream(null);
     setResult(null);
     setError(null);
@@ -83,9 +101,10 @@ export function useRecorder(): UseRecorderApi {
     setState('idle');
   }, [result]);
 
-  // Stop tracks + wipe IDB if the user navigates away mid-session.
+  // Stop tracks + release blob URL if the user navigates away mid-session.
   useEffect(() => {
     return () => {
+      void resultRef.current?.release();
       handleRef.current?.dispose();
     };
   }, []);

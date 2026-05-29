@@ -132,4 +132,49 @@ describe('useRecorder', () => {
     unmount();
     expect(vi.mocked(handles[0]!.dispose)).toHaveBeenCalledTimes(1);
   });
+
+  // fix: reset() must dispose the handle so camera/mic tracks stop
+  it('reset() disposes the handle (turns off camera/mic light)', async () => {
+    const { result } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    await act(async () => {
+      result.current.stop();
+    });
+    await act(async () => {
+      await result.current.reset();
+    });
+    expect(vi.mocked(handles[0]!.dispose)).toHaveBeenCalledTimes(1);
+  });
+
+  // fix: calling start() again must dispose the prior handle before creating a new one
+  it('start() disposes any prior handle before creating a new recorder', async () => {
+    const { result } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    // First handle must have been disposed; a second handle was created.
+    expect(handles).toHaveLength(2);
+    expect(vi.mocked(handles[0]!.dispose)).toHaveBeenCalledTimes(1);
+  });
+
+  // fix: unmount after a completed recording must release() the result's object URL
+  it('unmount after a completed recording releases the result object URL', async () => {
+    const { result, unmount } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    await act(async () => {
+      result.current.stop();
+    });
+    const released = result.current.result!.release as ReturnType<typeof vi.fn>;
+    unmount();
+    // release() is async; wait one microtask for the void promise to settle.
+    await act(async () => {});
+    expect(released).toHaveBeenCalledTimes(1);
+  });
 });
