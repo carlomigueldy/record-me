@@ -28,7 +28,7 @@ export function CapSelector({
 }: CapSelectorProps) {
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-4 font-mono text-xs uppercase tracking-wider text-ivory-mut">
+      <div className="flex flex-wrap items-center gap-4 font-mono text-xs uppercase tracking-wider text-ivory-dim">
         <label className="flex items-center gap-2">
           <span>recording cap</span>
           <select
