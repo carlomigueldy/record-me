@@ -457,4 +457,63 @@ describe('createRecorder · auto-stop and error surfaces', () => {
     expect(handle.state).toBe('idle');
     handle.dispose();
   });
+
+  it('onResult fires with the result on a manual stop', async () => {
+    const onResult = vi.fn();
+    const handle = createRecorder({ mode: 'cam-only', onResult });
+    await handle.start();
+    MockMediaRecorder.instances[0]!._emitChunk(1024);
+    const result = await handle.stop();
+    expect(onResult).toHaveBeenCalledTimes(1);
+    expect(onResult.mock.calls[0]![0]).toBe(result);
+    await result.release();
+    handle.dispose();
+  });
+
+  it('onResult fires on auto-stop even though stop()’s return is discarded', async () => {
+    const onResult = vi.fn();
+    const handle = createRecorder({ mode: 'cam-only', maxDurationMs: 5_000, onResult });
+    await handle.start();
+    MockMediaRecorder.instances[0]!._emitChunk(512);
+    vi.advanceTimersByTime(4_900);
+    await flushAsync();
+    await flushAsync();
+    expect(onResult).toHaveBeenCalledTimes(1);
+    expect(onResult.mock.calls[0]![0]).toMatchObject({ bytes: 512 });
+    handle.dispose();
+  });
+
+  it('onPreviewReady fires once after start with a video-only stream', async () => {
+    const onPreviewReady = vi.fn();
+    const handle = createRecorder({ mode: 'cam-only', onPreviewReady });
+    await handle.start();
+    expect(onPreviewReady).toHaveBeenCalledTimes(1);
+    const stream = onPreviewReady.mock.calls[0]![0] as MediaStream;
+    expect(stream.getVideoTracks().length).toBeGreaterThanOrEqual(1);
+    expect(stream.getAudioTracks().length).toBe(0);
+    handle.dispose();
+  });
+
+  it('camera permission denial carries subject "camera"', async () => {
+    setUserMediaResponse({ kind: 'reject', error: new DOMException('denied', 'NotAllowedError') });
+    const handle = createRecorder({ mode: 'cam-only' });
+    await expect(handle.start()).rejects.toMatchObject({
+      kind: 'permission-denied',
+      subject: 'camera',
+    });
+    handle.dispose();
+  });
+
+  it('screen permission denial carries subject "screen"', async () => {
+    setDisplayMediaResponse({
+      kind: 'reject',
+      error: new DOMException('denied', 'NotAllowedError'),
+    });
+    const handle = createRecorder({ mode: 'screen+cursor' });
+    await expect(handle.start()).rejects.toMatchObject({
+      kind: 'permission-denied',
+      subject: 'screen',
+    });
+    handle.dispose();
+  });
 });

@@ -3,6 +3,9 @@
 
 export type RecordMode = 'screen+cam+cursor' | 'screen+cursor' | 'cam-only';
 
+/** Which device a permission/track error refers to. */
+export type PermissionSubject = 'screen' | 'camera' | 'mic';
+
 export type RecorderState =
   | 'idle'
   | 'requesting-permissions'
@@ -28,6 +31,10 @@ export interface RecorderOptions {
   onDurationTick?: (ms: number) => void;
   onBytesTick?: (bytes: number) => void;
   onError?: (error: RecorderErrorLike) => void;
+  /** Fired with the finished recording from stop() AND auto-stop (which discards stop()'s return). */
+  onResult?: (result: RecordingResult) => void;
+  /** Fired once after start() with a video-only composite stream for live preview. */
+  onPreviewReady?: (stream: MediaStream) => void;
 }
 
 // Re-declared here as a structural type so consumers don't need to import the
@@ -37,6 +44,8 @@ export interface RecorderErrorLike {
   readonly name: string;
   readonly message: string;
   readonly kind: RecorderErrorKind;
+  /** The device this error refers to, when known (permission/track errors). */
+  readonly subject?: PermissionSubject;
   readonly cause?: unknown;
 }
 

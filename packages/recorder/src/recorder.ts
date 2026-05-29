@@ -253,6 +253,8 @@ export function createRecorder(opts: RecorderOptions): RecorderHandle {
         internal.highlights.attach();
 
         const videoStream = internal.composer.captureStream();
+        // Phase 4: expose a video-only composite stream for the live preview.
+        opts.onPreviewReady?.(new MediaStream(videoStream.getVideoTracks()));
         const tracks: MediaStreamTrack[] = [...videoStream.getVideoTracks()];
         if (internal.acquired.mic) tracks.push(internal.acquired.mic);
         internal.audioTrack = internal.acquired.mic;
@@ -385,7 +387,7 @@ export function createRecorder(opts: RecorderOptions): RecorderHandle {
       setState('ready');
 
       let released = false;
-      return {
+      const result: RecordingResult = {
         blob,
         url,
         mimeType,
@@ -418,6 +420,10 @@ export function createRecorder(opts: RecorderOptions): RecorderHandle {
           }
         },
       };
+      // Phase 4: deliver the result through one channel so user-stop AND
+      // auto-stop (which discards stop()'s return) both reach the consumer.
+      opts.onResult?.(result);
+      return result;
     },
 
     dispose(): void {
