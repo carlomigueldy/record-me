@@ -59,7 +59,7 @@ Completed: 2026-05-30
 - [x] Discard & re-record flow
 - [x] Error states (permission denied, unsupported browser, mid-recording track failure)
 - [x] E2E smoke test per mode
-- [ ] Recapture `.github/assets/readme/studio.png` from `/record` (sr-frontend post-E2E; not `/dev/previews/studio`)
+- [x] Recapture `.github/assets/readme/studio.png` from `/record` (real setup state; not `/dev/previews/studio`)
 
 **Deferred (with rationale)**
 
