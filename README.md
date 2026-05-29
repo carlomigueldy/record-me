@@ -41,13 +41,14 @@ no upload, no compromise on craft.
 
 ## The studio
 
-![The studio surface: REC indicator, monospace timer, MB counter, live preview canvas, and stop/restart/download controls](.github/assets/readme/studio.png)
+![The studio setup: StudioShell with mode triptych (Screen + Camera + Cursor, Screen + Cursor, Camera only), cap selector, and Start recording button](.github/assets/readme/studio.png)
 
-A composed cockpit, not a control panel. REC dot, monospace timer, MB indicator,
-live canvas preview, and three quiet controls — stop, restart, download.
+A composed cockpit, not a control panel. Pick a mode, set a cap, grant permissions
+once — a faithful live composite preview starts immediately. Stop, review, download.
+Nothing leaves your browser.
 
-> _Preview · The studio ships in Phase 4. Mockup rendered from real Twilight
-> tokens via [`/dev/previews/studio`](apps/web/src/app/dev/previews/studio/page.tsx)._
+> _The `/record` studio shipped in Phase 4. Screenshot from
+> [`apps/web/src/app/record/page.tsx`](apps/web/src/app/record/page.tsx)._
 
 ## Quick start
 
