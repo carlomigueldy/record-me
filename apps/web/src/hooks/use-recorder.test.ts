@@ -1,0 +1,277 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
+import type { RecorderOptions, RecorderHandle } from '@record-me/recorder';
+
+type MockHandle = RecorderHandle & { opts: RecorderOptions };
+
+// Capture each created handle so tests can drive its callbacks.
+const handles: MockHandle[] = [];
+
+// Optional one-shot override: if set, createRecorder uses this factory once then
+// falls back to the default. Used by the unmount-during-start() test.
+let createRecorderOverride: ((opts: RecorderOptions) => MockHandle) | null = null;
+
+vi.mock('@record-me/recorder', () => ({
+  createRecorder: (opts: RecorderOptions) => {
+    if (createRecorderOverride) {
+      const factory = createRecorderOverride;
+      createRecorderOverride = null;
+      const handle = factory(opts);
+      handles.push(handle);
+      return handle;
+    }
+    const handle = {
+      opts,
+      start: vi.fn(async () => {
+        opts.onStateChange?.('requesting-permissions');
+        opts.onPreviewReady?.({ id: 'preview' } as unknown as MediaStream);
+        opts.onStateChange?.('recording');
+      }),
+      pause: vi.fn(() => opts.onStateChange?.('paused')),
+      resume: vi.fn(() => opts.onStateChange?.('recording')),
+      stop: vi.fn(async () => {
+        opts.onStateChange?.('finalizing');
+        const result = {
+          blob: new Blob(['x']),
+          url: 'blob:mock',
+          mimeType: 'video/mp4',
+          durationMs: 1234,
+          bytes: 1,
+          suggestedFilename: 'record-me.mp4',
+          release: vi.fn(async () => {}),
+        };
+        opts.onStateChange?.('ready');
+        opts.onResult?.(result);
+        return result;
+      }),
+      dispose: vi.fn(),
+    };
+    handles.push(handle as unknown as MockHandle);
+    return handle;
+  },
+}));
+
+import { useRecorder } from './use-recorder';
+
+beforeEach(() => {
+  handles.length = 0;
+  createRecorderOverride = null;
+});
+
+describe('useRecorder', () => {
+  it('starts in idle with zeroed counters', () => {
+    const { result } = renderHook(() => useRecorder());
+    expect(result.current.state).toBe('idle');
+    expect(result.current.durationMs).toBe(0);
+    expect(result.current.bytes).toBe(0);
+    expect(result.current.result).toBeNull();
+    expect(result.current.previewStream).toBeNull();
+  });
+
+  it('start() creates a recorder with the given mode and reaches recording', async () => {
+    const { result } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    expect(handles[0]!.opts.mode).toBe('cam-only');
+    expect(result.current.state).toBe('recording');
+    expect(result.current.previewStream).toEqual({ id: 'preview' });
+  });
+
+  it('forwards duration and bytes ticks to state', async () => {
+    const { result } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    act(() => {
+      handles[0]!.opts.onDurationTick?.(2500);
+      handles[0]!.opts.onBytesTick?.(4096);
+    });
+    expect(result.current.durationMs).toBe(2500);
+    expect(result.current.bytes).toBe(4096);
+  });
+
+  it('stop() populates result via onResult and reaches ready', async () => {
+    const { result } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    await act(async () => {
+      result.current.stop();
+    });
+    expect(result.current.state).toBe('ready');
+    expect(result.current.result?.suggestedFilename).toBe('record-me.mp4');
+  });
+
+  it('onError populates the error state', async () => {
+    const { result } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    act(() => {
+      handles[0]!.opts.onError?.({
+        name: 'RecorderError',
+        kind: 'permission-denied',
+        message: 'x',
+        subject: 'camera',
+      });
+    });
+    expect(result.current.error?.kind).toBe('permission-denied');
+    expect(result.current.error?.subject).toBe('camera');
+  });
+
+  it('reset() releases the result and returns to idle', async () => {
+    const { result } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    await act(async () => {
+      result.current.stop();
+    });
+    const released = result.current.result!.release as ReturnType<typeof vi.fn>;
+    await act(async () => {
+      await result.current.reset();
+    });
+    expect(released).toHaveBeenCalledTimes(1);
+    expect(result.current.state).toBe('idle');
+    expect(result.current.result).toBeNull();
+  });
+
+  it('disposes the recorder on unmount', async () => {
+    const { result, unmount } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    unmount();
+    expect(vi.mocked(handles[0]!.dispose)).toHaveBeenCalledTimes(1);
+  });
+
+  // fix: reset() must dispose the handle so camera/mic tracks stop
+  it('reset() disposes the handle (turns off camera/mic light)', async () => {
+    const { result } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    await act(async () => {
+      result.current.stop();
+    });
+    await act(async () => {
+      await result.current.reset();
+    });
+    expect(vi.mocked(handles[0]!.dispose)).toHaveBeenCalledTimes(1);
+  });
+
+  // fix: start() over a ready recording must release the prior result's object URL
+  it('start() over a ready recording releases the prior result', async () => {
+    const { result } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    await act(async () => {
+      result.current.stop();
+    });
+    const priorRelease = result.current.result!.release as ReturnType<typeof vi.fn>;
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    expect(priorRelease).toHaveBeenCalledTimes(1);
+  });
+
+  // fix: calling start() again must dispose the prior handle before creating a new one
+  it('start() disposes any prior handle before creating a new recorder', async () => {
+    const { result } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    // First handle must have been disposed; a second handle was created.
+    expect(handles).toHaveLength(2);
+    expect(vi.mocked(handles[0]!.dispose)).toHaveBeenCalledTimes(1);
+  });
+
+  // fix: unmount after a completed recording must release() the result's object URL
+  it('unmount after a completed recording releases the result object URL', async () => {
+    const { result, unmount } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    await act(async () => {
+      result.current.stop();
+    });
+    const released = result.current.result!.release as ReturnType<typeof vi.fn>;
+    unmount();
+    // release() is async; wait one microtask for the void promise to settle.
+    await act(async () => {});
+    expect(released).toHaveBeenCalledTimes(1);
+  });
+
+  // fix: concurrent start() calls must not create two recorders (in-flight guard)
+  it('concurrent start() calls produce exactly one recorder with no orphan', async () => {
+    const { result } = renderHook(() => useRecorder());
+    // Fire two start()s without awaiting the first — the second must be dropped.
+    await act(async () => {
+      void result.current.start({ mode: 'cam-only' });
+      void result.current.start({ mode: 'cam-only' });
+    });
+    // Only one recorder created; no orphaned second handle.
+    expect(handles).toHaveLength(1);
+  });
+
+  // holistic redesign: start() whose handle.start() await resolves AFTER unmount
+  // must dispose the new handle immediately and never leave a live capture.
+  it('start() that resolves AFTER unmount disposes the handle and leaves no live capture', async () => {
+    // Use a deferred handle.start() so we can unmount in the middle of the await.
+    let resolveStart!: () => void;
+    const startBlocked = new Promise<void>((res) => {
+      resolveStart = res;
+    });
+
+    const blockedHandleDispose = vi.fn();
+
+    // Install a one-shot override: handle.start() blocks until resolveStart().
+    createRecorderOverride = (opts) =>
+      ({
+        opts,
+        start: vi.fn(async () => {
+          opts.onStateChange?.('requesting-permissions');
+          await startBlocked; // ← yields; unmount fires during this window
+        }),
+        pause: vi.fn(),
+        resume: vi.fn(),
+        stop: vi.fn(async () => ({
+          blob: new Blob(),
+          url: '',
+          mimeType: 'video/mp4',
+          durationMs: 0,
+          bytes: 0,
+          suggestedFilename: 'x.mp4',
+          release: vi.fn(async () => {}),
+        })),
+        dispose: blockedHandleDispose,
+      }) as unknown as MockHandle;
+
+    const { result, unmount } = renderHook(() => useRecorder());
+
+    // Kick off start() without awaiting — it will block inside handle.start().
+    // We deliberately do NOT wrap in act() here so we can unmount mid-flight.
+    void result.current.start({ mode: 'cam-only' });
+
+    // Yield to let start() reach the await handle.start() point and get blocked.
+    await Promise.resolve();
+
+    // Unmount while handle.start() is still awaiting — cleanup fires:
+    // mountedRef.current = false, genRef bumped, handleRef.current?.dispose().
+    unmount();
+
+    // Unblock handle.start() — post-await guard sees mountedRef.current=false,
+    // calls handle.dispose() a second time (or first if cleanup beat it).
+    resolveStart();
+    // Flush all remaining microtasks.
+    await act(async () => {});
+
+    // The handle must have been disposed (by cleanup or post-await guard).
+    expect(blockedHandleDispose).toHaveBeenCalled();
+  });
+});

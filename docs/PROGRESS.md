@@ -44,21 +44,28 @@ Completed: 2026-05-28
 - [x] Memory mode + RecordingResult assembly
 - [x] 90%+ unit test coverage
 
-## Phase 4 · Studio (/record) · planned
+## Phase 4 · Studio (/record) · complete
 
-Plan: (to be written)
+Plan: `docs/superpowers/plans/2026-05-29-record-me-phase-4-studio.md`
 Epic: #4
+Completed: 2026-05-30
 
-- [ ] `useRecorder()` React hook
-- [ ] Mode picker UI
-- [ ] Cap selector + warning
-- [ ] Live preview canvas with REC dot, timer, MB indicator
-- [ ] Stop & render preview pane
-- [ ] Download flow
-- [ ] Discard & re-record
-- [ ] Error states (permission denied, unsupported browser, mid-recording failure)
-- [ ] E2E smoke test per mode
-- [ ] Recapture `.github/assets/readme/studio.png` from `/record` (not `/dev/previews/studio`); drop the "Preview · ships in Phase 4" prefix in `README.md` and re-link to `apps/web/src/app/record/page.tsx`
+- [x] `useRecorder()` React hook + React Testing Library harness
+- [x] Mode picker UI (A/B/C triptych radio)
+- [x] Cap selector + warning (>10 min)
+- [x] Live preview with composite video stream (no audio)
+- [x] Stop & render review pane (playback + download)
+- [x] Download flow (blob → filename → user disk)
+- [x] Discard & re-record flow
+- [x] Error states (permission denied, unsupported browser, mid-recording track failure)
+- [x] E2E smoke test per mode
+- [x] Recapture `.github/assets/readme/studio.png` from `/record` (real setup state; not `/dev/previews/studio`)
+
+**Deferred (with rationale)**
+
+- **Memory-pressure banner + IndexedDB-fallback toast** (spec § 14) — Requires new engine signals `onMemoryPressure` / `onStorageFallback` (out of scope; Phase 6 polish).
+- **"Save partial recording" on track-failure** (spec § 8 / § 14) — Engine cannot assemble partial blobs from error state (`stop()` rejects). Needs engine `assemble-on-error()` path (deferred; Phase 4 shows interrupted-error + "Start over").
+- **`/record` page OG / canonical / JSON-LD metadata** — Broader SEO surface (Phase 5 scope, principal minor follow-up per spec § 11).
 
 ## Phase 5 · Marketing surface · planned
 

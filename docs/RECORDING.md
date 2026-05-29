@@ -80,7 +80,35 @@ factory at `packages/recorder/src/recorder.ts`. The public surface is:
 - `supportedMimeType(): string | null`
 - `probeCapabilities(): CapabilityReport`
 - `suggestedFilename(date, seq, mime): string`
-- `RecorderError` class + `RecorderErrorKind` union
+- `RecorderError` class + `RecorderErrorKind` union + `PermissionSubject` type
+
+### RecorderOptions callbacks (Phase 4+)
+
+Two new optional callbacks on `RecorderOptions`:
+
+- **`onResult?: (result: RecordingResult) => void`** — Fired with the finished
+  recording when `stop()` completes. Critically, this also fires on auto-cap
+  stop (when `maxDurationMs` is reached), where the return value of `stop()` is
+  discarded. Consumers must wire through `onResult` to reliably receive both
+  manual and automatic completions.
+
+- **`onPreviewReady?: (stream: MediaStream) => void`** — Fired once immediately
+  after `start()` reaches `recording` state, delivering a **video-only**
+  composite stream (no audio) for live preview mirrors. The stream is a fresh
+  `MediaStream` of the composite video tracks from `composer.captureStream()`,
+  safe for `<video srcObject>` binding.
+
+### RecorderError error subject
+
+When an error originates from a device-specific permission or track failure,
+the `RecorderErrorLike` shape now includes:
+
+- **`subject?: PermissionSubject`** — The device this error refers to:
+  `'screen' | 'camera' | 'mic'`. Set by `mapDomException()` based on which
+  track acquisition failed. Allows consumers to surface device-specific error
+  messaging (e.g., "need camera access" vs. "screen capture denied"). Always
+  set for `'permission-denied'` and `'track-failed'` kinds; `undefined` for
+  other error kinds.
 
 ## Testing
 
