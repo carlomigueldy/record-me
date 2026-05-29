@@ -43,6 +43,10 @@ export function useRecorder(): UseRecorderApi {
   const resultRef = useRef<RecordingResult | null>(null);
 
   const start = useCallback(async (opts: StartOptions) => {
+    // Release any prior result's object URL before disposing — dispose() only
+    // stops tracks/wipes IDB; revocation requires release(). Mirror reset().
+    await resultRef.current?.release();
+    resultRef.current = null;
     // Dispose any prior session before starting a new one — prevents orphaned
     // capture pipelines and camera/mic lights that stay on after re-record.
     if (handleRef.current) {
@@ -53,7 +57,6 @@ export function useRecorder(): UseRecorderApi {
     setBytes(0);
     setResult(null);
     setError(null);
-    resultRef.current = null;
     const handle = createRecorder({
       ...opts,
       onStateChange: setState,

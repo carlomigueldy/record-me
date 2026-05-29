@@ -148,6 +148,22 @@ describe('useRecorder', () => {
     expect(vi.mocked(handles[0]!.dispose)).toHaveBeenCalledTimes(1);
   });
 
+  // fix: start() over a ready recording must release the prior result's object URL
+  it('start() over a ready recording releases the prior result', async () => {
+    const { result } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    await act(async () => {
+      result.current.stop();
+    });
+    const priorRelease = result.current.result!.release as ReturnType<typeof vi.fn>;
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    expect(priorRelease).toHaveBeenCalledTimes(1);
+  });
+
   // fix: calling start() again must dispose the prior handle before creating a new one
   it('start() disposes any prior handle before creating a new recorder', async () => {
     const { result } = renderHook(() => useRecorder());
