@@ -95,4 +95,28 @@ describe('Studio', () => {
       expect.objectContaining({ mime_type: 'video/mp4', duration_seconds: 5 }),
     );
   });
+
+  it('pause → resume fires recording_started exactly once', async () => {
+    render(<Studio />);
+    // Start recording.
+    await userEvent.click(await screen.findByRole('button', { name: /start recording/i }));
+    await waitFor(() =>
+      expect(screen.getByRole('status', { name: /recording/i })).toBeInTheDocument(),
+    );
+    // Pause then resume — should NOT fire a second recording_started.
+    await userEvent.click(screen.getByRole('button', { name: /pause/i }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /resume/i })).toBeInTheDocument(),
+    );
+    await userEvent.click(screen.getByRole('button', { name: /resume/i }));
+    await waitFor(() =>
+      expect(screen.getByRole('status', { name: /recording/i })).toBeInTheDocument(),
+    );
+    // recording_started must have been called exactly once despite the state
+    // cycling through paused → recording again.
+    const startedCalls = vi
+      .mocked(track)
+      .mock.calls.filter(([event]) => event === 'recording_started');
+    expect(startedCalls).toHaveLength(1);
+  });
 });

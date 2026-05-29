@@ -36,6 +36,7 @@ export function Studio() {
   const [cursorHighlights, setCursorHighlights] = useState(true);
   const resolutionTouched = useRef(false);
   const prevState = useRef(recorder.state);
+  const startedTracked = useRef(false);
   const stoppedTracked = useRef(false);
   const unsupportedTracked = useRef(false);
 
@@ -103,11 +104,15 @@ export function Studio() {
     });
   }, [recorder.result, mode]);
 
-  // recording_started on the idle/requesting → recording edge.
+  // recording_started fires once per session on the first entry into 'recording'.
+  // startedTracked guards against double-fire on pause→resume (paused→recording
+  // also satisfies prevState !== 'recording', so a ref flag is required).
   useEffect(() => {
-    if (prevState.current !== 'recording' && recorder.state === 'recording') {
+    if (recorder.state === 'recording' && !startedTracked.current) {
+      startedTracked.current = true;
       analytics.recordingStarted({ mode, resolution, cap_minutes: capMinutes });
     }
+    if (recorder.state === 'idle') startedTracked.current = false;
     prevState.current = recorder.state;
   }, [recorder.state, mode, resolution, capMinutes]);
 
