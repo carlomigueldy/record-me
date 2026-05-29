@@ -48,7 +48,10 @@ Update this table after every phase.
 ## Hooks (Phase 4)
 
 - `useRecorder()` — thin React wrapper around `createRecorder()` from
-  `@record-me/recorder`. Returns `{ state, start, pause, resume, stop, dispose }`.
+  `@record-me/recorder`. Returns `{ state, durationMs, bytes, previewStream, result, error, start, pause, resume, stop, reset }`.
+  Lifecycle: `reset()` disposes the handle + releases the result (privacy —
+  camera/mic off); `start()` disposes any prior handle; unmount releases the
+  latest result's object URL.
 
 ## Component inventory
 
