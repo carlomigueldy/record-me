@@ -50,8 +50,8 @@ Update this table after every phase.
 - `useRecorder()` — thin React wrapper around `createRecorder()` from
   `@record-me/recorder`. Returns `{ state, durationMs, bytes, previewStream, result, error, start, pause, resume, stop, reset }`.
   Lifecycle: `reset()` disposes the handle + releases the result (privacy —
-  camera/mic off); `start()` disposes any prior handle; unmount releases the
-  latest result's object URL.
+  camera/mic off); `start()` disposes any prior handle and releases the prior
+  result's object URL; unmount releases the latest result's object URL.
 
 ## Component inventory
 
