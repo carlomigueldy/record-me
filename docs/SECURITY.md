@@ -13,11 +13,14 @@ Source of truth: `docs/superpowers/specs/2026-05-27-record-me-design.md` § 15.
    aggregate page views and Core Web Vitals only.
 4. **Custom analytics events carry no PII.** Only mode, duration, bytes, mime
    type, and error kind are tracked.
-5. **IndexedDB stores are wiped on discard, re-record, page leave, or next
-   session start.** stop() only assembles the Blob — chunks remain in IDB
-   while the recording is in the review pane. Once you discard, re-record,
-   leave the page, or start a new session, release()/dispose() clears the
-   store. No recording artifacts persist between sessions.
+5. **IndexedDB stores are cleared on graceful exit; stale data is swept
+   periodically.** stop() only assembles the Blob — chunks remain in IDB
+   while the recording is in the review pane. Discarding, re-recording,
+   leaving the page, or starting a new session triggers release()/dispose()
+   which clears the store immediately. A hard exit (tab-kill / crash) may
+   leave data in IDB; sweepStaleChunkDatabases() removes DBs older than 24h
+   on the next session start (best-effort; requires indexedDB.databases()
+   support). No recording data persists across normal sessions.
 6. **CSP headers via `apps/web/next.config.ts`** block third-party scripts
    beyond Vercel itself.
 

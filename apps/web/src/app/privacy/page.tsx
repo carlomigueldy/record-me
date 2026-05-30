@@ -26,8 +26,8 @@ const PROMISES = [
     'Only mode, duration, byte size, mime type, and error kind are recorded.',
   ],
   [
-    'Nothing lingers once you are done.',
-    'Encoded chunks live in memory or IndexedDB only while you are working with a recording — discarding it, re-recording, leaving the page, or starting a new session wipes the store. Nothing persists.',
+    'Recording data is short-lived.',
+    'Encoded chunks live in memory or IndexedDB only while you are working with a recording. Discarding, re-recording, leaving the page, or starting a new session clears the store — and a periodic stale-session sweep clears anything an unexpected crash leaves behind.',
   ],
   [
     'Locked down by headers.',
