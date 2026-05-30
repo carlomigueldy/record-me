@@ -8,6 +8,18 @@ const config: NextConfig = {
   // wrong root when multiple lockfiles exist (e.g. inside a git worktree),
   // which breaks production page-data collection.
   outputFileTracingRoot: path.join(import.meta.dirname, '../..'),
+  // The OG routes read their .ttf fonts at runtime via fs + process.cwd()
+  // (fetch(new URL(import.meta.url)) is broken in static prerender — Next
+  // #66244). Because those paths are computed, @vercel/nft cannot see them,
+  // so force the font files into each OG route's serverless bundle or they
+  // render tofu on Vercel. Include globs are resolved relative to the project
+  // dir (apps/web), so the path is project-relative even though
+  // outputFileTracingRoot points at the monorepo root.
+  outputFileTracingIncludes: {
+    '/opengraph-image': ['src/app/_og/fonts/**'],
+    '/privacy/opengraph-image': ['src/app/_og/fonts/**'],
+    '/changelog/opengraph-image': ['src/app/_og/fonts/**'],
+  },
   transpilePackages: ['@record-me/ui', '@record-me/recorder'],
   async headers() {
     // Next's dev client (webpack HMR / React Refresh) evaluates strings as
