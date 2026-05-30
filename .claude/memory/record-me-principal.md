@@ -281,3 +281,73 @@ metadata:
   specialist's authoritative 3×=12/12 no-flake report rather than colliding.
   Division of labor: the e2e agent owns running the suite; principal verifies
   the spec quality + assertion integrity.
+
+## Phase 5A patterns (2026-05-30, SEO foundation + thin pages)
+
+### CRITICAL — CSP must gate 'unsafe-eval' to dev only
+
+- **A header-based CSP in `next.config.ts` headers() applies in EVERY env,
+  including `next dev`.** Next's dev client (webpack HMR / React Refresh) runs
+  on `eval()`. `script-src` with `'unsafe-inline'` but NO `'unsafe-eval'` ⇒
+  Chrome throws a hard pageerror ("Evaluating a string as JavaScript violates
+  ... 'unsafe-eval' is not an allowed source") and the dev client crashes →
+  broken HMR + non-interactive hydration under `pnpm dev`. Production
+  (`next start`) is fine — no eval. So lhci (uses `pnpm start`) PASSES and masks
+  it; seo-style e2e (static metadata asserts) PASSES and masks it; only an
+  INTERACTIVE e2e or a real dev session surfaces it. Verify method that nailed
+  it: `pnpm dev` + headless Chromium `page.on('pageerror')` on an interactive
+  route. Fix pattern: `script-src` base + `(NODE_ENV !== 'production' ? " 'unsafe-eval'" : '')`.
+- **Watch the playwright webServer.command.** If it's `pnpm dev` (it is here),
+  the interactive e2e suite (record.spec.ts) runs against the dev client and a
+  too-strict CSP breaks it — but a green "e2e N/N" may only be the NEW static
+  specs. Always ask WHICH specs ran and whether any assert hydration/click.
+- Gatekeeper-check candidate: any CSP touching script-src ⇒ require an
+  interactive-page console check under `next dev`, not just `next start`/lhci.
+
+### CRITICAL — public privacy copy must match the ACTUAL cleanup lifecycle
+
+- **Recorder lifecycle (locked, from Phase 3/4 + reconfirmed): `stop()` only
+  ASSEMBLES the Blob — it does NOT clear IDB.** IDB `store.clear()` happens in
+  `release()` and in dispose/cleanupResources pendingCleanup, NOT in stop().
+  So "wiped on stop" is FALSE — a stopped recording in the review pane keeps
+  its chunks in IDB until release (reset/unmount/next-start). When a public
+  /privacy page makes byte-level claims, diff every claim against recorder.ts.
+  This is a CRITICAL (privacy-contract misstatement), not a copy nit.
+  codex caught this independently — good corroboration signal.
+
+### MAJOR — contrast-token regression that lhci's aggregate score hides
+
+- **`text-ivory-mut` (#7a766d) on bg (#0f1115) = 4.17:1 — FAILS WCAG AA 4.5:1
+  for normal text.** The repo already litigated this: packages/ui
+  MetaChip.test.tsx pins ivory-dim and explicitly rejects ivory-mut with the
+  ~4.0:1 rationale. Use ivory-dim (#b5afa2 = 8.65:1) for any normal-size text.
+  lhci ≥95 does NOT prove no contrast issue — Lighthouse samples nodes and a
+  single small low-coverage element (e.g. a `<time>` at text-xs) slips through.
+  Review method: grep new pages for `text-ivory-mut`/`text-ivory-low` and
+  compute the ratio against the page bg yourself. Contrast ratios for the
+  Twilight tokens on #0f1115: ivory 15.20, ivory-dim 8.65, amber 8.64,
+  ivory-mut 4.17 (FAIL), [ivory-low even lower].
+
+### MAJOR — OG-font fs read is the spec §9 risk; local `next start` ≠ Vercel
+
+- **`readFile(path.join(process.cwd(), 'src/app/_og/fonts', ...))` with a
+  COMPUTED base + non-literal readFile arg is the exact shape @vercel/nft
+  static tracing tends to MISS.** `src/` is a source dir, not part of `.next`
+  output. Local `next start` has `src/` on disk so it renders — that does NOT
+  prove the Vercel traced-lambda bundle includes the fonts. Don't accept
+  "OG returns png locally" as proof. Require either a real Vercel preview
+  render (serif, not tofu) OR a tracing-robust load: `fetch(new URL(
+'./fonts/X.ttf', import.meta.url)).then(r=>r.arrayBuffer())` (single static
+  literal nft traces reliably). NOTE: `import.meta.dirname` DOES resolve in
+  this codebase (next.config.ts uses it) — so a plan's blanket "import.meta.url
+  doesn't resolve in App Router" claim warrants a second look.
+- A partial/dev `.next` (no `*.nft.json`, no `required-server-files.json`)
+  can't be used to confirm tracing — those only appear in a full `next build`.
+
+### Process note — codex + Opus complementarity held
+
+- codex found both C1 (CSP/dev-eval) and C2 (privacy IDB copy) independently;
+  my Opus pass added M1 (contrast, from repo-internal test precedent) and M2
+  (font tracing, from spec §9). Neither would have been complete alone. Run
+  codex every round; the empirical browser/contrast verification is the Opus
+  value-add codex can't do (read-only sandbox).
