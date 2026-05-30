@@ -10,6 +10,14 @@ const config: NextConfig = {
   outputFileTracingRoot: path.join(import.meta.dirname, '../..'),
   transpilePackages: ['@record-me/ui', '@record-me/recorder'],
   async headers() {
+    // Next's dev client (webpack HMR / React Refresh) evaluates strings as
+    // JavaScript, which requires 'unsafe-eval'. Gate it to non-production so
+    // the production CSP stays strict (no eval) while `next dev` works.
+    const isDev = process.env.NODE_ENV !== 'production';
+    const scriptSrc =
+      "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com" +
+      (isDev ? " 'unsafe-eval'" : '');
+
     return [
       {
         source: '/(.*)',
@@ -25,7 +33,7 @@ const config: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
+              scriptSrc,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob:",
               "font-src 'self'",
