@@ -1,12 +1,15 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('landing page (/)', () => {
-  test('loads 200 with landing title and h1 headline visible', async ({ page }) => {
+  test('loads 200 with landing title, wordmark, and h1 headline visible', async ({ page }) => {
     const res = await page.goto('/');
     expect(res?.status()).toBe(200);
 
     // Page title includes the configured name + tagline.
     await expect(page).toHaveTitle(/record me — record your screen, beautifully/i);
+
+    // WordMark accessible name (replaces smoke.spec.ts coverage).
+    await expect(page.getByLabel('record me')).toBeVisible();
 
     // LCP headline — h1 is always server-rendered, never JS-gated.
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
@@ -58,6 +61,15 @@ test.describe('landing page (/)', () => {
   });
 
   test('console has zero errors on /', async ({ page }) => {
+    // /_vercel/insights and /_vercel/speed-insights 404 in local dev — the
+    // proxy only resolves on Vercel's edge. Intercept and fulfil with an empty
+    // 200 so no "Failed to load resource: 404" console errors are emitted.
+    // This keeps the assertion strict for real app errors.
+    await page.route('**/_vercel/insights/**', (route) => route.fulfill({ status: 200, body: '' }));
+    await page.route('**/_vercel/speed-insights/**', (route) =>
+      route.fulfill({ status: 200, body: '' }),
+    );
+
     const errors: string[] = [];
     page.on('console', (msg) => {
       if (msg.type() === 'error') errors.push(msg.text());
