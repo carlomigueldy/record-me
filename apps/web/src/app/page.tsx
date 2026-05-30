@@ -1,22 +1,41 @@
-import { WordMark, MetaChip } from '@record-me/ui';
+import { siteConfig } from '@/lib/seo/site-config';
+import { softwareApplicationLd, webApplicationLd } from '@/lib/seo/json-ld';
+import { JsonLd } from '@/lib/seo/JsonLd';
+import { buildMetadata } from '@/lib/seo/metadata';
+import { LandingNav } from './_components/landing/LandingNav';
+import { Hero } from './_components/landing/Hero';
+import { ModesSection } from './_components/landing/ModesSection';
+import { StudioSection } from './_components/landing/StudioSection';
+import { FieldNotesTicker } from './_components/landing/FieldNotesTicker';
+import { LandingFooter } from './_components/landing/LandingFooter';
+
+export const metadata = buildMetadata({
+  title: `${siteConfig.name} — ${siteConfig.tagline}`,
+  description: siteConfig.description,
+  path: '/',
+});
 
 export default function HomePage() {
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-8 px-6 py-24">
-      <h1 className="m-0">
-        <WordMark size="lg" />
-      </h1>
-      <p className="max-w-prose text-base leading-relaxed text-ivory-dim">
-        Phase 2 scaffold. The editorial landing ships in Phase 5 per spec § 8.7. Until then, this
-        page proves the design system is wired: Twilight tokens, Instrument Serif headlines, Geist
-        body, Geist Mono for the technical bits.
-      </p>
-      <div className="flex flex-wrap gap-2">
-        <MetaChip>twilight palette</MetaChip>
-        <MetaChip>instrument serif</MetaChip>
-        <MetaChip>geist · geist mono</MetaChip>
-        <MetaChip tone="amber">phase 2 live</MetaChip>
+    <>
+      {/* Structured data: SoftwareApplication + WebApplication */}
+      <JsonLd data={[softwareApplicationLd(), webApplicationLd()]} />
+
+      <div
+        style={{
+          position: 'relative',
+          maxWidth: '1280px',
+          margin: '0 auto',
+          padding: '24px 36px 72px',
+        }}
+      >
+        <LandingNav />
+        <Hero />
+        <ModesSection />
+        <StudioSection />
+        <FieldNotesTicker />
+        <LandingFooter />
       </div>
-    </main>
+    </>
   );
 }
