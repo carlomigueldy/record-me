@@ -91,4 +91,30 @@ describe('TransitionLink', () => {
     expect(startViewTransition).not.toHaveBeenCalled();
     expect(push).not.toHaveBeenCalled();
   });
+
+  it('falls through to native <Link> for UrlObject hrefs (no "[object Object]" push)', () => {
+    // A UrlObject href stringifies to "[object Object]"; we must NOT intercept
+    // it. next/link serializes the object correctly on its own. Even with the
+    // API present, the handler must leave the navigation to the anchor — no
+    // startViewTransition, no router.push of a broken string.
+    const startViewTransition = vi.fn((cb?: () => void) => {
+      cb?.();
+      return {} as ViewTransition;
+    });
+    setStartViewTransition(startViewTransition);
+
+    render(
+      <TransitionLink href={{ pathname: '/record', query: { mode: 'screen' } }}>go</TransitionLink>,
+    );
+    // next/link resolves the object into the anchor href; the serialized URL
+    // must never be the broken "[object Object]" form.
+    const link = screen.getByRole('link', { name: 'go' });
+    expect(link.getAttribute('href')).not.toContain('[object');
+
+    fireEvent.click(link);
+
+    // Not intercepted: the object navigation is left to <Link>.
+    expect(startViewTransition).not.toHaveBeenCalled();
+    expect(push).not.toHaveBeenCalled();
+  });
 });

@@ -85,23 +85,23 @@ All primitives are React Server Components by default; `<Button>` opts into `'us
 
 Bespoke SVG illustrations used in landing editorial:
 
-| Component            | Path                                        | Use case                         |
-| -------------------- | ------------------------------------------- | -------------------------------- |
-| `<ModeStageA>`       | `packages/ui/src/components/illustrations/` | Screen + Camera + Cursor visual  |
-| `<ModeStageB>`       | `packages/ui/src/components/illustrations/` | Screen + Cursor visual           |
-| `<ModeStageC>`       | `packages/ui/src/components/illustrations/` | Camera only visual               |
-| `<StudioSurfaceArt>` | `packages/ui/src/components/illustrations/` | Review surface hero illustration |
+| Component            | Path                                     | Use case                         |
+| -------------------- | ---------------------------------------- | -------------------------------- |
+| `<ModeStageA>`       | `apps/web/src/components/illustrations/` | Screen + Camera + Cursor visual  |
+| `<ModeStageB>`       | `apps/web/src/components/illustrations/` | Screen + Cursor visual           |
+| `<ModeStageC>`       | `apps/web/src/components/illustrations/` | Camera only visual               |
+| `<StudioSurfaceArt>` | `apps/web/src/components/illustrations/` | Review surface hero illustration |
 
-All illustrations are React Server Components with SVG paths. No external image deps.
+All illustrations are CSS/div art (static visual structures with no dependencies). StudioSurfaceArt is consumed by a client leaf (StudioSurface) and receives a formatted timer string for display.
 
 ## Motion conventions (Phase 5B)
 
-Animations use **framer-motion** with mandatory `prefers-reduced-motion` gating:
+Animations use **motion** (npm: `motion@^12.40.0`) with mandatory `prefers-reduced-motion` gating:
 
 - All motion is disabled when user has set `prefers-reduced-motion: reduce`.
-- Motion variants are defined in `lib/motion/` and exported as objects (e.g., `revealVariants`).
-- Hook `usePrefersReducedMotion()` queries the media query at render time.
-- Signature moments on landing: Hero reveal, ModeTriptych stagger, StudioSurface fade-in, FieldNotes ticker.
+- Motion variants are defined in `lib/motion/variants.ts` and exported as objects: `fadeUp`, `staggerParent`, `liftIn`.
+- Hook `useReducedMotion()` queries the media query at render time.
+- Signature moments on landing: Hero reveal (stagger), ModeTriptych stagger, StudioSurface boot-up + timer tick, FieldNotes ticker.
 - Always test with `prefers-reduced-motion` enabled (Playwright: set `prefers-reduced-motion: reduce` in browser context).
 
 ## Visual verification

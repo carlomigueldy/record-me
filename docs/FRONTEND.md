@@ -99,25 +99,25 @@ Update this table after every phase.
 
 - `<LandingNav>` — Masthead with wordmark + studio link (RSC)
 - `<Hero>` — Headline + tagline + CTA (moment 1)
-- `<HeroReveal>` — Animated reveal orchestration (framer-motion)
+- `<HeroReveal>` — Client leaf wrapping Hero children; stagger orchestration + reduced-motion gating (motion)
 - `<ModesSection>` — "Three recording modes" section intro
 - `<ModeTriptych>` — Three-column mode showcase grid
 - `<StudioSection>` — "Professional review surface" section intro
-- `<StudioSurface>` — Large illustration + narrative (moment 3)
+- `<StudioSurface>` — Large illustration + narrative with boot-up timer tick animation (moment 3)
 - `<FieldNotesTicker>` — Scrolling metadata strip (moment 4)
 - `<LandingFooter>` — Colophon + version string (RSC)
 
-### Landing illustrations (Phase 5B · `components/illustrations/`)
+### Landing illustrations (Phase 5B · `apps/web/src/components/illustrations/`)
 
 - `<ModeStageA>` — Screen + Camera + Cursor visual
 - `<ModeStageB>` — Screen + Cursor visual
 - `<ModeStageC>` — Camera only visual
-- `<StudioSurfaceArt>` — Review surface hero illustration
+- `<StudioSurfaceArt>` — Review surface hero illustration (CSS/div art with timer string prop)
 
 ### Motion library (Phase 5B · `lib/motion/`)
 
-- `usePrefersReducedMotion()` — Media query hook for prefers-reduced-motion
-- Motion variants (`revealVariants`, `fadeInVariants`, etc.) — Framer Motion animation objects with reduced-motion gating
+- `useReducedMotion()` — Media query hook for `prefers-reduced-motion: reduce`
+- Motion variants (`fadeUp`, `staggerParent`, `liftIn`) — motion library animation objects with reduced-motion gating
 
 ### Navigation utilities (Phase 5B · `components/TransitionLink.tsx`)
 
