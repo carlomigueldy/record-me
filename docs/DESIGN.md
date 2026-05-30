@@ -83,7 +83,7 @@ All primitives are React Server Components by default; `<Button>` opts into `'us
 
 ## Illustration components (Phase 5B)
 
-Bespoke SVG illustrations used in landing editorial:
+Bespoke CSS/div illustrations used in landing editorial:
 
 | Component            | Path                                     | Use case                         |
 | -------------------- | ---------------------------------------- | -------------------------------- |
