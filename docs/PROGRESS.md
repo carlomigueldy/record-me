@@ -67,21 +67,40 @@ Completed: 2026-05-30
 - **"Save partial recording" on track-failure** (spec § 8 / § 14) — Engine cannot assemble partial blobs from error state (`stop()` rejects). Needs engine `assemble-on-error()` path (deferred; Phase 4 shows interrupted-error + "Start over").
 - **`/record` page OG / canonical / JSON-LD metadata** — Broader SEO surface (Phase 5 scope, principal minor follow-up per spec § 11).
 
-## Phase 5 · Marketing surface · planned
+## Phase 5 · Marketing surface · in progress
 
-Plan: (to be written)
+Plan: `docs/superpowers/plans/2026-05-30-record-me-phase-5a-seo-foundation.md`
 Epic: #5
+
+**Slice 5A · SEO foundation & thin pages · complete**
+
+Completed: 2026-05-30
+
+- [x] `lib/seo/` module (site-config, metadata, json-ld, JsonLd component)
+- [x] OG template + font loader (`app/_og/`)
+- [x] `/privacy` editorial page + metadata + OG
+- [x] `/changelog` typed data page + metadata + OG
+- [x] `sitemap.ts` + `robots.ts` + `manifest.ts` + icon.svg
+- [x] Root layout metadataBase + default metadata + Organization/WebSite JSON-LD
+- [x] CSP header (allows Vercel Analytics + Speed Insights)
+- [x] E2E smoke tests (`tests/e2e/seo.spec.ts`)
+- [x] Lighthouse CI budgets for /privacy + /changelog
+
+**Slice 5B · Editorial landing · planned**
 
 - [ ] `/` landing with motion + signature moments
 - [ ] `/features/[mode]` deep pages with MDX
-- [ ] `/docs` + `/docs/[...slug]`
-- [ ] `/privacy`, `/changelog`
-- [ ] Per-route `generateMetadata` + `opengraph-image.tsx`
-- [ ] `sitemap.ts`, `robots.ts`, `manifest.ts`
-- [ ] JSON-LD on landing + feature pages
+- [ ] SoftwareApplication + WebApplication JSON-LD on `/`
+- [ ] HowTo JSON-LD on `/features/[mode]`
+- [ ] Lighthouse ≥ 95 on `/`
+- [ ] Recapture `.github/assets/readme/hero.png` from `/` (replace `/dev/previews/landing`)
+
+**Slice 5C · Content system & navigation · planned**
+
+- [ ] `/docs` + `/docs/[...slug]` with MDX
+- [ ] FAQPage JSON-LD on `/docs`
 - [ ] View Transitions API on outbound links
-- [ ] Lighthouse ≥ 95 on `/`, ≥ 90 elsewhere
-- [ ] Recapture `.github/assets/readme/hero.png` from `/` (not `/dev/previews/landing`); drop the "Preview · ships in Phase 5" prefix in `README.md` and re-link to `apps/web/src/app/page.tsx`
+- [ ] Lighthouse ≥ 90 on `/docs/[...slug]`
 
 ## Phase 6 · Analytics & polish · planned
 

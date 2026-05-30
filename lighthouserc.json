@@ -3,7 +3,12 @@
     "collect": {
       "startServerCommand": "pnpm --filter @record-me/web start",
       "startServerReadyPattern": "Ready",
-      "url": ["http://localhost:3000/", "http://localhost:3000/record"],
+      "url": [
+        "http://localhost:3000/",
+        "http://localhost:3000/record",
+        "http://localhost:3000/privacy",
+        "http://localhost:3000/changelog"
+      ],
       "numberOfRuns": 3,
       "settings": {
         "preset": "desktop",

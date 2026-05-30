@@ -38,10 +38,10 @@ apps/web/src/app/
 | `/dev/previews/modes`   | RSC  | sr-frontend | Three-ModeCard composition (dev-only)                                                                                       |
 | `/dev/previews/studio`  | RSC  | sr-frontend | Phase 4 studio mockup (dev-only)                                                                                            |
 | `/record`               | ○    | sr-frontend | Phase 4 · shipped. Renders static RSC shell; `<Studio>` hydrates client-side (capability probe + recorder are client-only). |
-| `/features/[mode]`      | RSC  | sr-frontend | Phase 5                                                                                                                     |
-| `/docs`                 | RSC  | sr-frontend | Phase 5                                                                                                                     |
-| `/privacy`              | RSC  | sr-frontend | Phase 5                                                                                                                     |
-| `/changelog`            | RSC  | sr-frontend | Phase 5                                                                                                                     |
+| `/features/[mode]`      | RSC  | sr-frontend | Phase 5B                                                                                                                    |
+| `/docs`                 | RSC  | sr-frontend | Phase 5C                                                                                                                    |
+| `/privacy`              | RSC  | sr-frontend | Phase 5A · shipped. Editorial page from 6-point privacy contract.                                                           |
+| `/changelog`            | RSC  | sr-frontend | Phase 5A · shipped. Typed changelog.ts + seed v1.0.0 entry.                                                                 |
 
 Update this table after every phase.
 
@@ -100,3 +100,16 @@ Update this table after every phase.
 - `analytics.ts` — Typed Vercel Analytics event taxonomy (7 studio events: modeSelected, recordingStarted, recordingStopped, recordingDownloaded, permissionDenied, browserUnsupported, cursorHighlightDisabled).
 - `capabilities.ts` — `deriveStudioCapabilities()` + `browserName()` UA sniff. Probe-to-mode derivation.
 - `format.ts` — `formatDuration()` (mm:ss), `formatMegabytes()` (1 decimal), `capMinutesToMs()`.
+
+### SEO library modules (Phase 5A · `apps/web/src/lib/seo`)
+
+- `site-config.ts` — `resolveSiteUrl()`, `siteConfig` (name, tagline, description, canonical URL).
+- `metadata.ts` — `buildMetadata()` helper for title, description, canonical, OG, Twitter cards.
+- `json-ld.ts` — `organizationLd()`, `webSiteLd()` schema.org builders.
+- `JsonLd.tsx` — Server component that injects `<script type="application/ld+json">`.
+
+### OG template (Phase 5A · `apps/web/src/app/_og`)
+
+- `fonts.ts` — `loadOgFonts()` async loader for Instrument Serif + Geist Mono TTFs.
+- `fonts/` — Bundled TTF assets (InstrumentSerif-Regular.ttf, GeistMono-Regular.ttf).
+- `template.tsx` — Shared `ogImage({title, caption})` using Next.js `ImageResponse`.

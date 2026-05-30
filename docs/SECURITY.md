@@ -13,8 +13,14 @@ Source of truth: `docs/superpowers/specs/2026-05-27-record-me-design.md` § 15.
    aggregate page views and Core Web Vitals only.
 4. **Custom analytics events carry no PII.** Only mode, duration, bytes, mime
    type, and error kind are tracked.
-5. **IndexedDB stores are wiped on stop()/dispose() and on the next session
-   start.** No recording artifacts persist between sessions.
+5. **IndexedDB stores are cleared on graceful exit; stale data is swept
+   periodically.** stop() only assembles the Blob — chunks remain in IDB
+   while the recording is in the review pane. Discarding, re-recording,
+   leaving the page, or starting a new session triggers release()/dispose()
+   which clears the store immediately. A hard exit (tab-kill / crash) may
+   leave data in IDB; sweepStaleChunkDatabases() removes DBs older than 24h
+   on the next session start (best-effort; requires indexedDB.databases()
+   support). No recording data persists across normal sessions.
 6. **CSP headers via `apps/web/next.config.ts`** block third-party scripts
    beyond Vercel itself.
 
@@ -24,7 +30,14 @@ Source of truth: `docs/superpowers/specs/2026-05-27-record-me-design.md` § 15.
 - `X-Frame-Options: DENY`
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `Permissions-Policy: camera=(self), microphone=(self), display-capture=(self)`
-- (Phase 5) `Content-Security-Policy` allowing only Vercel script origins
+- (Phase 5A · shipped) `Content-Security-Policy`:
+
+```
+default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://va.vercel-scripts.com https://vitals.vercel-insights.com; media-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+```
+
+Allows Vercel Analytics (`va.vercel-scripts.com`) and Speed Insights
+(`vitals.vercel-insights.com`) while blocking third-party scripts + XSS.
 
 ## What to never do
 

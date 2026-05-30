@@ -2,7 +2,7 @@
 
 Auto-maintained by `/agent-checkpoint` (run weekly or after major merges).
 
-Last regenerated: 2026-05-28 (Phase 2 design system)
+Last regenerated: 2026-05-30 (Phase 5A SEO foundation)
 
 ## record-me-sr-frontend
 
@@ -18,6 +18,11 @@ Last regenerated: 2026-05-28 (Phase 2 design system)
 - `app/dev/previews/landing/page.tsx` — Phase 5 landing hero mockup (real Twilight tokens)
 - `app/dev/previews/modes/page.tsx` — three-ModeCard composition (Phase 2 primitives)
 - `app/dev/previews/studio/page.tsx` — Phase 4 studio surface mockup
+- `app/opengraph-image.tsx` · `app/privacy/page.tsx` · `app/privacy/opengraph-image.tsx` · `app/changelog/page.tsx` · `app/changelog/opengraph-image.tsx` — Phase 5A pages + OG
+- `app/sitemap.ts` · `app/robots.ts` · `app/manifest.ts` · `app/icon.svg` — Phase 5A SEO metadata
+- `lib/seo/site-config.ts` · `lib/seo/metadata.ts` · `lib/seo/json-ld.ts` · `lib/seo/JsonLd.tsx` — Phase 5A SEO library
+- `app/changelog/changelog.ts` — Typed changelog entries (MDX-free, v1.0.0 seed)
+- `app/_og/fonts.ts` · `app/_og/fonts/InstrumentSerif-Regular.ttf` · `app/_og/fonts/GeistMono-Regular.ttf` · `app/_og/template.tsx` — Phase 5A shared OG template
 
 ### packages/ui/src
 
@@ -103,6 +108,7 @@ Last regenerated: 2026-05-28 (Phase 2 design system)
 
 ## record-me-e2e
 
-### apps/web/tests/e2e (Phase 1: smoke only)
+### apps/web/tests/e2e
 
-- `smoke.spec.ts`
+- `smoke.spec.ts` — Phase 1 smoke tests
+- `seo.spec.ts` — Phase 5A SEO metadata, robots, sitemap, OG image smoke tests
