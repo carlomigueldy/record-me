@@ -23,7 +23,7 @@ export function ModeStageB() {
           inset: 0;
           background: repeating-linear-gradient(
             180deg,
-            rgba(255,255,255,0.012) 0 2px,
+            rgba(255,255,255,0.012) 0 2px, /* illustration-internal shade, no token equivalent */
             transparent 2px 4px
           );
           pointer-events: none;
@@ -33,8 +33,8 @@ export function ModeStageB() {
           position: absolute;
           inset: 16px;
           border-radius: 6px;
-          background: linear-gradient(180deg, #1d212a 0%, #161a21 100%);
-          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+          background: linear-gradient(180deg, #1d212a 0%, #161a21 100%); /* illustration-internal shade, no token equivalent */
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04); /* illustration-internal shade, no token equivalent */
           z-index: 1;
         }
         .mode-stage-b .window::before {
@@ -54,8 +54,8 @@ export function ModeStageB() {
           right: 18px;
           bottom: 18px;
           background-image:
-            linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+            linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), /* illustration-internal shade, no token equivalent */
+            linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px); /* illustration-internal shade, no token equivalent */
           background-size: 22px 22px;
           z-index: 2;
         }

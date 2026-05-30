@@ -1,9 +1,8 @@
 'use client';
-import { motion } from 'motion/react';
+import { motion, MotionConfig } from 'motion/react';
 import { ModeStageA } from '@/components/illustrations/ModeStageA';
 import { ModeStageB } from '@/components/illustrations/ModeStageB';
 import { ModeStageC } from '@/components/illustrations/ModeStageC';
-import { usePrefersReducedMotion } from '@/lib/motion/useReducedMotion';
 import { liftIn } from '@/lib/motion/variants';
 
 interface ModeCardProps {
@@ -12,10 +11,9 @@ interface ModeCardProps {
   blurb: string;
   illustration: React.ReactNode;
   index: number;
-  reduced: boolean;
 }
 
-function ModeCard({ badge, title, blurb, illustration, index, reduced }: ModeCardProps) {
+function ModeCard({ badge, title, blurb, illustration, index }: ModeCardProps) {
   const cardContent = (
     <div
       style={{
@@ -70,15 +68,11 @@ function ModeCard({ badge, title, blurb, illustration, index, reduced }: ModeCar
     </div>
   );
 
-  if (reduced) {
-    return cardContent;
-  }
-
   return (
     <motion.div
       variants={liftIn}
       custom={index}
-      initial="hidden"
+      initial="show"
       whileInView="show"
       viewport={{ once: true, margin: '-60px' }}
     >
@@ -89,11 +83,11 @@ function ModeCard({ badge, title, blurb, illustration, index, reduced }: ModeCar
 
 /**
  * ModeTriptych — three mode cards with lift-on-enter animation (moment 2).
- * Reduced-motion: static layout.
+ * MotionConfig reducedMotion="user" ensures the motion library respects
+ * prefers-reduced-motion natively — no JS state needed, first-paint safe.
+ * Cards SSR at final-state (initial="show") so content is never hidden.
  */
 export function ModeTriptych() {
-  const reduced = usePrefersReducedMotion();
-
   const modes = [
     {
       badge: 'Mode A',
@@ -132,18 +126,20 @@ export function ModeTriptych() {
   ];
 
   return (
-    <div
-      className="modes-triptych"
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '22px',
-        padding: '16px 0 8px',
-      }}
-    >
-      {modes.map((mode, i) => (
-        <ModeCard key={mode.badge} {...mode} index={i} reduced={reduced} />
-      ))}
-    </div>
+    <MotionConfig reducedMotion="user">
+      <div
+        className="modes-triptych"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '22px',
+          padding: '16px 0 8px',
+        }}
+      >
+        {modes.map((mode, i) => (
+          <ModeCard key={mode.badge} {...mode} index={i} />
+        ))}
+      </div>
+    </MotionConfig>
   );
 }

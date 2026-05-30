@@ -24,7 +24,7 @@ export function ModeStageA() {
           inset: 0;
           background: repeating-linear-gradient(
             180deg,
-            rgba(255,255,255,0.012) 0 2px,
+            rgba(255,255,255,0.012) 0 2px, /* illustration-internal shade, no token equivalent */
             transparent 2px 4px
           );
           pointer-events: none;
@@ -35,8 +35,8 @@ export function ModeStageA() {
           position: absolute;
           inset: 14px;
           border-radius: 6px;
-          background: linear-gradient(180deg, #1d212a 0%, #161a21 100%);
-          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+          background: linear-gradient(180deg, #1d212a 0%, #161a21 100%); /* illustration-internal shade, no token equivalent */
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04); /* illustration-internal shade, no token equivalent */
           z-index: 1;
         }
         .mode-stage-a .window::before {
@@ -55,7 +55,7 @@ export function ModeStageA() {
           left: 28px;
           right: 28px;
           height: 8px;
-          background: rgba(255,255,255,0.04);
+          background: rgba(255,255,255,0.04); /* illustration-internal shade, no token equivalent */
           border-radius: 2px;
           z-index: 2;
         }
@@ -72,7 +72,7 @@ export function ModeStageA() {
           z-index: 2;
         }
         .mode-stage-a .content .col {
-          background: rgba(255,255,255,0.025);
+          background: rgba(255,255,255,0.025); /* illustration-internal shade, no token equivalent */
           border-radius: 4px;
         }
         .mode-stage-a .content .body {
@@ -83,13 +83,14 @@ export function ModeStageA() {
         .mode-stage-a .content .body span {
           display: block;
           height: 6px;
-          background: rgba(255,255,255,0.04);
+          background: rgba(255,255,255,0.04); /* illustration-internal shade, no token equivalent */
           border-radius: 2px;
         }
         .mode-stage-a .content .body span:nth-child(odd) { width: 76%; }
         .mode-stage-a .content .body span:nth-child(3n) {
           width: 58%;
-          background: rgba(var(--color-amber-rgb, 229 162 74) / 0.18);
+          /* --color-amber at 18% opacity */
+          background: color-mix(in srgb, var(--color-amber) 18%, transparent);
         }
         /* Webcam PiP */
         .mode-stage-a .webcam {
@@ -99,9 +100,9 @@ export function ModeStageA() {
           width: 64px;
           height: 64px;
           border-radius: 999px;
-          background: radial-gradient(circle at 35% 30%, #3d3a32 0%, #1c1a16 70%);
+          background: radial-gradient(circle at 35% 30%, #3d3a32 0%, #1c1a16 70%); /* illustration-internal shade, no token equivalent */
           border: 2px solid var(--color-ivory);
-          box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+          box-shadow: 0 6px 20px rgba(0,0,0,0.5); /* illustration-internal shade, no token equivalent */
           display: flex;
           align-items: center;
           justify-content: center;

@@ -12,6 +12,7 @@ export function ModeStageC() {
         position: 'relative',
         aspectRatio: '16 / 10',
         borderRadius: '10px',
+        /* illustration-internal shade, no token equivalent */
         background: 'radial-gradient(circle at 50% 45%, #2a2e36 0%, #14171d 70%)',
         border: '1px solid var(--color-line-soft)',
         overflow: 'hidden',
@@ -23,7 +24,7 @@ export function ModeStageC() {
           inset: 0;
           background: repeating-linear-gradient(
             180deg,
-            rgba(255,255,255,0.012) 0 2px,
+            rgba(255,255,255,0.012) 0 2px, /* illustration-internal shade, no token equivalent */
             transparent 2px 4px
           );
           pointer-events: none;
@@ -38,8 +39,9 @@ export function ModeStageC() {
           aspect-ratio: 1;
           transform: translate(-50%, -50%);
           border-radius: 999px;
-          background: radial-gradient(circle at 38% 28%, #4a463c 0%, #29251c 70%);
-          box-shadow: 0 12px 40px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(237,230,214,0.08);
+          background: radial-gradient(circle at 38% 28%, #4a463c 0%, #29251c 70%); /* illustration-internal shade, no token equivalent */
+          /* --color-ivory at 8% opacity for the inset ring */
+          box-shadow: 0 12px 40px rgba(0,0,0,0.45), inset 0 0 0 1px color-mix(in srgb, var(--color-ivory) 8%, transparent); /* illustration-internal shade, no token equivalent */
           z-index: 1;
         }
         /* Head silhouette */

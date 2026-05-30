@@ -14,6 +14,7 @@ export function StudioSurfaceArt({ timer }: StudioSurfaceArtProps) {
       aria-hidden="true"
       className="studio-surface-art"
       style={{
+        aspectRatio: '4 / 3',
         background: 'var(--color-surface)',
         border: '1px solid var(--color-line)',
         borderRadius: '18px',
@@ -90,8 +91,9 @@ export function StudioSurfaceArt({ timer }: StudioSurfaceArtProps) {
           flex: 1;
           min-height: 220px;
           background:
-            radial-gradient(circle at 70% 40%, rgba(229,162,74,0.06), transparent 60%),
-            linear-gradient(180deg, #14171d 0%, #0f1218 100%);
+            /* --color-amber at 6% opacity glow */
+            radial-gradient(circle at 70% 40%, color-mix(in srgb, var(--color-amber) 6%, transparent), transparent 60%),
+            linear-gradient(180deg, #14171d 0%, #0f1218 100%); /* illustration-internal shade, no token equivalent */
         }
         /* Demo window inside canvas */
         .studio-surface-art .demo-window {
@@ -101,8 +103,8 @@ export function StudioSurfaceArt({ timer }: StudioSurfaceArtProps) {
           right: 24px;
           bottom: 24px;
           border-radius: 8px;
-          background: linear-gradient(180deg, #1d212a 0%, #161a21 100%);
-          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+          background: linear-gradient(180deg, #1d212a 0%, #161a21 100%); /* illustration-internal shade, no token equivalent */
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); /* illustration-internal shade, no token equivalent */
         }
         .studio-surface-art .demo-window .bar {
           position: absolute;
@@ -110,7 +112,7 @@ export function StudioSurfaceArt({ timer }: StudioSurfaceArtProps) {
           left: 0;
           right: 0;
           height: 28px;
-          border-bottom: 1px solid rgba(255,255,255,0.04);
+          border-bottom: 1px solid rgba(255,255,255,0.04); /* illustration-internal shade, no token equivalent */
         }
         .studio-surface-art .demo-window .bar::before {
           content: '• • •';
@@ -134,18 +136,20 @@ export function StudioSurfaceArt({ timer }: StudioSurfaceArtProps) {
         .studio-surface-art .demo-window .content .heading {
           height: 16px;
           width: 52%;
-          background: rgba(237,230,214,0.18);
+          /* --color-ivory at 18% opacity */
+          background: color-mix(in srgb, var(--color-ivory) 18%, transparent);
           border-radius: 3px;
         }
         .studio-surface-art .demo-window .content .row {
           height: 8px;
-          background: rgba(255,255,255,0.05);
+          background: rgba(255,255,255,0.05); /* illustration-internal shade, no token equivalent */
           border-radius: 2px;
         }
         .studio-surface-art .demo-window .content .row.s  { width: 72%; }
         .studio-surface-art .demo-window .content .row.m  { width: 88%; }
         .studio-surface-art .demo-window .content .row.amber {
-          background: rgba(229,162,74,0.32);
+          /* --color-amber at 32% opacity */
+          background: color-mix(in srgb, var(--color-amber) 32%, transparent);
           width: 30%;
         }
         /* Amber cursor highlight */
@@ -162,7 +166,8 @@ export function StudioSurfaceArt({ timer }: StudioSurfaceArtProps) {
           inset: 0;
           border-radius: 999px;
           border: 2px solid var(--color-amber);
-          box-shadow: 0 0 32px rgba(229,162,74,0.18);
+          /* --color-amber at 18% opacity glow */
+          box-shadow: 0 0 32px color-mix(in srgb, var(--color-amber) 18%, transparent);
         }
         .studio-surface-art .cursor-hl::after {
           content: '';
@@ -192,9 +197,9 @@ export function StudioSurfaceArt({ timer }: StudioSurfaceArtProps) {
           width: 80px;
           height: 80px;
           border-radius: 999px;
-          background: radial-gradient(circle at 35% 30%, #4a463c 0%, #1d1b16 80%);
+          background: radial-gradient(circle at 35% 30%, #4a463c 0%, #1d1b16 80%); /* illustration-internal shade, no token equivalent */
           border: 2px solid var(--color-ivory);
-          box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.55); /* illustration-internal shade, no token equivalent */
           display: flex;
           align-items: center;
           justify-content: center;

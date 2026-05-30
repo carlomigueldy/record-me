@@ -1,10 +1,13 @@
 import Link from 'next/link';
 import { TransitionLink } from '@/components/TransitionLink';
+import { HeroReveal } from './HeroReveal';
 
 /**
  * Hero — Server component (RSC). All copy rendered server-side for LCP.
- * HeroReveal (client) is used for the stagger animation but the DOM is
- * fully rendered on the server — content is never JS-gated.
+ * The left column's children are passed to HeroReveal (client leaf) which
+ * staggers them on mount (moment 1). The headline is NEVER JS-gated —
+ * it exists in the server HTML at full opacity and only receives the entrance
+ * animation on the client.
  */
 export function Hero() {
   return (
@@ -30,8 +33,9 @@ export function Hero() {
           }
         }
       `}</style>
-      {/* Left column */}
-      <div style={{ position: 'relative' }}>
+
+      {/* Left column — children staggered by HeroReveal (client) */}
+      <HeroReveal>
         {/* Eyebrow */}
         <div
           style={{
@@ -57,7 +61,7 @@ export function Hero() {
           A recording instrument · v0.1
         </div>
 
-        {/* LCP headline — h1 */}
+        {/* LCP headline — h1, server-rendered, never JS-gated */}
         <h1
           style={{
             fontFamily: 'var(--font-serif)',
@@ -181,9 +185,9 @@ export function Hero() {
           <span style={{ color: 'var(--color-ivory-low)' }}>/</span>
           <span>Free · MIT</span>
         </div>
-      </div>
+      </HeroReveal>
 
-      {/* Right column — pull quote */}
+      {/* Right column — pull quote (not animated; static editorial flourish) */}
       <aside style={{ paddingBottom: '16px' }}>
         <blockquote
           style={{
