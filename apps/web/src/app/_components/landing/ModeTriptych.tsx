@@ -133,6 +133,7 @@ export function ModeTriptych() {
 
   return (
     <div
+      className="modes-triptych"
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(3, 1fr)',

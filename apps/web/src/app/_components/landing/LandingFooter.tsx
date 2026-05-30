@@ -7,6 +7,7 @@ import { TransitionLink } from '@/components/TransitionLink';
 export function LandingFooter() {
   return (
     <footer
+      className="landing-footer"
       style={{
         marginTop: '56px',
         display: 'grid',
@@ -18,6 +19,12 @@ export function LandingFooter() {
         paddingTop: '32px',
       }}
     >
+      <style>{`
+        @media (max-width: 860px) {
+          .landing-footer { grid-template-columns: 1fr !important; }
+          .landing-footer nav { align-items: flex-start !important; }
+        }
+      `}</style>
       {/* Left: colophon */}
       <div>
         <p

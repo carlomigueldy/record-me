@@ -7,8 +7,15 @@ import { ModeTriptych } from './ModeTriptych';
 export function ModesSection() {
   return (
     <section id="modes">
+      <style>{`
+        @media (max-width: 860px) {
+          .modes-section-head { grid-template-columns: 1fr !important; gap: 8px !important; }
+          .modes-triptych { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       {/* Section header */}
       <div
+        className="modes-section-head"
         style={{
           display: 'grid',
           gridTemplateColumns: 'auto 1fr auto',

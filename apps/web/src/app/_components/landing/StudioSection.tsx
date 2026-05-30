@@ -7,8 +7,15 @@ import { StudioSurface } from './StudioSurface';
 export function StudioSection() {
   return (
     <section id="studio">
+      <style>{`
+        @media (max-width: 860px) {
+          .studio-section-head { grid-template-columns: 1fr !important; gap: 8px !important; }
+          .studio-surface-wrap { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       {/* Section header */}
       <div
+        className="studio-section-head"
         style={{
           display: 'grid',
           gridTemplateColumns: 'auto 1fr auto',
@@ -57,6 +64,7 @@ export function StudioSection() {
 
       {/* Surface + editorial notes */}
       <div
+        className="studio-surface-wrap"
         style={{
           display: 'grid',
           gridTemplateColumns: '1.3fr 0.9fr',

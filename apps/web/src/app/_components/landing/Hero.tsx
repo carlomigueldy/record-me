@@ -9,6 +9,7 @@ import { TransitionLink } from '@/components/TransitionLink';
 export function Hero() {
   return (
     <section
+      className="hero-section"
       style={{
         position: 'relative',
         padding: '96px 0 80px',
@@ -18,6 +19,17 @@ export function Hero() {
         alignItems: 'end',
       }}
     >
+      <style>{`
+        @media (max-width: 860px) {
+          .hero-section {
+            grid-template-columns: 1fr !important;
+            padding: 64px 0 56px !important;
+          }
+          .hero-section aside {
+            display: none;
+          }
+        }
+      `}</style>
       {/* Left column */}
       <div style={{ position: 'relative' }}>
         {/* Eyebrow */}

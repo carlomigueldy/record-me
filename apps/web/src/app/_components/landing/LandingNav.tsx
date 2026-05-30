@@ -8,6 +8,7 @@ import { WordMark } from '@record-me/ui';
 export function LandingNav() {
   return (
     <header
+      className="landing-nav"
       style={{
         display: 'grid',
         gridTemplateColumns: '1fr auto 1fr',
@@ -16,6 +17,19 @@ export function LandingNav() {
         borderBottom: '1px solid var(--color-line-soft)',
       }}
     >
+      <style>{`
+        @media (max-width: 860px) {
+          .landing-nav {
+            grid-template-columns: 1fr !important;
+            gap: 10px;
+            text-align: center;
+          }
+          .landing-nav nav {
+            justify-content: center !important;
+          }
+        }
+      `}</style>
+
       {/* Left: edition mono tag */}
       <div
         style={{
