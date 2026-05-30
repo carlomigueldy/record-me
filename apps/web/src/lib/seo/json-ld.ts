@@ -21,5 +21,28 @@ function webSiteLd(): Ld {
   };
 }
 
+export function softwareApplicationLd(): Ld {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: siteConfig.name,
+    url: siteConfig.url,
+    applicationCategory: 'MultimediaApplication',
+    operatingSystem: 'Web',
+    description: siteConfig.description,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  };
+}
+
+export function webApplicationLd(): Ld {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: siteConfig.name,
+    url: siteConfig.url,
+    browserRequirements: 'Requires JavaScript and a browser with MediaRecorder support.',
+  };
+}
+
 export { organizationLd, webSiteLd };
 export type { Ld };
