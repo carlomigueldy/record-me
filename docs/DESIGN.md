@@ -25,7 +25,7 @@ for the Tailwind theme mapping).
 | ------------- | --------- | --------------------- |
 | `--ivory`     | `#EDE6D6` | Primary body text     |
 | `--ivory-dim` | `#B5AFA2` | Deck / secondary      |
-| `--ivory-mut` | `#7A766D` | Meta / mono labels    |
+| `--ivory-mut` | `#948F84` | Meta / mono labels (AA on surfaces) |
 | `--ivory-low` | `#54514A` | Disabled / decorative |
 
 ### Signal & state
@@ -80,6 +80,29 @@ All primitives are React Server Components by default; `<Button>` opts into `'us
 | Component  | Path                                    | Variants                                                                                              |
 | ---------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `<Button>` | `packages/ui/src/components/Button.tsx` | `variant: 'primary' \| 'secondary' \| 'ghost'`, `size: 'sm' \| 'md' \| 'lg'`, `asChild?` (Radix Slot) |
+
+## Illustration components (Phase 5B)
+
+Bespoke CSS/div illustrations used in landing editorial:
+
+| Component            | Path                                     | Use case                         |
+| -------------------- | ---------------------------------------- | -------------------------------- |
+| `<ModeStageA>`       | `apps/web/src/components/illustrations/` | Screen + Camera + Cursor visual  |
+| `<ModeStageB>`       | `apps/web/src/components/illustrations/` | Screen + Cursor visual           |
+| `<ModeStageC>`       | `apps/web/src/components/illustrations/` | Camera only visual               |
+| `<StudioSurfaceArt>` | `apps/web/src/components/illustrations/` | Review surface hero illustration |
+
+All illustrations are CSS/div art (static visual structures with no dependencies). StudioSurfaceArt is consumed by a client leaf (StudioSurface) and receives a formatted timer string for display.
+
+## Motion conventions (Phase 5B)
+
+Animations use **motion** (npm: `motion@^12.40.0`) with mandatory `prefers-reduced-motion` gating:
+
+- All motion is disabled when user has set `prefers-reduced-motion: reduce`.
+- Motion variants are defined in `lib/motion/variants.ts` and exported as objects: `fadeUp`, `staggerParent`, `liftIn`.
+- Hook `useReducedMotion()` queries the media query at render time.
+- Signature moments on landing: Hero reveal (stagger), ModeTriptych stagger, StudioSurface boot-up + timer tick, FieldNotes ticker.
+- Always test with `prefers-reduced-motion` enabled (Playwright: set `prefers-reduced-motion: reduce` in browser context).
 
 ## Visual verification
 

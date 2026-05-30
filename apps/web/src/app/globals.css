@@ -16,3 +16,22 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
 }
+
+/* View Transitions — a minimal crossfade for same-document navigations driven
+   by <TransitionLink> (document.startViewTransition). Browsers without the API
+   ignore these rules and navigate normally (progressive enhancement). Gated
+   behind no-preference so reduced-motion users get an instant swap. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 260ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

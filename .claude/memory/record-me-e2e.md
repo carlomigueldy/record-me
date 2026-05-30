@@ -66,3 +66,26 @@ synchronously after click so no extra timeout is needed.
 - Download: `getByRole('button', { name: /download/i })` — matches `⤓ Download`.
 - Re-record: `getByRole('button', { name: /re-record/i })` — matches `↻ Re-record`.
 - Home link: `getByLabel('record me — home')` — em dash, not a regular hyphen.
+
+## Phase 5B patterns
+
+### Filtering benign Vercel 404 console errors in local dev
+
+`/_vercel/insights/script.js` and `/_vercel/speed-insights/script.js` 404 in
+local dev (the proxy only resolves on Vercel's edge). Playwright's `msg.text()`
+for network-failure console errors is generic ("Failed to load resource: 404")
+with no URL included — you cannot filter by URL from the console event alone.
+
+Fix: use `page.route` to intercept and fulfil those requests with an empty 200
+BEFORE `page.goto()`. This prevents the 404 entirely, keeping the console-error
+assertion strict for real app errors.
+
+```ts
+await page.route('**/_vercel/insights/**', (route) => route.fulfill({ status: 200, body: '' }));
+await page.route('**/_vercel/speed-insights/**', (route) =>
+  route.fulfill({ status: 200, body: '' }),
+);
+```
+
+Call both routes before `page.goto()`. Text-filtering `msg.text()` alone will
+NOT work because the generic "Failed to load resource" message contains no URL.

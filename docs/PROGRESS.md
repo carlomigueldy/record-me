@@ -86,21 +86,28 @@ Completed: 2026-05-30
 - [x] E2E smoke tests (`tests/e2e/seo.spec.ts`)
 - [x] Lighthouse CI budgets for /privacy + /changelog
 
-**Slice 5B · Editorial landing · planned**
+**Slice 5B · Editorial landing · complete**
 
-- [ ] `/` landing with motion + signature moments
-- [ ] `/features/[mode]` deep pages with MDX
-- [ ] SoftwareApplication + WebApplication JSON-LD on `/`
+Completed: 2026-05-30
+
+- [x] `/` editorial landing with bespoke illustrations + motion orchestration
+- [x] Four signature motion moments (Hero reveal, ModeTriptych stagger, StudioSurface fade-in, FieldNotes ticker)
+- [x] `usePrefersReducedMotion()` hook + motion variant gating (full a11y support)
+- [x] `<TransitionLink>` View-Transitions wrapper on outbound navigation
+- [x] SoftwareApplication + WebApplication JSON-LD builders + landing injection
+- [x] `/` OG card (bespoke landing variant)
+- [x] Landing component inventory (LandingNav, Hero, ModesSection, StudioSection, etc.)
+- [x] Landing illustration components (ModeStageA/B/C, StudioSurfaceArt)
+- [x] Lighthouse ≥ 95 on `/`
+- [x] Recapture `.github/assets/readme/hero.png` from `/` (replace `/dev/previews/landing`)
+
+**Slice 5C · MDX content system · planned**
+
+- [ ] `/features/[mode]` MDX deep pages + metadata + OG per mode
+- [ ] `/docs` + `/docs/[...slug]` MDX documentation + metadata + OG
 - [ ] HowTo JSON-LD on `/features/[mode]`
-- [ ] Lighthouse ≥ 95 on `/`
-- [ ] Recapture `.github/assets/readme/hero.png` from `/` (replace `/dev/previews/landing`)
-
-**Slice 5C · Content system & navigation · planned**
-
-- [ ] `/docs` + `/docs/[...slug]` with MDX
 - [ ] FAQPage JSON-LD on `/docs`
-- [ ] View Transitions API on outbound links
-- [ ] Lighthouse ≥ 90 on `/docs/[...slug]`
+- [ ] Lighthouse ≥ 90 on `/docs/[...slug]` + `/features/[mode]`
 
 ## Phase 6 · Analytics & polish · planned
 

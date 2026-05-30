@@ -32,7 +32,7 @@ apps/web/src/app/
 
 | Route                   | Type | Owner       | Status                                                                                                                      |
 | ----------------------- | ---- | ----------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `/`                     | RSC  | sr-frontend | Phase 2 scaffold · Phase 5 ships the editorial landing                                                                      |
+| `/`                     | RSC  | sr-frontend | Phase 5B · shipped. Editorial landing with motion, signature moments, View-Transitions wrapper.                             |
 | `/dev/primitives`       | RSC  | sr-frontend | Dev-only showcase for brand primitives. 404 in production via `/dev/layout.tsx`.                                            |
 | `/dev/previews/landing` | RSC  | sr-frontend | Phase 5 landing hero mockup (dev-only)                                                                                      |
 | `/dev/previews/modes`   | RSC  | sr-frontend | Three-ModeCard composition (dev-only)                                                                                       |
@@ -95,6 +95,34 @@ Update this table after every phase.
 
 - `derivePhase()` + `StudioPhase` type (`_components/studio-phase.ts`) — Pure phase state machine derivation.
 
+### Landing components (Phase 5B · `/`)
+
+- `<LandingNav>` — Masthead with wordmark + studio link (RSC)
+- `<Hero>` — Headline + tagline + CTA (moment 1)
+- `<HeroReveal>` — Client leaf wrapping Hero children; stagger orchestration + reduced-motion gating (motion)
+- `<ModesSection>` — "Three recording modes" section intro
+- `<ModeTriptych>` — Three-column mode showcase grid
+- `<StudioSection>` — "Professional review surface" section intro
+- `<StudioSurface>` — Large illustration + narrative with boot-up timer tick animation (moment 3)
+- `<FieldNotesTicker>` — Scrolling metadata strip (moment 4)
+- `<LandingFooter>` — Colophon + version string (RSC)
+
+### Landing illustrations (Phase 5B · `apps/web/src/components/illustrations/`)
+
+- `<ModeStageA>` — Screen + Camera + Cursor visual
+- `<ModeStageB>` — Screen + Cursor visual
+- `<ModeStageC>` — Camera only visual
+- `<StudioSurfaceArt>` — Review surface hero illustration (CSS/div art with timer string prop)
+
+### Motion library (Phase 5B · `lib/motion/`)
+
+- `useReducedMotion()` — Media query hook for `prefers-reduced-motion: reduce`
+- Motion variants (`fadeUp`, `staggerParent`, `liftIn`) — motion library animation objects with reduced-motion gating
+
+### Navigation utilities (Phase 5B · `components/TransitionLink.tsx`)
+
+- `<TransitionLink>` — View-Transitions API wrapper for outbound navigation (href-based, no instrumentation)
+
 ### Studio library modules (Phase 4 · `apps/web/src/lib`)
 
 - `analytics.ts` — Typed Vercel Analytics event taxonomy (7 studio events: modeSelected, recordingStarted, recordingStopped, recordingDownloaded, permissionDenied, browserUnsupported, cursorHighlightDisabled).
@@ -105,7 +133,7 @@ Update this table after every phase.
 
 - `site-config.ts` — `resolveSiteUrl()`, `siteConfig` (name, tagline, description, canonical URL).
 - `metadata.ts` — `buildMetadata()` helper for title, description, canonical, OG, Twitter cards.
-- `json-ld.ts` — `organizationLd()`, `webSiteLd()` schema.org builders.
+- `json-ld.ts` — `organizationLd()`, `webSiteLd()`, `softwareApplicationLd()`, `webApplicationLd()` schema.org builders (Phase 5B adds app schemas).
 - `JsonLd.tsx` — Server component that injects `<script type="application/ld+json">`.
 
 ### OG template (Phase 5A · `apps/web/src/app/_og`)

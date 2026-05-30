@@ -12,8 +12,7 @@
        width="900" />
 </p>
 
-> _Preview · The landing ships in Phase 5. Mockup rendered from real Twilight
-> tokens via [`/dev/previews/landing`](apps/web/src/app/dev/previews/landing/page.tsx)._
+> _The editorial landing at [`/`](apps/web/src/app/page.tsx) — Twilight palette, Instrument Serif, four signature moments._
 
 A quietly editorial screen recorder for the web. Press record, capture your screen,
 your camera, and your cursor — render a polished clip in the browser. No accounts,

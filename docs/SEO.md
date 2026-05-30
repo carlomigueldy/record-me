@@ -27,12 +27,12 @@ mono caption strip. Shared template in `app/_og/template.tsx`.
 - `app/manifest.ts` — PWA metadata + brand icon reference.
 - `app/icon.svg` — 64×64 brand icon (amber dot on Twilight).
 
-## Structured data (JSON-LD) (Phase 5A · Foundation)
+## Structured data (JSON-LD) (Phase 5A · Foundation, Phase 5B · App schemas)
 
 - `Organization` + `WebSite` on root layout (via `lib/seo/json-ld.ts`)
-- `SoftwareApplication` + `WebApplication` on `/` (Phase 5B)
-- `HowTo` on each `/features/[mode]` (Phase 5B)
-- `FAQPage` on `/docs` (Phase 5C)
+- `SoftwareApplication` + `WebApplication` on `/` (Phase 5B · shipped)
+- `HowTo` on each `/features/[mode]` (Phase 5C · planned)
+- `FAQPage` on `/docs` (Phase 5C · planned)
 
 Injected via `<JsonLd>` server component from `lib/seo/JsonLd.tsx`.
 
