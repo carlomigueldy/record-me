@@ -26,8 +26,8 @@ const PROMISES = [
     'Only mode, duration, byte size, mime type, and error kind are recorded.',
   ],
   [
-    'Nothing persists between sessions.',
-    'IndexedDB stores are wiped on stop and on the next session start. No recording artifacts linger.',
+    'Nothing lingers once you are done.',
+    'Encoded chunks live in memory or IndexedDB only while you are working with a recording — discarding it, re-recording, leaving the page, or starting a new session wipes the store. Nothing persists.',
   ],
   [
     'Locked down by headers.',

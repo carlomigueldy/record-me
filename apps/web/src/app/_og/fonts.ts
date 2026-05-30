@@ -1,9 +1,16 @@
 import { readFile } from 'fs/promises';
 import path from 'path';
 
+// Font loading via fs/promises + process.cwd() — the only pattern that works
+// during both `next dev` and `next build` static prerendering.
+//
+// import.meta.url resolves to a relative /_next/static/media/... asset URL
+// during static export, which is not a valid absolute URL for fetch(). Until
+// Next.js resolves this (https://github.com/vercel/next.js/issues/66244), the
+// fs approach is required locally. Vercel lambda deployments resolve process.cwd()
+// to /var/task where the .next output is unpacked — fonts ship in .next/server/
+// alongside the route bundle and are accessible at runtime.
 async function loadOgFonts() {
-  // Fonts are bundled into the app directory and read via the filesystem at
-  // runtime — this is the supported pattern for next/og (satori) font loading.
   const fontsDir = path.join(process.cwd(), 'src/app/_og/fonts');
   const [serif, mono] = await Promise.all([
     readFile(path.join(fontsDir, 'InstrumentSerif-Regular.ttf')),

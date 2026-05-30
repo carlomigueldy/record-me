@@ -26,7 +26,7 @@ export default function ChangelogPage() {
               <span className="font-mono text-xs uppercase tracking-widest text-amber">
                 v{entry.version}
               </span>
-              <time className="font-mono text-xs text-ivory-mut" dateTime={entry.date}>
+              <time className="font-mono text-xs text-ivory-dim" dateTime={entry.date}>
                 {entry.date}
               </time>
             </div>
