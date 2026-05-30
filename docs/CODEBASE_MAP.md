@@ -2,14 +2,14 @@
 
 Auto-maintained by `/agent-checkpoint` (run weekly or after major merges).
 
-Last regenerated: 2026-05-30 (Phase 5A SEO foundation)
+Last regenerated: 2026-05-30 (Phase 5B Editorial landing)
 
 ## record-me-sr-frontend
 
 ### apps/web/src
 
 - `app/layout.tsx` — root layout, next/font wiring (Instrument Serif, Geist, Geist Mono)
-- `app/page.tsx` — home page scaffold (Phase 5 replaces with editorial landing)
+- `app/page.tsx` — home page (Phase 5B editorial landing with sections + JSON-LD)
 - `app/globals.css` — CSS imports: tokens → tailwindcss → theme
 - `app/record/page.tsx` — /record placeholder
 - `app/dev/layout.tsx` — dev-only layout (404 in production)
@@ -23,6 +23,14 @@ Last regenerated: 2026-05-30 (Phase 5A SEO foundation)
 - `lib/seo/site-config.ts` · `lib/seo/metadata.ts` · `lib/seo/json-ld.ts` · `lib/seo/JsonLd.tsx` — Phase 5A SEO library
 - `app/changelog/changelog.ts` — Typed changelog entries (MDX-free, v1.0.0 seed)
 - `app/_og/fonts.ts` · `app/_og/fonts/InstrumentSerif-Regular.ttf` · `app/_og/fonts/GeistMono-Regular.ttf` · `app/_og/template.tsx` — Phase 5A shared OG template
+- `app/_components/landing/LandingNav.tsx` · `LandingNav.test.tsx` — Phase 5B masthead (wordmark + studio link)
+- `app/_components/landing/Hero.tsx` · `HeroReveal.tsx` — Phase 5B headline + CTA + reveal orchestration
+- `app/_components/landing/ModesSection.tsx` · `ModeTriptych.tsx` — Phase 5B mode showcase grid
+- `app/_components/landing/StudioSection.tsx` · `StudioSurface.tsx` — Phase 5B studio narrative + illustration
+- `app/_components/landing/FieldNotesTicker.tsx` — Phase 5B scrolling metadata strip (moment 4)
+- `app/_components/landing/LandingFooter.tsx` — Phase 5B colophon + version
+- `lib/motion/usePrefersReducedMotion.ts` · `variants.ts` — Phase 5B prefers-reduced-motion hook + motion object definitions
+- `components/TransitionLink.tsx` — Phase 5B View-Transitions wrapper (outbound navigation)
 
 ### packages/ui/src
 
@@ -42,6 +50,10 @@ Last regenerated: 2026-05-30 (Phase 5A SEO foundation)
 - `components/ModeCard.test.tsx` — unit tests
 - `components/StudioShell.tsx` — recording surface frame
 - `components/StudioShell.test.tsx` — unit tests
+- `components/illustrations/ModeStageA.tsx` — Phase 5B screen + camera + cursor visual
+- `components/illustrations/ModeStageB.tsx` — Phase 5B screen + cursor visual
+- `components/illustrations/ModeStageC.tsx` — Phase 5B camera only visual
+- `components/illustrations/StudioSurfaceArt.tsx` — Phase 5B review surface hero illustration
 - `test/setup.ts` — jest-dom matcher setup
 - `../vitest.config.ts` — vitest jsdom + RTL config
 

@@ -81,6 +81,29 @@ All primitives are React Server Components by default; `<Button>` opts into `'us
 | ---------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `<Button>` | `packages/ui/src/components/Button.tsx` | `variant: 'primary' \| 'secondary' \| 'ghost'`, `size: 'sm' \| 'md' \| 'lg'`, `asChild?` (Radix Slot) |
 
+## Illustration components (Phase 5B)
+
+Bespoke SVG illustrations used in landing editorial:
+
+| Component            | Path                                        | Use case                         |
+| -------------------- | ------------------------------------------- | -------------------------------- |
+| `<ModeStageA>`       | `packages/ui/src/components/illustrations/` | Screen + Camera + Cursor visual  |
+| `<ModeStageB>`       | `packages/ui/src/components/illustrations/` | Screen + Cursor visual           |
+| `<ModeStageC>`       | `packages/ui/src/components/illustrations/` | Camera only visual               |
+| `<StudioSurfaceArt>` | `packages/ui/src/components/illustrations/` | Review surface hero illustration |
+
+All illustrations are React Server Components with SVG paths. No external image deps.
+
+## Motion conventions (Phase 5B)
+
+Animations use **framer-motion** with mandatory `prefers-reduced-motion` gating:
+
+- All motion is disabled when user has set `prefers-reduced-motion: reduce`.
+- Motion variants are defined in `lib/motion/` and exported as objects (e.g., `revealVariants`).
+- Hook `usePrefersReducedMotion()` queries the media query at render time.
+- Signature moments on landing: Hero reveal, ModeTriptych stagger, StudioSurface fade-in, FieldNotes ticker.
+- Always test with `prefers-reduced-motion` enabled (Playwright: set `prefers-reduced-motion: reduce` in browser context).
+
 ## Visual verification
 
 Use `/dev/primitives` (dev-only — returns 404 in production via the layout guard at
