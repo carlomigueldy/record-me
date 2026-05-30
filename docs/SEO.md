@@ -3,28 +3,38 @@
 Authoritative reference for SEO discipline. Source of truth:
 `docs/superpowers/specs/2026-05-27-record-me-design.md` § 8.
 
-## Metadata API
+## Metadata API (Phase 5A · shipped)
 
 Every route exports `generateMetadata` (or static `metadata` object). No silent
 inheritance. Title, description, OG image, Twitter card, canonical URL.
 
-## OG images
+Built using `buildMetadata()` from `lib/seo/metadata.ts` + root layout exports
+`metadataBase` + `title.template` for auto-suffixing child pages.
 
-Per-route `opengraph-image.tsx` rendered at the edge via `@vercel/og`. 1200×630.
-Twilight palette + Instrument Serif headline + mono caption strip.
+## OG images (Phase 5A · shipped)
 
-## Sitemap + robots
+Per-route `opengraph-image.tsx` rendered at the edge via `next/og` (built-in
+`ImageResponse`). 1200×630. Twilight palette + Instrument Serif headline +
+mono caption strip. Shared template in `app/_og/template.tsx`.
 
-- `app/sitemap.ts` — dynamic; static routes + iterates over MDX changelog entries.
-- `app/robots.ts` — allow all crawlers + sitemap pointer; disallow `/api/*`.
+## Sitemap + robots (Phase 5A · shipped)
 
-## Structured data (JSON-LD)
+- `app/sitemap.ts` — dynamic; lists Phase 5A routes (/, /record, /privacy, /changelog) with priorities and changeFrequency.
+- `app/robots.ts` — allow all crawlers + sitemap pointer; disallow `/api/*`, `/dev/*`.
 
-- `SoftwareApplication` + `WebApplication` on `/`
-- `HowTo` on each `/features/[mode]`
-- `FAQPage` on `/docs`
+## Web App Manifest (Phase 5A · shipped)
 
-Injected via `<script type="application/ld+json">` per route.
+- `app/manifest.ts` — PWA metadata + brand icon reference.
+- `app/icon.svg` — 64×64 brand icon (amber dot on Twilight).
+
+## Structured data (JSON-LD) (Phase 5A · Foundation)
+
+- `Organization` + `WebSite` on root layout (via `lib/seo/json-ld.ts`)
+- `SoftwareApplication` + `WebApplication` on `/` (Phase 5B)
+- `HowTo` on each `/features/[mode]` (Phase 5B)
+- `FAQPage` on `/docs` (Phase 5C)
+
+Injected via `<JsonLd>` server component from `lib/seo/JsonLd.tsx`.
 
 ## CWV contract
 

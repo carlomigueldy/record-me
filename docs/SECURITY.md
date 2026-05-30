@@ -24,7 +24,14 @@ Source of truth: `docs/superpowers/specs/2026-05-27-record-me-design.md` § 15.
 - `X-Frame-Options: DENY`
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `Permissions-Policy: camera=(self), microphone=(self), display-capture=(self)`
-- (Phase 5) `Content-Security-Policy` allowing only Vercel script origins
+- (Phase 5A · shipped) `Content-Security-Policy`:
+
+```
+default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://va.vercel-scripts.com https://vitals.vercel-insights.com; media-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+```
+
+Allows Vercel Analytics (`va.vercel-scripts.com`) and Speed Insights
+(`vitals.vercel-insights.com`) while blocking third-party scripts + XSS.
 
 ## What to never do
 
