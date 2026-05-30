@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { TransitionLink } from '@/components/TransitionLink';
 
 /**
  * Hero — Server component (RSC). All copy rendered server-side for LCP.
@@ -96,7 +97,7 @@ export function Hero() {
             flexWrap: 'wrap',
           }}
         >
-          <Link
+          <TransitionLink
             href="/record"
             style={{
               display: 'inline-flex',
@@ -125,7 +126,7 @@ export function Hero() {
               }}
             />
             Start recording
-          </Link>
+          </TransitionLink>
 
           <Link
             href="#modes"

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { TransitionLink } from '@/components/TransitionLink';
 
 /**
  * LandingFooter — Editorial serif colophon (RSC).
@@ -59,7 +59,7 @@ export function LandingFooter() {
           alignItems: 'flex-end',
         }}
       >
-        <Link
+        <TransitionLink
           href="/privacy"
           style={{
             fontFamily: 'var(--font-mono)',
@@ -71,8 +71,8 @@ export function LandingFooter() {
           }}
         >
           Privacy
-        </Link>
-        <Link
+        </TransitionLink>
+        <TransitionLink
           href="/changelog"
           style={{
             fontFamily: 'var(--font-mono)',
@@ -84,7 +84,7 @@ export function LandingFooter() {
           }}
         >
           Changelog
-        </Link>
+        </TransitionLink>
       </nav>
     </footer>
   );
