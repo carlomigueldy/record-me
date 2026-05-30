@@ -1,8 +1,13 @@
+import path from 'node:path';
 import type { NextConfig } from 'next';
 
 const config: NextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
+  // Pin the file-tracing root to the monorepo root so Next does not infer the
+  // wrong root when multiple lockfiles exist (e.g. inside a git worktree),
+  // which breaks production page-data collection.
+  outputFileTracingRoot: path.join(import.meta.dirname, '../..'),
   transpilePackages: ['@record-me/ui', '@record-me/recorder'],
   async headers() {
     return [
