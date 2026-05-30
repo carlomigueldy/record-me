@@ -109,7 +109,7 @@ export function StudioSection() {
               />
               Render specs
             </div>
-            <h4
+            <h3
               style={{
                 fontFamily: 'var(--font-serif)',
                 fontWeight: 400,
@@ -121,7 +121,7 @@ export function StudioSection() {
               }}
             >
               Container format
-            </h4>
+            </h3>
             <div style={{ display: 'grid', gap: '10px', marginTop: '14px' }}>
               {[
                 { label: 'Container', value: 'MP4 (H.264 + AAC)' },
@@ -188,7 +188,7 @@ export function StudioSection() {
               />
               Cursor
             </div>
-            <h4
+            <h3
               style={{
                 fontFamily: 'var(--font-serif)',
                 fontWeight: 400,
@@ -201,7 +201,7 @@ export function StudioSection() {
             >
               <em style={{ fontStyle: 'italic', color: 'var(--color-amber)' }}>Amber</em> clicks,
               always.
-            </h4>
+            </h3>
             <p
               style={{
                 marginTop: '10px',

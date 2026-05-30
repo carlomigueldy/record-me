@@ -25,7 +25,7 @@ for the Tailwind theme mapping).
 | ------------- | --------- | --------------------- |
 | `--ivory`     | `#EDE6D6` | Primary body text     |
 | `--ivory-dim` | `#B5AFA2` | Deck / secondary      |
-| `--ivory-mut` | `#7A766D` | Meta / mono labels    |
+| `--ivory-mut` | `#948F84` | Meta / mono labels (AA on surfaces) |
 | `--ivory-low` | `#54514A` | Disabled / decorative |
 
 ### Signal & state
