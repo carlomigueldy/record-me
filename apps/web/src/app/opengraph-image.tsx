@@ -6,5 +6,8 @@ export const contentType = 'image/png';
 export const alt = `${siteConfig.name} — ${siteConfig.tagline}`;
 
 export default function OgImage() {
-  return ogImage({ title: 'Record your screen, beautifully.', caption: 'privacy-first' });
+  return ogImage({
+    title: 'Press record. Get a beautifully cut clip.',
+    caption: 'record your screen, beautifully',
+  });
 }
