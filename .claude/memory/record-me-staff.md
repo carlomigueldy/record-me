@@ -93,6 +93,86 @@ metadata:
   with cwd there) for ESM to resolve `@playwright/test` — a `/tmp` script can't
   resolve it.
 
+## Phase 5C (2026-05-31) — MDX toolchain (next.config.ts, @next/mdx)
+
+- **`@next/mdx` needs `@mdx-js/loader` for the webpack path — it's an OPTIONAL
+  peer, so pnpm installs nothing and emits NO warning, and the build hard-fails
+  without it: `Cannot find module '@mdx-js/loader'`.** The 5C plan listed 9 deps
+  and explicitly said "no @mdx-js/react" — that's correct (App Router uses the
+  root `mdx-components.tsx` file convention, no `MDXProvider`), but the loader is
+  a SEPARATE package that `createMDX` delegates to under webpack. Real dep count
+  is 10. `@mdx-js/react` stays correctly absent.
+- **`pnpm add @next/mdx` pulls v16 (its `latest` tag) even on a Next-15 app.**
+  Next 15.5.18 here; `@next/mdx@16` targets Next 16. No HARD peer conflict (its
+  only peers are the optional `@mdx-js/*`), but there's a `backport` dist-tag at
+  exactly `15.5.18` — pin to that (`@next/mdx@15.5.18`) to match the Next minor
+  and avoid toolchain skew. Always `npm view @next/mdx dist-tags` before trusting
+  `latest`.
+- **A leading-underscore folder is a Next App Router PRIVATE folder, excluded
+  from routing.** The 5C plan's probe path `app/_mdxprobe/page.mdx` builds green
+  but NEVER appears as a route (so it silently fails to prove MDX is routable).
+  Probe with a non-underscore path (`app/mdxprobe/page.mdx`) to actually verify
+  `○ Static` prerender, then delete. (Doesn't affect the real design: features/
+  docs are TSX pages that IMPORT .mdx bodies; `_content` MDX files are fragments,
+  not routable `page.mdx`.)
+- **rehype-pretty-code SINGLE-theme (`theme: 'github-dark-default'`) emits a
+  RESOLVED inline `style="color:#…"` per token — verified `#FF7B72`/`#79C0FF` in
+  built HTML, ZERO `--shiki-*` vars, NO client highlighter/onig chunk in
+  `.next/static`, 0 `eval()`.** All CSP-safe with the EXISTING `style-src
+'unsafe-inline'` — no header change needed, prod `script-src` stays eval-free.
+  Wrapper attr is `data-rehype-pretty-code-figure` (style the wrapper, leave
+  token spans untouched). Do NOT go dual-theme `{dark,light}` unless a real
+  `data-theme='dark'` lands on `<html>` (it would default to LIGHT tokens →
+  light-on-dark).
+- **pnpm writes `pnpm-lock.yaml` in a form prettier wants to reformat.** CI runs
+  `pnpm format:check` (ci.yml:41) over `**/*.{...,yaml,...}` and `pnpm-lock.yaml`
+  is NOT in `.prettierignore` → any dep change makes the lockfile a format-check
+  FAIL that blocks the merge (the original lockfile on `main` passes; mutating it
+  breaks it). After `pnpm add`, run `npx prettier --write pnpm-lock.yaml`, then
+  confirm it's still valid with `pnpm install --frozen-lockfile`. Reformatting
+  keeps it pnpm-valid.
+- **@next/mdx does NOT strip YAML frontmatter by default — you MUST add
+  `remark-frontmatter` (first in `remarkPlugins`).** Without it, an MDX body with
+  a leading `---` block renders the raw `slug:/mode:/title:` YAML as VISIBLE text
+  (a thematic-break `<hr>` + paragraph) inside `<Body/>`. `gray-matter` reads the
+  same frontmatter INDEPENDENTLY for the typed registry — the two paths don't
+  conflict; remark-frontmatter only governs what @next/mdx renders. Verify on a
+  probe that imports a real frontmattered fragment: grep built HTML for the YAML
+  keys (want 0) AND `<hr` (want 0). My Task 1 probe had NO frontmatter, so this
+  bug didn't surface until Task 2 fragments landed — ALWAYS probe with a
+  representative frontmattered body, not a bare one.
+- **`createMDX`'s `extension` defaults to `/\.mdx$/` — if `pageExtensions`
+  advertises `'md'` too, add `extension: /\.mdx?$/`** or a bare `.md` page
+  ROUTES-BUT-DOESN'T-COMPILE (the MDX loader never claims it). Verified: a
+  `.md` probe only renders to HTML after the regex widens to `mdx?`.
+- **A DYNAMIC OG route's nft trace nests under an extra `[__metadata_id__]`
+  segment.** Static OG routes (`/docs`, `/privacy`) trace at
+  `.../opengraph-image/route.js.nft.json`, but a dynamic one (`/features/[mode]`)
+  is at `.../opengraph-image/[__metadata_id__]/route.js.nft.json`. Grep
+  RECURSIVELY for `*opengraph-image*/**/route.js.nft.json` when verifying font
+  inclusion — assuming a flat path makes a working route look like 0-fonts/tofu.
+  Also: `outputFileTracingIncludes` keys with literal `[...]` are matched by
+  picomatch `{contains:true}` and DO match the bracketed route id (the brackets
+  are read as a char-class but still match), so a key like
+  `/features/[mode]/opengraph-image` works. A removed route leaves an ORPHANED
+  key tracing 0 files — when a route id changes (e.g. catch-all per-doc OG → one
+  shared `/docs/opengraph-image`), update the key or the new route gets tofu.
+- **A direct `import` backed only by a TRANSITIVE dep breaks Vitest + clean
+  installs.** `loader.ts` imported `github-slugger` (to mirror rehype-slug's TOC
+  ids) but it was only present transitively via rehype-slug — Vitest's Vite
+  resolver threw `Failed to resolve import 'github-slugger'` for ANY test that
+  imports the registry (sitemap, registry, etc.), and a fresh `pnpm install`
+  would too. Fix: declare it as a DIRECT dep (`github-slugger@^2`, runtime →
+  `dependencies`). Rule: any package you `import` by name must be a direct dep,
+  never relied on transitively. (Dep management is staff's lane even when the
+  import lives in another agent's file — add the package.json dep, don't edit
+  their file.)
+- **Registry-driven sitemap pattern:** `sitemap.ts` spreads
+  `registry.routeList()` onto the static 5A/5B routes
+  (`[...STATIC_ROUTES, ...routeList()]`) so the sitemap and `generateStaticParams`
+  share ONE source and can't diverge. `routeList()` returns
+  `{path,priority,changeFrequency}[]` — the exact shape sitemap's map consumes.
+
 ## Future entries
 
 (Append below.)
