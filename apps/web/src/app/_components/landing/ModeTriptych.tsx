@@ -4,16 +4,20 @@ import { ModeStageA } from '@/components/illustrations/ModeStageA';
 import { ModeStageB } from '@/components/illustrations/ModeStageB';
 import { ModeStageC } from '@/components/illustrations/ModeStageC';
 import { liftIn } from '@/lib/motion/variants';
+import { TransitionLink } from '@/components/TransitionLink';
+import type { FeatureSlug } from '@/lib/content/features';
 
 interface ModeCardProps {
   badge: string;
   title: React.ReactNode;
   blurb: string;
   illustration: React.ReactNode;
+  /** Pinned URL slug → /features/<slug> (matches FEATURE_SLUG_TO_MODE). */
+  featureSlug: FeatureSlug;
   index: number;
 }
 
-function ModeCard({ badge, title, blurb, illustration, index }: ModeCardProps) {
+function ModeCard({ badge, title, blurb, illustration, featureSlug, index }: ModeCardProps) {
   const cardContent = (
     <div
       style={{
@@ -65,6 +69,25 @@ function ModeCard({ badge, title, blurb, illustration, index }: ModeCardProps) {
         {blurb}
       </p>
       <div style={{ marginTop: '22px' }}>{illustration}</div>
+      {/* "Learn more →" — TransitionLink for view-transition crossfade on
+          supporting browsers; degrades to plain <a> elsewhere. Reduced-motion
+          users get an instant swap (handled by MotionConfig reducedMotion="user"
+          wrapping this component and by TransitionLink's plain-<a> fallback). */}
+      <TransitionLink
+        href={`/features/${featureSlug}`}
+        style={{
+          display: 'inline-block',
+          marginTop: '18px',
+          fontFamily: 'var(--font-mono)',
+          fontSize: '10px',
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--color-amber)',
+          textDecoration: 'none',
+        }}
+      >
+        Learn more →
+      </TransitionLink>
     </div>
   );
 
@@ -88,9 +111,12 @@ function ModeCard({ badge, title, blurb, illustration, index }: ModeCardProps) {
  * Cards SSR at final-state (initial="show") so content is never hidden.
  */
 export function ModeTriptych() {
-  const modes = [
+  // featureSlug is PINNED — matches FEATURE_SLUG_TO_MODE in lib/content/features.ts.
+  // Do NOT use the engine mode string (screen+cam+cursor) here — use the URL slug.
+  const modes: Array<Omit<ModeCardProps, 'index'>> = [
     {
       badge: 'Mode A',
+      featureSlug: 'screen-camera-cursor',
       title: (
         <>
           Screen, camera <em style={{ fontStyle: 'italic', color: 'var(--color-amber)' }}>&amp;</em>{' '}
@@ -103,6 +129,7 @@ export function ModeTriptych() {
     },
     {
       badge: 'Mode B',
+      featureSlug: 'screen-cursor',
       title: (
         <>
           Screen <em style={{ fontStyle: 'italic', color: 'var(--color-amber)' }}>&amp;</em> cursor.
@@ -114,6 +141,7 @@ export function ModeTriptych() {
     },
     {
       badge: 'Mode C',
+      featureSlug: 'camera-only',
       title: (
         <>
           Camera <em style={{ fontStyle: 'italic', color: 'var(--color-amber)' }}>only.</em>

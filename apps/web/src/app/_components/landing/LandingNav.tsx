@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { WordMark } from '@record-me/ui';
 
 /**
@@ -88,6 +89,26 @@ export function LandingNav() {
         >
           Field Notes
         </a>
+        <Link
+          href="/features/screen-camera-cursor"
+          style={{
+            color: 'var(--color-ivory-dim)',
+            textDecoration: 'none',
+            letterSpacing: '0.01em',
+          }}
+        >
+          Features
+        </Link>
+        <Link
+          href="/docs"
+          style={{
+            color: 'var(--color-ivory-dim)',
+            textDecoration: 'none',
+            letterSpacing: '0.01em',
+          }}
+        >
+          Docs
+        </Link>
       </nav>
     </header>
   );

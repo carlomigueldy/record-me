@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { TransitionLink } from '@/components/TransitionLink';
 
 /**
@@ -66,6 +67,32 @@ export function LandingFooter() {
           alignItems: 'flex-end',
         }}
       >
+        <Link
+          href="/features/screen-camera-cursor"
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '11px',
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            color: 'var(--color-ivory-mut)',
+            textDecoration: 'none',
+          }}
+        >
+          Features
+        </Link>
+        <Link
+          href="/docs"
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '11px',
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            color: 'var(--color-ivory-mut)',
+            textDecoration: 'none',
+          }}
+        >
+          Docs
+        </Link>
         <TransitionLink
           href="/privacy"
           style={{
