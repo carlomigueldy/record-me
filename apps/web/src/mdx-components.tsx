@@ -49,7 +49,10 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     // ── Links ──────────────────────────────────────────────────────────────
     a: ({ href = '', children, ...rest }) => {
-      const internal = href.startsWith('/') || href.startsWith('#');
+      // Protocol-relative URLs (`//example.com`) start with `/` but are NOT
+      // internal — they must be excluded from the TransitionLink branch. The
+      // `!href.startsWith('//')` guard prevents them from being mis-classified.
+      const internal = (href.startsWith('/') && !href.startsWith('//')) || href.startsWith('#');
       return internal ? (
         <TransitionLink
           href={href}
@@ -59,12 +62,13 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
           {children}
         </TransitionLink>
       ) : (
+        // `{...rest}` BEFORE the safety attrs so callers cannot override them.
         <a
           href={href}
-          target="_blank"
-          rel="noreferrer"
           style={{ color: 'var(--amber)', textDecorationColor: 'var(--amber)' }}
           {...rest}
+          target="_blank"
+          rel="noreferrer"
         >
           {children}
         </a>
@@ -196,23 +200,34 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ),
 
     // ── Inline code ────────────────────────────────────────────────────────
-    // Only applied to bare `code` elements NOT inside a `pre` (rehype-pretty-code
-    // handles code blocks; this targets inline backtick spans only).
-    code: ({ children, ...rest }) => (
-      <code
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.875em',
-          color: 'var(--ivory-mut)',
-          background: 'var(--surface)',
-          borderRadius: '3px',
-          padding: '2px 5px',
-        }}
-        {...rest}
-      >
-        {children}
-      </code>
-    ),
+    // rehype-pretty-code adds a `data-language` attribute to the <code> element
+    // inside fenced code blocks. Those block <code> nodes must pass through
+    // unstyled so Shiki's resolved inline `style="color:#…"` per-token output
+    // (single github-dark-default theme) is preserved intact. Only bare inline
+    // backtick spans — which have no `data-language` — receive the surface badge
+    // styling below. Font size 0.875em → ~11.4px at the 13px body base.
+    code: ({ children, ...rest }) => {
+      const isBlock = 'data-language' in rest;
+      if (isBlock) {
+        // Block code — let rehype-pretty-code's output pass through unmodified.
+        return <code {...rest}>{children}</code>;
+      }
+      return (
+        <code
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.875em',
+            color: 'var(--ivory-mut)',
+            background: 'var(--surface)',
+            borderRadius: '3px',
+            padding: '2px 5px',
+          }}
+          {...rest}
+        >
+          {children}
+        </code>
+      );
+    },
 
     // ── Divider ────────────────────────────────────────────────────────────
     hr: (rest) => (

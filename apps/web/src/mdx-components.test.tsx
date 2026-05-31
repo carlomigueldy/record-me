@@ -50,4 +50,28 @@ describe('useMDXComponents', () => {
     const link = screen.getByRole('link', { name: 'Jump' });
     expect(link).toHaveAttribute('href', '#section');
   });
+
+  // MINOR: protocol-relative URLs (//example.com) start with / but are external.
+  // They must NOT be routed through TransitionLink — verify they get _blank/noreferrer.
+  it('treats protocol-relative URLs as external (not internal)', () => {
+    render(<A href="//example.com">Proto-relative</A>);
+    const link = screen.getByRole('link', { name: 'Proto-relative' });
+    expect(link).toHaveAttribute('href', '//example.com');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noreferrer');
+  });
+
+  // MINOR: rel/target override — caller-spread props must not override safety attrs.
+  it('safety attrs (target, rel) cannot be overridden by caller-spread props', () => {
+    // Pass a rel/target via rest props — the component should still emit the
+    // fixed safety values because they are placed AFTER {...rest}.
+    render(
+      <A href="https://attacker.com" {...({ target: '_self', rel: 'opener' } as AProps)}>
+        Unsafe
+      </A>,
+    );
+    const link = screen.getByRole('link', { name: 'Unsafe' });
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noreferrer');
+  });
 });
