@@ -33,7 +33,11 @@ const config: NextConfig = {
     // Next's traced route ids; verify against the .next build manifest on a
     // preview deploy (Task 10).
     '/features/[mode]/opengraph-image': ['src/app/_og/fonts/**'],
-    '/docs/[...slug]/opengraph-image': ['src/app/_og/fonts/**'],
+    // Docs OG is a SINGLE shared card at app/docs/opengraph-image.tsx (route id
+    // /docs/opengraph-image), serving all /docs/*. Next 15 cannot place an
+    // opengraph-image inside the [...slug] catch-all (startup crash), so there
+    // is no per-doc OG route to trace — only this shared one.
+    '/docs/opengraph-image': ['src/app/_og/fonts/**'],
   },
   transpilePackages: ['@record-me/ui', '@record-me/recorder'],
   async headers() {
