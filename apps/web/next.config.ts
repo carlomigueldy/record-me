@@ -1,9 +1,17 @@
 import path from 'node:path';
 import type { NextConfig } from 'next';
+import createMDX from '@next/mdx';
+import remarkGfm from 'remark-gfm';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import rehypePrettyCode from 'rehype-pretty-code';
 
 const config: NextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
+  // Allow .md/.mdx files to be treated as routable/importable pages so the
+  // build-time MDX content system (features + docs) compiles to static HTML.
+  pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
   // Pin the file-tracing root to the monorepo root so Next does not infer the
   // wrong root when multiple lockfiles exist (e.g. inside a git worktree),
   // which breaks production page-data collection.
@@ -19,6 +27,12 @@ const config: NextConfig = {
     '/opengraph-image': ['src/app/_og/fonts/**'],
     '/privacy/opengraph-image': ['src/app/_og/fonts/**'],
     '/changelog/opengraph-image': ['src/app/_og/fonts/**'],
+    // 5C OG routes — same computed-path tofu risk as the entries above (fonts
+    // read via fs + process.cwd(), invisible to @vercel/nft). Keys must match
+    // Next's traced route ids; verify against the .next build manifest on a
+    // preview deploy (Task 10).
+    '/features/[mode]/opengraph-image': ['src/app/_og/fonts/**'],
+    '/docs/[...slug]/opengraph-image': ['src/app/_og/fonts/**'],
   },
   transpilePackages: ['@record-me/ui', '@record-me/recorder'],
   async headers() {
@@ -62,4 +76,35 @@ const config: NextConfig = {
   },
 };
 
-export default config;
+// IMPORTANT: never add `--turbopack` to the `dev` script. @next/mdx cannot pass
+// function-form remark/rehype plugins to Turbopack and rehype-pretty-code's
+// options are not fully serializable — Turbopack would silently strip
+// highlighting. Both `next dev` and Vercel `next build` are webpack here; keep
+// it that way.
+const withMDX = createMDX({
+  options: {
+    remarkPlugins: [remarkGfm],
+    rehypePlugins: [
+      rehypeSlug,
+      [rehypeAutolinkHeadings, { behavior: 'wrap' }],
+      [
+        rehypePrettyCode,
+        {
+          keepBackground: false,
+          // SINGLE dark theme — this app is dark-only (no theme toggle, no
+          // data-theme/class on <html>, no ThemeProvider; layout.tsx sets only
+          // font-variable classes). Single-theme mode emits a resolved inline
+          // `style="color:#…"` per token (NO --shiki-light/--shiki-dark var
+          // pair, NO multi-value data-theme), so code renders correctly on the
+          // Twilight surface with one honest path and no dead CSS. Do NOT switch
+          // to dual-theme `{ dark, light }` unless a real data-theme='dark' is
+          // first added on <html> (out of 5C scope) — dual theme would default
+          // to the LIGHT token colors here (light-on-dark).
+          theme: 'github-dark-default',
+        },
+      ],
+    ],
+  },
+});
+
+export default withMDX(config);
