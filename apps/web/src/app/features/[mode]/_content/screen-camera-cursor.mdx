@@ -1,0 +1,45 @@
+---
+slug: screen-camera-cursor
+mode: screen+cam+cursor
+title: Mode A — Screen, Camera & Cursor
+deck: The full recital — screen capture with a picture-in-picture camera and amber cursor pulses.
+eyebrow: § Mode A
+order: 1
+howToSteps:
+  - name: Pick the mode
+    text: Open /record and choose Screen + Camera + Cursor.
+  - name: Grant permissions
+    text: Allow screen share and camera access when the browser prompts.
+  - name: Record and download
+    text: Press record; when you stop, the MP4 (H.264 + AAC) downloads to disk.
+faq:
+  - question: Is anything uploaded?
+    answer: No — recording is fully client-side and never leaves your machine.
+related:
+  - permissions
+  - codecs
+---
+
+## How it works
+
+Mode A composes your full screen, a picture-in-picture camera feed, and an amber cursor pulse into a single MP4 · H.264 (AAC) recording — all in the browser, downloaded to disk.
+
+### Step 1: Choose the mode
+
+Open [/record](/record) and select **Screen + Camera + Cursor** from the mode picker.
+
+### Step 2: Grant permissions
+
+The browser will prompt you for screen capture and camera access. Both are required for this mode. Your microphone is captured if available.
+
+### Step 3: Record and download
+
+Press record. The amber cursor pulse activates, tracking your pointer in real time. When you stop, the recording downloads automatically as an MP4 (H.264 + AAC) — or WebM/VP9 if H.264 is unavailable in your browser.
+
+## Privacy
+
+Recording runs entirely in your browser. No bytes are uploaded. No account required. The file goes directly to your Downloads folder.
+
+## Codec output
+
+`MP4 · H.264 (AAC)` — the browser's preferred format. Falls back to `WebM · VP9` if H.264 MediaRecorder is unavailable.
