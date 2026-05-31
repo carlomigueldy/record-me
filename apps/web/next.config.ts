@@ -1,6 +1,7 @@
 import path from 'node:path';
 import type { NextConfig } from 'next';
 import createMDX from '@next/mdx';
+import remarkFrontmatter from 'remark-frontmatter';
 import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
@@ -82,8 +83,18 @@ const config: NextConfig = {
 // highlighting. Both `next dev` and Vercel `next build` are webpack here; keep
 // it that way.
 const withMDX = createMDX({
+  // Match BOTH .md and .mdx so the `pageExtensions` 'md'/'mdx' support is
+  // honest. @next/mdx defaults `extension` to /\.mdx$/, so without this a bare
+  // .md page would route but never compile (the MDX loader wouldn't claim it).
+  extension: /\.mdx?$/,
   options: {
-    remarkPlugins: [remarkGfm],
+    // remark-frontmatter MUST run first: it teaches the MDX parser to recognize
+    // the leading `---` YAML block as a frontmatter node so it is STRIPPED from
+    // the compiled body. Without it, @next/mdx renders the raw `slug:/mode:/
+    // title:` YAML as visible text (a thematic break + paragraph). gray-matter
+    // still reads frontmatter independently for the typed registry — this only
+    // affects what <Body/> renders.
+    remarkPlugins: [remarkFrontmatter, remarkGfm],
     rehypePlugins: [
       rehypeSlug,
       [rehypeAutolinkHeadings, { behavior: 'wrap' }],
