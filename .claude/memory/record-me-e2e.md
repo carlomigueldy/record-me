@@ -89,3 +89,34 @@ await page.route('**/_vercel/speed-insights/**', (route) =>
 
 Call both routes before `page.goto()`. Text-filtering `msg.text()` alone will
 NOT work because the generic "Failed to load resource" message contains no URL.
+
+## Phase 5C patterns
+
+### OG image routes 404 in `next dev`
+
+Next.js App Router OG image routes (`/opengraph-image`, `/[param]/opengraph-image`)
+are prerendered at build time and are NOT served by `next dev`. They return 404 in
+the dev server. Do NOT assert OG route 200/image-png in the dev-targeting E2E suite.
+OG route verification (status 200, content-type image/png, no font tofu) belongs in
+the production build verification step (`next build && next start`), not in e2e.
+
+### Scoping role selectors into a landmark
+
+When a page has two sets of navigation links (e.g. a `DocsSidebar` nav and a main
+content body with the same doc titles), `page.getByRole('link', { name: /foo/i })`
+may match multiple elements. Scope it to the specific landmark instead:
+
+```ts
+const sidebar = page.getByRole('navigation', { name: /documentation/i });
+await expect(sidebar.getByRole('link', { name: /Permissions/i })).toBeVisible();
+```
+
+Use `aria-label` on the landmark (DocsSidebar already has `aria-label="Documentation"`)
+as the stable selector anchor — far more durable than class names or DOM structure.
+
+### Assert on actual frontmatter titles, not assumed names
+
+Doc titles come from frontmatter and may include `&`, `,`, or multi-word strings
+(e.g. `"Codecs & Output Formats"` not `"Codecs"`). Always check the MDX frontmatter
+title field before writing the title assertion regex. A mismatch causes a false failure
+with no helpful diagnostic — the pattern just never matches.
