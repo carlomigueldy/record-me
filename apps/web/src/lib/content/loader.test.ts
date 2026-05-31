@@ -58,4 +58,15 @@ describe('content loader', () => {
       'Illegal content path',
     );
   });
+
+  // Basename invariant — getAllDocs() must throw loudly when a file's basename
+  // does not match its frontmatter slug.join('-'). This is the load-bearing guard
+  // against the dual-read drift described in MAJOR 2: a doc named wrong-name.mdx
+  // with slug: [permissions] would silently serve the wrong content to any caller
+  // that derived the filename from the frontmatter slug post-read. The fixture dir
+  // is isolated so this throw doesn't pollute the other loader tests.
+  it('throws "Content file name mismatch" when basename !== slug.join("-")', () => {
+    const MISMATCH_DIR = path.join(__dirname, '__fixtures__/docs-mismatch');
+    expect(() => getAllDocs(MISMATCH_DIR)).toThrow('Content file name mismatch');
+  });
 });
