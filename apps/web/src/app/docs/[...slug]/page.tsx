@@ -4,11 +4,11 @@ import { JsonLd } from '@/lib/seo/JsonLd';
 import { breadcrumbLd } from '@/lib/seo/json-ld';
 import { buildMetadata } from '@/lib/seo/metadata';
 import { Prose } from '@/app/_components/content/Prose';
-import { Toc, type TocHeading } from '@/app/_components/content/Toc';
+import { Toc } from '@/app/_components/content/Toc';
 import { Breadcrumbs } from '@/app/_components/content/Breadcrumbs';
 import { DocsSidebar } from '@/app/_components/content/DocsSidebar';
 import { TransitionLink } from '@/components/TransitionLink';
-import { getAllDocSlugs, getDocFrontmatter } from '@/lib/content/loader';
+import { getAllDocSlugs, getDocFrontmatter, getDocHeadings } from '@/lib/content/loader';
 import { allDocs, prevNext } from '@/lib/content/registry';
 import { DOC_BODY, type DocBodyKey } from '@/lib/content/doc-bodies';
 
@@ -48,13 +48,21 @@ export async function generateMetadata({
  */
 export default async function DocPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
+
+  // MINOR 1 — self-sufficient segment-count guard: v1 slugs are single-segment.
+  // This is defense-in-depth — in production dynamicParams=false handles unknown
+  // slugs at the router level, but in dev the catch-all could alias a multi-
+  // segment path (e.g. /docs/getting/started) to the flat key "getting-started".
+  // The guard makes the allow-list self-sufficient without relying on the router.
+  if (slug.length !== 1) notFound();
+
   const key = slug.join('-');
 
-  // Allow-list guard — never render unknown input
+  // Allow-list guard — validate against the fs-driven allow-list.
   const known = getAllDocSlugs().some((s) => s.join('-') === key);
   if (!known) notFound();
 
-  // Parity guard — on disk but missing from DOC_BODY (caught at test time)
+  // Parity guard — on disk but missing from DOC_BODY (caught at test time).
   const Body = DOC_BODY[key as DocBodyKey];
   if (!Body) notFound();
 
@@ -63,15 +71,10 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
   const nav = prevNext(slug);
   const path = `/docs/${slug.join('/')}`;
 
-  // Extract headings from the doc for the TOC. In v1 we use a fixed set of
-  // well-known headings from the MDX body — a server-side heading extractor
-  // would require parsing compiled MDX output which is complex. The Toc
-  // component is static (no scroll-spy), so passing a curated heading list
-  // from frontmatter or a simple static parse is acceptable for v1.
-  // For now, pass an empty list — the TOC renders the "CONTENTS" label with
-  // no links, which is CLS-safe (min-height: 100px reserved). A heading
-  // extractor can be wired in post-v1 once routes are stable.
-  const headings: TocHeading[] = [];
+  // MAJOR — extract h2/h3 headings from the raw MDX body using github-slugger
+  // (same algorithm as rehype-slug) so TOC anchor ids match rendered heading ids.
+  // Server-side regex parse of the source MDX — no compiled output needed.
+  const headings = getDocHeadings(slug);
 
   return (
     <>

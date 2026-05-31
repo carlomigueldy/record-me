@@ -1,12 +1,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import matter from 'gray-matter';
+import GithubSlugger from 'github-slugger';
 import {
   docFrontmatterSchema,
   featureFrontmatterSchema,
   type DocFrontmatter,
   type FeatureFrontmatter,
 } from './schema';
+import type { TocHeading } from '@/app/_components/content/Toc';
 
 // Build-cwd assumption: process.cwd() is `apps/web` at both `next build` and
 // `next start` — the same assumption the existing `_og/fonts` loader relies on
@@ -85,4 +87,44 @@ export function getAllDocs(dir = DOCS_DIR): DocFrontmatter[] {
  */
 export function getAllDocSlugs(dir = DOCS_DIR): string[][] {
   return getAllDocs(dir).map((fm) => fm.slug);
+}
+
+/**
+ * getDocHeadings — extract h2/h3 headings from a doc's MDX body for the TOC.
+ *
+ * Uses the same slugification as `rehype-slug` (github-slugger) so the `#id`
+ * anchors in the TOC links resolve to the heading elements rendered in <Prose>.
+ *
+ * Only h2 and h3 are extracted — h1 is the page title (already in the header),
+ * and h4+ are too granular for a page-level TOC.
+ */
+export function getDocHeadings(slug: string[], dir = DOCS_DIR): TocHeading[] {
+  const file = `${slug.join('-')}.mdx`;
+  const raw = read(dir, file);
+  // gray-matter strips the YAML frontmatter block before we scan for headings.
+  const { content } = matter(raw);
+
+  const slugger = new GithubSlugger();
+  const headings: TocHeading[] = [];
+  // Match lines that start with ## or ### (h2/h3 only).
+  // The ATX heading regex: ^ = start of line, (#{2,3}) = level, \s+ = space, (.+) = text.
+  const headingRe = /^(#{2,3})\s+(.+)$/gm;
+
+  let match: RegExpExecArray | null;
+  while ((match = headingRe.exec(content)) !== null) {
+    const levelStr = match[1];
+    const text = match[2];
+    if (!levelStr || !text) continue;
+    const level = levelStr.length as 2 | 3;
+    // rehype-slug strips inline markdown (bold, code, links) before slugifying.
+    // Approximate by stripping common inline markers so the id matches.
+    const plainText = text
+      .replace(/\*\*(.*?)\*\*/g, '$1') // bold
+      .replace(/\*(.*?)\*/g, '$1') // italic
+      .replace(/`(.*?)`/g, '$1') // inline code
+      .replace(/\[(.*?)\]\(.*?\)/g, '$1') // links
+      .trim();
+    headings.push({ id: slugger.slug(plainText), text: plainText, level });
+  }
+  return headings;
 }

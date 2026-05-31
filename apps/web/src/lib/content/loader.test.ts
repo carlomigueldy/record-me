@@ -1,6 +1,12 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import path from 'node:path';
-import { getDocFrontmatter, getAllDocSlugs, getAllDocs, getModeFrontmatter } from './loader';
+import {
+  getDocFrontmatter,
+  getAllDocSlugs,
+  getAllDocs,
+  getModeFrontmatter,
+  getDocHeadings,
+} from './loader';
 
 const FIXTURES = path.join(__dirname, '__fixtures__');
 const DOC_FIXTURES = path.join(__dirname, '__fixtures__/docs');
@@ -68,5 +74,28 @@ describe('content loader', () => {
   it('throws "Content file name mismatch" when basename !== slug.join("-")', () => {
     const MISMATCH_DIR = path.join(__dirname, '__fixtures__/docs-mismatch');
     expect(() => getAllDocs(MISMATCH_DIR)).toThrow('Content file name mismatch');
+  });
+
+  // MAJOR fix verification — getDocHeadings extracts h2/h3 headings from the
+  // raw MDX body using github-slugger so TOC anchor ids match rehype-slug output.
+  it('getDocHeadings returns h2 headings with github-slugger ids', () => {
+    // The permissions fixture has: ## Permissions
+    const headings = getDocHeadings(['permissions'], DOC_FIXTURES);
+    expect(headings.length).toBeGreaterThan(0);
+    const h2 = headings.find((h) => h.text === 'Permissions');
+    expect(h2).toBeDefined();
+    expect(h2?.level).toBe(2);
+    // github-slugger: "Permissions" → "permissions"
+    expect(h2?.id).toBe('permissions');
+  });
+
+  it('getDocHeadings excludes frontmatter from heading scan', () => {
+    // Frontmatter YAML (title:, description:, etc.) must not be treated as headings.
+    const headings = getDocHeadings(['permissions'], DOC_FIXTURES);
+    // None of the headings should have an id derived from frontmatter keys.
+    const ids = headings.map((h) => h.id);
+    expect(ids).not.toContain('title');
+    expect(ids).not.toContain('description');
+    expect(ids).not.toContain('slug');
   });
 });
