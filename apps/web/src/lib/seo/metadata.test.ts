@@ -31,4 +31,19 @@ describe('buildMetadata', () => {
     const m = buildMetadata({ title: 'Home', description: 'x', path: '/' });
     expect(m.alternates?.canonical).toBe(`${siteConfig.url}/`);
   });
+
+  it('passes a robots directive through when provided', () => {
+    const m = buildMetadata({
+      title: 'X',
+      description: 'y',
+      path: '/x',
+      robots: { index: false, follow: false },
+    });
+    expect((m.robots as { index?: boolean })?.index).toBe(false);
+  });
+
+  it('omits robots when not provided (5C routes are all indexed)', () => {
+    const m = buildMetadata({ title: 'X', description: 'y', path: '/x' });
+    expect('robots' in m).toBe(false);
+  });
 });
