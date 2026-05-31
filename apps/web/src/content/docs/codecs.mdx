@@ -31,10 +31,10 @@ MP4 (H.264 + AAC) is natively supported by every major platform: macOS QuickTime
 
 ## Container vs codec
 
-| Container | Video codec | Audio codec | Typical size |
-| --------- | ----------- | ----------- | ------------ |
-| `.mp4`    | H.264       | AAC         | Smallest     |
-| `.webm`   | VP9         | Opus        | Small        |
+| Container | Video codec | Audio codec | Typical size    |
+| --------- | ----------- | ----------- | --------------- |
+| `.mp4`    | H.264       | AAC         | Smallest        |
+| `.webm`   | VP9         | Opus        | Small           |
 | `.webm`   | VP8         | Opus        | Slightly larger |
 
 ## Checking your browser's support
@@ -42,8 +42,8 @@ MP4 (H.264 + AAC) is natively supported by every major platform: macOS QuickTime
 Open your browser's developer console and run:
 
 ```js
-MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac')
-MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac');
+MediaRecorder.isTypeSupported('video/webm;codecs=vp9');
 ```
 
 `true` means the codec is available. Chrome and Edge return `true` for H.264; Firefox returns `false` and falls back to VP9.

@@ -10,16 +10,16 @@ draft: false
 
 ## Compatibility matrix
 
-| Browser              | Screen + Camera + Cursor | Screen + Cursor | Camera Only |
-| -------------------- | ------------------------ | --------------- | ----------- |
-| Chrome 112+          | Full                     | Full            | Full        |
-| Edge 112+            | Full                     | Full            | Full        |
-| Arc (Chromium)       | Full                     | Full            | Full        |
-| Firefox 120+         | Full (VP9)               | Full (VP9)      | Full (VP9)  |
-| Safari macOS 14+     | Not supported            | Not supported   | Full (VP9)  |
-| Safari iOS 17+       | Not supported            | Not supported   | Full (VP9)  |
-| Brave                | Full                     | Full            | Full        |
-| Opera                | Full                     | Full            | Full        |
+| Browser          | Screen + Camera + Cursor | Screen + Cursor | Camera Only |
+| ---------------- | ------------------------ | --------------- | ----------- |
+| Chrome 112+      | Full                     | Full            | Full        |
+| Edge 112+        | Full                     | Full            | Full        |
+| Arc (Chromium)   | Full                     | Full            | Full        |
+| Firefox 120+     | Full (VP9)               | Full (VP9)      | Full (VP9)  |
+| Safari macOS 14+ | Not supported            | Not supported   | Full (VP9)  |
+| Safari iOS 17+   | Not supported            | Not supported   | Full (VP9)  |
+| Brave            | Full                     | Full            | Full        |
+| Opera            | Full                     | Full            | Full        |
 
 "Full" means the mode works end-to-end — recording, download, and playback. "(VP9)" means the output container is WebM · VP9 instead of MP4 · H.264 (AAC) due to codec availability.
 
@@ -36,11 +36,11 @@ All of these are available in Chromium-based browsers and Firefox. Safari only i
 
 ## Minimum versions
 
-| Browser | Minimum version | Notes |
-| ------- | --------------- | ----- |
-| Chrome  | 74              | `getDisplayMedia` stable |
-| Edge    | 79              | Chromium-based |
-| Firefox | 74              | Screen capture requires user gesture |
+| Browser | Minimum version | Notes                                   |
+| ------- | --------------- | --------------------------------------- |
+| Chrome  | 74              | `getDisplayMedia` stable                |
+| Edge    | 79              | Chromium-based                          |
+| Firefox | 74              | Screen capture requires user gesture    |
 | Safari  | 14.0            | Camera only; screen capture unavailable |
 
 ## Checking support in your browser
@@ -49,13 +49,13 @@ Open the browser console:
 
 ```js
 // Screen capture support
-typeof navigator.mediaDevices.getDisplayMedia
+typeof navigator.mediaDevices.getDisplayMedia;
 
 // Camera support
-typeof navigator.mediaDevices.getUserMedia
+typeof navigator.mediaDevices.getUserMedia;
 
 // H.264 codec support
-MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac')
+MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac');
 ```
 
 ## Firefox notes
