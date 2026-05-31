@@ -35,3 +35,28 @@ body {
     animation: none;
   }
 }
+
+/* MDX syntax highlighting (rehype-pretty-code, build-time Shiki, SINGLE dark
+   theme: github-dark-default). Per-token foreground is a RESOLVED inline
+   `style="color:#…"` emitted by Shiki at build — there is NO --shiki-light /
+   --shiki-dark var pair and NO data-theme selector needed here. CSP-safe:
+   style-src already allows 'unsafe-inline'. This block styles the code-block
+   WRAPPER ONLY; we do NOT recolor per-token foreground (Shiki already resolved
+   it for the single dark theme). Re-introduce a variant selector ONLY if a real
+   data-theme='dark' lands on <html> and the config goes dual-theme. */
+figure[data-rehype-pretty-code-figure] pre {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  margin: 1.5em 0;
+}
+
+/* Strip default margin from the <figure> wrapper so the <pre> controls spacing. */
+figure[data-rehype-pretty-code-figure] {
+  margin: 0;
+}

@@ -1,0 +1,47 @@
+---
+slug: screen-cursor
+mode: screen+cursor
+title: Mode B — Screen & Cursor
+deck: Screen capture with amber cursor pulses — no camera, full focus on what's on screen.
+eyebrow: § Mode B
+order: 2
+howToSteps:
+  - name: Pick the mode
+    text: Open /record and choose Screen + Cursor.
+  - name: Grant permissions
+    text: Allow screen share access when the browser prompts.
+  - name: Record and download
+    text: Press record; when you stop, the MP4 (H.264 + AAC) downloads to disk.
+faq:
+  - question: Is anything uploaded?
+    answer: No — recording is fully client-side and never leaves your machine.
+  - question: Can I include audio?
+    answer: System audio and microphone are captured if your browser supports it.
+related:
+  - permissions
+  - codecs
+---
+
+## How it works
+
+Mode B captures your screen with an amber cursor pulse — no camera — into an MP4 · H.264 (AAC) recording.
+
+### Step 1: Choose the mode
+
+Open [/record](/record) and select **Screen + Cursor** from the mode picker.
+
+### Step 2: Grant permissions
+
+The browser will prompt for screen capture access. Camera is not required.
+
+### Step 3: Record and download
+
+Press record. The cursor pulse activates. When you stop, the file downloads as MP4 (H.264 + AAC), or WebM/VP9 as a fallback.
+
+## Privacy
+
+Fully client-side. No upload, no account.
+
+## Codec output
+
+`MP4 · H.264 (AAC)` — falls back to `WebM · VP9` if H.264 MediaRecorder is unavailable.

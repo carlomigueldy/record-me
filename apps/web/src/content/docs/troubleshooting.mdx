@@ -1,0 +1,69 @@
+---
+title: Troubleshooting
+description: Solutions for common recording issues in record me — blank screen, no audio, download errors.
+slug:
+  - troubleshooting
+section: troubleshooting
+order: 1
+draft: false
+faq:
+  - question: The recording downloaded but has no audio.
+    answer: You either denied microphone permission or your device has no microphone. Open a new recording session and allow microphone access when prompted.
+  - question: The screen capture shows a blank or black frame.
+    answer: Some browsers block capture of protected content (DRM video, certain system UIs). Try switching to a different window or tab, or use a screen share of your entire desktop instead of a specific window.
+  - question: record me is not asking for permissions.
+    answer: Your browser may have a persisted "deny" for the required permissions. Click the lock icon in the address bar, reset camera/screen permissions to "Ask", then refresh and try again.
+  - question: The download never starts after I stop recording.
+    answer: Very long recordings (> 30 min) may exceed browser memory limits for the Blob URL download. Try shorter recordings, or use IndexedDB chunk storage (available in Settings).
+---
+
+## Common issues
+
+### No audio in the recording
+
+**Cause:** Microphone permission was denied or no microphone is connected.
+
+**Fix:** Click the lock icon in the browser address bar → set Microphone to "Allow" → refresh the page → start a new recording.
+
+### Black or blank screen capture
+
+**Cause:** DRM-protected content, certain system windows (login screens, full-screen apps), or browser security restrictions.
+
+**Fix:** Switch to capturing an entire screen or a different application window. Browsers cannot capture DRM content by design.
+
+### Permissions never prompt
+
+**Cause:** A prior "Block" decision was persisted in the browser.
+
+**Fix:**
+
+1. Click the lock icon (or site info icon) in the address bar.
+2. Set Camera, Microphone, and Screen Capture to "Ask" (or "Allow").
+3. Hard-refresh (Cmd/Ctrl + Shift + R) and try again.
+
+### Download does not start
+
+**Cause:** Very large recordings may exhaust the memory available for `URL.createObjectURL()`.
+
+**Fix:** Keep recordings under 30 minutes. For longer sessions, record in segments. A chunked IndexedDB fallback is planned for a future version.
+
+### Recording stops unexpectedly
+
+**Cause:** The browser tab went to sleep (power-saving), a system sleep event, or the browser imposed a recording time limit.
+
+**Fix:** Keep the record me tab active and prevent your machine from sleeping during recording. On macOS, use `caffeinate -d` in Terminal to prevent sleep.
+
+### "NotAllowedError" in the console
+
+This error means the permission request was rejected — either by the user or by the browser's policy (e.g., in an iframe without `allow="camera; microphone; display-capture"`).
+
+record me must be served from a top-level page (not an iframe) for permissions to work.
+
+## Reporting bugs
+
+If you encounter an issue not covered here, open an issue on the [GitHub repository](https://github.com/record-me/record-me) with:
+
+- Browser name and version
+- Operating system
+- Steps to reproduce
+- Console output (F12 → Console)

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { LandingNav } from './LandingNav';
 
 describe('LandingNav', () => {
-  it('renders WordMark and the three anchor links', () => {
+  it('renders WordMark and the nav links', () => {
     render(<LandingNav />);
     // Wordmark text present
     expect(screen.getByText(/record/i)).toBeInTheDocument();
@@ -17,5 +17,17 @@ describe('LandingNav', () => {
 
     const fieldLink = screen.getByRole('link', { name: /field/i });
     expect(fieldLink).toHaveAttribute('href', '#field');
+
+    // Cross-links to route pages (added in Task 8).
+    const featuresLink = screen.getByRole('link', { name: /^features$/i });
+    expect(featuresLink).toHaveAttribute('href', '/features/screen-camera-cursor');
+
+    const docsLink = screen.getByRole('link', { name: /^docs$/i });
+    expect(docsLink).toHaveAttribute('href', '/docs');
+  });
+
+  it('nav has aria-label "Site navigation" (holds route links, not only page anchors)', () => {
+    render(<LandingNav />);
+    expect(screen.getByRole('navigation', { name: 'Site navigation' })).toBeTruthy();
   });
 });

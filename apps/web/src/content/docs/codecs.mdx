@@ -1,0 +1,49 @@
+---
+title: Codecs & Output Formats
+description: How record me chooses output formats — MP4 H.264 (AAC) first, WebM VP9 fallback.
+slug:
+  - codecs
+section: recording
+order: 2
+draft: false
+faq:
+  - question: What format does record me output?
+    answer: "MP4 · H.264 (AAC) where the browser supports it; WebM · VP9 as a fallback. The format is determined at recording time by the browser's MediaRecorder capabilities — never VP9-first."
+  - question: Why does the filename say .webm sometimes?
+    answer: If your browser does not support H.264 encoding in MediaRecorder (common in Firefox), record me falls back to WebM with VP9 video and Opus audio. The filename reflects the actual container format.
+  - question: Can I choose the codec manually?
+    answer: Not in v1 — record me automatically selects the highest-quality codec your browser supports. MP4 · H.264 (AAC) is always preferred.
+---
+
+## Codec preference order
+
+record me follows this order, checking `MediaRecorder.isTypeSupported()` at runtime:
+
+1. **MP4 · H.264 (AAC)** — preferred. Universally playable, best compatibility with media players, editors, and sharing platforms.
+2. **WebM · VP9** — fallback. Used when H.264 encoding is unavailable (Firefox, some mobile browsers).
+3. **WebM · VP8** — last resort. Older fallback for very limited environments.
+
+This order is contractual — VP9 is never preferred over H.264. The filename in the downloaded file reflects the actual container format (`recording.mp4` or `recording.webm`).
+
+## Why MP4 first?
+
+MP4 (H.264 + AAC) is natively supported by every major platform: macOS QuickTime, Windows Media Player, iOS, Android, Slack, Google Drive, Notion, and virtually every video editor. WebM has excellent quality but requires additional codec installation on some Windows machines and is not natively supported in iOS Safari.
+
+## Container vs codec
+
+| Container | Video codec | Audio codec | Typical size    |
+| --------- | ----------- | ----------- | --------------- |
+| `.mp4`    | H.264       | AAC         | Smallest        |
+| `.webm`   | VP9         | Opus        | Small           |
+| `.webm`   | VP8         | Opus        | Slightly larger |
+
+## Checking your browser's support
+
+Open your browser's developer console and run:
+
+```js
+MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac');
+MediaRecorder.isTypeSupported('video/webm;codecs=vp9');
+```
+
+`true` means the codec is available. Chrome and Edge return `true` for H.264; Firefox returns `false` and falls back to VP9.

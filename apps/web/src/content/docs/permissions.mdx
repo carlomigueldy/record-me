@@ -1,0 +1,40 @@
+---
+title: Permissions
+description: How browser permissions work for screen capture, camera, and microphone in record me.
+slug:
+  - permissions
+section: recording
+order: 1
+draft: false
+faq:
+  - question: Why does the browser ask for my screen?
+    answer: The Web MediaRecorder API requires explicit user consent before capturing any screen content. record me never records without your active permission grant.
+  - question: Can I record without a microphone?
+    answer: Yes — microphone capture is opportunistic. If your device has no microphone or you deny audio permission, the recording continues video-only.
+  - question: Does record me store my permission choices?
+    answer: No. Permissions are scoped to the browser session. Every new recording session prompts you afresh — nothing is persisted server-side because there is no server.
+---
+
+## How permissions work
+
+record me uses the browser's `getDisplayMedia` (screen) and `getUserMedia` (camera + microphone) APIs. These require explicit consent — your browser shows a native permission prompt before any capture begins.
+
+## Screen capture
+
+When you choose a screen or window-based mode, your browser displays a picker showing available windows, tabs, and screens. You select what to share. record me can only capture what you explicitly choose — it cannot access other windows silently.
+
+## Camera access
+
+Camera permission is requested when you choose **Screen + Camera + Cursor** or **Camera Only** mode. The browser shows a device picker if you have multiple cameras. Deny camera access and the recording falls back to screen-only (in modes that support it).
+
+## Microphone access
+
+Microphone capture is requested automatically alongside screen and camera permissions. You can deny it and the recording continues silently. The output file will have no audio track.
+
+## Revoking permissions
+
+To revoke permissions after a session, click the lock/camera icon in your browser's address bar and toggle the relevant permission off. The change takes effect immediately on the next recording attempt.
+
+## Private tabs / incognito
+
+Browser permission policies vary in private tabs. In Chrome, previously granted permissions may not carry over to incognito sessions — record me will prompt again.

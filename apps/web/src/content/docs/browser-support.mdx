@@ -1,0 +1,67 @@
+---
+title: Browser Support
+description: Full compatibility matrix for record me across Chrome, Firefox, Safari, and Edge.
+slug:
+  - browser-support
+section: browser-support
+order: 2
+draft: false
+---
+
+## Compatibility matrix
+
+| Browser          | Screen + Camera + Cursor | Screen + Cursor | Camera Only |
+| ---------------- | ------------------------ | --------------- | ----------- |
+| Chrome 112+      | Full                     | Full            | Full        |
+| Edge 112+        | Full                     | Full            | Full        |
+| Arc (Chromium)   | Full                     | Full            | Full        |
+| Firefox 120+     | Full (VP9)               | Full (VP9)      | Full (VP9)  |
+| Safari macOS 14+ | Not supported            | Not supported   | Full (VP9)  |
+| Safari iOS 17+   | Not supported            | Not supported   | Full (VP9)  |
+| Brave            | Full                     | Full            | Full        |
+| Opera            | Full                     | Full            | Full        |
+
+"Full" means the mode works end-to-end — recording, download, and playback. "(VP9)" means the output container is WebM · VP9 instead of MP4 · H.264 (AAC) due to codec availability.
+
+## Feature requirements
+
+record me requires:
+
+- **`MediaRecorder` API** — for capturing and encoding the media stream.
+- **`getDisplayMedia` API** — for screen and window capture (not in Safari).
+- **`getUserMedia` API** — for camera and microphone access.
+- **`navigator.mediaDevices`** — the entry point for all device access.
+
+All of these are available in Chromium-based browsers and Firefox. Safari only implements `getUserMedia`.
+
+## Minimum versions
+
+| Browser | Minimum version | Notes                                   |
+| ------- | --------------- | --------------------------------------- |
+| Chrome  | 74              | `getDisplayMedia` stable                |
+| Edge    | 79              | Chromium-based                          |
+| Firefox | 74              | Screen capture requires user gesture    |
+| Safari  | 14.0            | Camera only; screen capture unavailable |
+
+## Checking support in your browser
+
+Open the browser console:
+
+```js
+// Screen capture support
+typeof navigator.mediaDevices.getDisplayMedia;
+
+// Camera support
+typeof navigator.mediaDevices.getUserMedia;
+
+// H.264 codec support
+MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac');
+```
+
+## Firefox notes
+
+Firefox supports all three recording modes but uses WebM · VP9 (not MP4 · H.264). The output file is fully playable in Firefox, VLC, and most modern media players, but may require a codec install on some Windows configurations. See [Codecs & Output Formats](/docs/codecs) for details.
+
+## Safari notes
+
+See the [Safari Notes](/docs/safari) guide for the full breakdown of Safari limitations and Camera Only support.

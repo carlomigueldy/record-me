@@ -1,0 +1,40 @@
+---
+title: Safari Notes
+description: Known limitations and workarounds for using record me in Safari on macOS and iOS.
+slug:
+  - safari
+section: browser-support
+order: 1
+draft: false
+faq:
+  - question: Does record me work in Safari?
+    answer: Partially. Safari supports Camera Only mode in macOS 14+ (Sonoma). Screen capture via getDisplayMedia is not supported in Safari as of 2026 — use Chrome or Edge for screen recording modes.
+  - question: Why does screen recording not work in Safari?
+    answer: Apple has not implemented getDisplayMedia in Safari. This is a platform constraint — record me cannot work around it without a native app.
+---
+
+## Safari support matrix
+
+| Mode                     | Safari macOS 14+ | Safari iOS 17+ |
+| ------------------------ | ---------------- | -------------- |
+| Screen + Camera + Cursor | Not supported    | Not supported  |
+| Screen + Cursor          | Not supported    | Not supported  |
+| Camera Only              | Supported        | Supported      |
+
+## Screen capture limitation
+
+Safari does not implement `getDisplayMedia` — the browser API required to capture screen content. This is an Apple platform constraint. record me cannot work around it without a native macOS/iOS app (out of scope for v1).
+
+**Recommendation:** Use Chrome, Edge, or Arc for screen recording modes on macOS.
+
+## Camera recording in Safari
+
+**Camera Only** mode works in Safari 14+ on macOS and Safari 17+ on iOS. The output format is `WebM · VP9` (Safari does not support H.264 via MediaRecorder despite hardware support — `MediaRecorder.isTypeSupported('video/mp4;codecs=h264')` returns `false`).
+
+## iOS Safari
+
+iOS Safari inherits all macOS Safari limitations. Additionally, background tab recording is suspended by iOS — keep record me in the foreground during a camera session.
+
+## Checking your Safari version
+
+Safari → Help → About Safari. Version 17 or later on macOS 14 (Sonoma) is required for the best Camera Only experience.

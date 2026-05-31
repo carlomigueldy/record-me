@@ -1,0 +1,13 @@
+---
+title: Permissions
+description: A doc whose filename does not match its frontmatter slug.
+slug:
+  - permissions
+section: recording
+order: 1
+draft: false
+---
+
+This file is named wrong-name.mdx but declares slug: [permissions].
+The basename "wrong-name" !== slug.join('-') "permissions".
+getAllDocs() must throw on this mismatch.

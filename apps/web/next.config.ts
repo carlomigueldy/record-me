@@ -1,9 +1,18 @@
 import path from 'node:path';
 import type { NextConfig } from 'next';
+import createMDX from '@next/mdx';
+import remarkFrontmatter from 'remark-frontmatter';
+import remarkGfm from 'remark-gfm';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import rehypePrettyCode from 'rehype-pretty-code';
 
 const config: NextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
+  // Allow .md/.mdx files to be treated as routable/importable pages so the
+  // build-time MDX content system (features + docs) compiles to static HTML.
+  pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
   // Pin the file-tracing root to the monorepo root so Next does not infer the
   // wrong root when multiple lockfiles exist (e.g. inside a git worktree),
   // which breaks production page-data collection.
@@ -19,6 +28,16 @@ const config: NextConfig = {
     '/opengraph-image': ['src/app/_og/fonts/**'],
     '/privacy/opengraph-image': ['src/app/_og/fonts/**'],
     '/changelog/opengraph-image': ['src/app/_og/fonts/**'],
+    // 5C OG routes — same computed-path tofu risk as the entries above (fonts
+    // read via fs + process.cwd(), invisible to @vercel/nft). Keys must match
+    // Next's traced route ids; verify against the .next build manifest on a
+    // preview deploy (Task 10).
+    '/features/[mode]/opengraph-image': ['src/app/_og/fonts/**'],
+    // Docs OG is a SINGLE shared card at app/docs/opengraph-image.tsx (route id
+    // /docs/opengraph-image), serving all /docs/*. Next 15 cannot place an
+    // opengraph-image inside the [...slug] catch-all (startup crash), so there
+    // is no per-doc OG route to trace — only this shared one.
+    '/docs/opengraph-image': ['src/app/_og/fonts/**'],
   },
   transpilePackages: ['@record-me/ui', '@record-me/recorder'],
   async headers() {
@@ -62,4 +81,45 @@ const config: NextConfig = {
   },
 };
 
-export default config;
+// IMPORTANT: never add `--turbopack` to the `dev` script. @next/mdx cannot pass
+// function-form remark/rehype plugins to Turbopack and rehype-pretty-code's
+// options are not fully serializable — Turbopack would silently strip
+// highlighting. Both `next dev` and Vercel `next build` are webpack here; keep
+// it that way.
+const withMDX = createMDX({
+  // Match BOTH .md and .mdx so the `pageExtensions` 'md'/'mdx' support is
+  // honest. @next/mdx defaults `extension` to /\.mdx$/, so without this a bare
+  // .md page would route but never compile (the MDX loader wouldn't claim it).
+  extension: /\.mdx?$/,
+  options: {
+    // remark-frontmatter MUST run first: it teaches the MDX parser to recognize
+    // the leading `---` YAML block as a frontmatter node so it is STRIPPED from
+    // the compiled body. Without it, @next/mdx renders the raw `slug:/mode:/
+    // title:` YAML as visible text (a thematic break + paragraph). gray-matter
+    // still reads frontmatter independently for the typed registry — this only
+    // affects what <Body/> renders.
+    remarkPlugins: [remarkFrontmatter, remarkGfm],
+    rehypePlugins: [
+      rehypeSlug,
+      [rehypeAutolinkHeadings, { behavior: 'wrap' }],
+      [
+        rehypePrettyCode,
+        {
+          keepBackground: false,
+          // SINGLE dark theme — this app is dark-only (no theme toggle, no
+          // data-theme/class on <html>, no ThemeProvider; layout.tsx sets only
+          // font-variable classes). Single-theme mode emits a resolved inline
+          // `style="color:#…"` per token (NO --shiki-light/--shiki-dark var
+          // pair, NO multi-value data-theme), so code renders correctly on the
+          // Twilight surface with one honest path and no dead CSS. Do NOT switch
+          // to dual-theme `{ dark, light }` unless a real data-theme='dark' is
+          // first added on <html> (out of 5C scope) — dual theme would default
+          // to the LIGHT token colors here (light-on-dark).
+          theme: 'github-dark-default',
+        },
+      ],
+    ],
+  },
+});
+
+export default withMDX(config);

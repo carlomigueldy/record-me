@@ -7,9 +7,11 @@ type BuildMetadataInput = {
   path: string;
   /** Optional OG image override (absolute or root-relative). Defaults to the route's opengraph-image. */
   og?: string;
+  /** Optional robots directive. 5C routes are all indexed, so they leave this unset. */
+  robots?: Metadata['robots'];
 };
 
-function buildMetadata({ title, description, path, og }: BuildMetadataInput): Metadata {
+function buildMetadata({ title, description, path, og, robots }: BuildMetadataInput): Metadata {
   const url = new URL(path, siteConfig.url).toString();
 
   return {
@@ -30,6 +32,7 @@ function buildMetadata({ title, description, path, og }: BuildMetadataInput): Me
       description,
       ...(og ? { images: [og] } : {}),
     },
+    ...(robots ? { robots } : {}),
   };
 }
 
