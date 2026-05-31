@@ -51,7 +51,7 @@ export function LandingNav() {
 
       {/* Right: anchor links */}
       <nav
-        aria-label="Page sections"
+        aria-label="Site navigation"
         style={{
           display: 'flex',
           gap: '26px',

@@ -10,6 +10,8 @@ import type { FeatureSlug } from '@/lib/content/features';
 interface ModeCardProps {
   badge: string;
   title: React.ReactNode;
+  /** Plain-text mode label for aria-label (title is JSX, not usable directly). */
+  modeLabel: string;
   blurb: string;
   illustration: React.ReactNode;
   /** Pinned URL slug → /features/<slug> (matches FEATURE_SLUG_TO_MODE). */
@@ -17,7 +19,15 @@ interface ModeCardProps {
   index: number;
 }
 
-function ModeCard({ badge, title, blurb, illustration, featureSlug, index }: ModeCardProps) {
+function ModeCard({
+  badge,
+  title,
+  modeLabel,
+  blurb,
+  illustration,
+  featureSlug,
+  index,
+}: ModeCardProps) {
   const cardContent = (
     <div
       style={{
@@ -75,6 +85,7 @@ function ModeCard({ badge, title, blurb, illustration, featureSlug, index }: Mod
           wrapping this component and by TransitionLink's plain-<a> fallback). */}
       <TransitionLink
         href={`/features/${featureSlug}`}
+        aria-label={`Learn more about ${modeLabel}`}
         style={{
           display: 'inline-block',
           marginTop: '18px',
@@ -117,6 +128,7 @@ export function ModeTriptych() {
     {
       badge: 'Mode A',
       featureSlug: 'screen-camera-cursor',
+      modeLabel: 'Screen, camera & cursor',
       title: (
         <>
           Screen, camera <em style={{ fontStyle: 'italic', color: 'var(--color-amber)' }}>&amp;</em>{' '}
@@ -130,6 +142,7 @@ export function ModeTriptych() {
     {
       badge: 'Mode B',
       featureSlug: 'screen-cursor',
+      modeLabel: 'Screen & cursor',
       title: (
         <>
           Screen <em style={{ fontStyle: 'italic', color: 'var(--color-amber)' }}>&amp;</em> cursor.
@@ -142,6 +155,7 @@ export function ModeTriptych() {
     {
       badge: 'Mode C',
       featureSlug: 'camera-only',
+      modeLabel: 'Camera only',
       title: (
         <>
           Camera <em style={{ fontStyle: 'italic', color: 'var(--color-amber)' }}>only.</em>

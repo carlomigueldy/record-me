@@ -59,7 +59,7 @@ export function LandingFooter() {
 
       {/* Right: nav links */}
       <nav
-        aria-label="Legal"
+        aria-label="Footer navigation"
         style={{
           display: 'flex',
           flexDirection: 'column',
