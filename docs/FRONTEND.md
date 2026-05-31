@@ -17,31 +17,45 @@ apps/web/src/app/
 │   ├── layout.tsx              # minimal chrome
 │   └── opengraph-image.tsx
 │
-├── features/
+├── features/                  # Phase 5C
 │   ├── layout.tsx
-│   └── [mode]/page.tsx         # /features/screen-camera-cursor | /screen-cursor | /camera-only
+│   └── [mode]/                 # /features/screen-camera-cursor | /screen-cursor | /camera-only
+│       ├── page.tsx            # RSC · generateStaticParams (3) + dynamicParams=false
+│       ├── opengraph-image.tsx # per-mode OG card
+│       └── _content/*.mdx      # 3 colocated MDX bodies (frontmatter-validated)
 │
-├── docs/{page.tsx, [...slug]/page.tsx}
+├── docs/                       # Phase 5C
+│   ├── layout.tsx · page.tsx   # index (FAQPage JSON-LD)
+│   ├── opengraph-image.tsx     # SINGLE shared docs OG (no per-doc OG — see SEO.md)
+│   └── [...slug]/page.tsx      # catch-all · 6 static docs from registry
 ├── privacy/page.tsx
 ├── changelog/page.tsx
 │
+├── mdx-components.tsx          # Phase 5C · root MDX component map (brand seam)
 └── api/og/route.ts             # v1.x optional
 ```
 
+> Phase 5C doc MDX bodies live at `src/content/docs/*.mdx` (NOT under `app/`);
+> they render via the static `DOC_BODY` import map in `lib/content/doc-bodies.ts`,
+> keyed by `slug.join('-')`. Feature bodies are the 3 fixed
+> `app/features/[mode]/_content/*.mdx`, wired via `FEATURE_BODY` in
+> `lib/content/features.ts`.
+
 ## Per-route inventory
 
-| Route                   | Type | Owner       | Status                                                                                                                      |
-| ----------------------- | ---- | ----------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `/`                     | RSC  | sr-frontend | Phase 5B · shipped. Editorial landing with motion, signature moments, View-Transitions wrapper.                             |
-| `/dev/primitives`       | RSC  | sr-frontend | Dev-only showcase for brand primitives. 404 in production via `/dev/layout.tsx`.                                            |
-| `/dev/previews/landing` | RSC  | sr-frontend | Phase 5 landing hero mockup (dev-only)                                                                                      |
-| `/dev/previews/modes`   | RSC  | sr-frontend | Three-ModeCard composition (dev-only)                                                                                       |
-| `/dev/previews/studio`  | RSC  | sr-frontend | Phase 4 studio mockup (dev-only)                                                                                            |
-| `/record`               | ○    | sr-frontend | Phase 4 · shipped. Renders static RSC shell; `<Studio>` hydrates client-side (capability probe + recorder are client-only). |
-| `/features/[mode]`      | RSC  | sr-frontend | Phase 5B                                                                                                                    |
-| `/docs`                 | RSC  | sr-frontend | Phase 5C                                                                                                                    |
-| `/privacy`              | RSC  | sr-frontend | Phase 5A · shipped. Editorial page from 6-point privacy contract.                                                           |
-| `/changelog`            | RSC  | sr-frontend | Phase 5A · shipped. Typed changelog.ts + seed v1.0.0 entry.                                                                 |
+| Route                   | Type | Owner       | Status                                                                                                                                                           |
+| ----------------------- | ---- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                     | RSC  | sr-frontend | Phase 5B · shipped. Editorial landing with motion, signature moments, View-Transitions wrapper.                                                                  |
+| `/dev/primitives`       | RSC  | sr-frontend | Dev-only showcase for brand primitives. 404 in production via `/dev/layout.tsx`.                                                                                 |
+| `/dev/previews/landing` | RSC  | sr-frontend | Phase 5 landing hero mockup (dev-only)                                                                                                                           |
+| `/dev/previews/modes`   | RSC  | sr-frontend | Three-ModeCard composition (dev-only)                                                                                                                            |
+| `/dev/previews/studio`  | RSC  | sr-frontend | Phase 4 studio mockup (dev-only)                                                                                                                                 |
+| `/record`               | ○    | sr-frontend | Phase 4 · shipped. Renders static RSC shell; `<Studio>` hydrates client-side (capability probe + recorder are client-only).                                      |
+| `/features/[mode]`      | ●    | sr-frontend | Phase 5C · shipped. 3 static MDX deep pages (`generateStaticParams` + `dynamicParams=false`). `<Prose>` body + HowTo/Breadcrumb JSON-LD + per-mode OG.           |
+| `/docs`                 | ○    | sr-frontend | Phase 5C · shipped. Section-grouped index + visible FAQ mirroring `FAQPage` JSON-LD + Breadcrumb. Single `/docs/opengraph-image` card.                           |
+| `/docs/[...slug]`       | ●    | sr-frontend | Phase 5C · shipped. 6 static MDX docs (`generateStaticParams` from registry + `dynamicParams=false`). Static `<Toc>` + `<DocsSidebar>` + Breadcrumb + prev/next. |
+| `/privacy`              | RSC  | sr-frontend | Phase 5A · shipped. Editorial page from 6-point privacy contract.                                                                                                |
+| `/changelog`            | RSC  | sr-frontend | Phase 5A · shipped. Typed changelog.ts + seed v1.0.0 entry.                                                                                                      |
 
 Update this table after every phase.
 
@@ -132,9 +146,50 @@ Update this table after every phase.
 ### SEO library modules (Phase 5A · `apps/web/src/lib/seo`)
 
 - `site-config.ts` — `resolveSiteUrl()`, `siteConfig` (name, tagline, description, canonical URL).
-- `metadata.ts` — `buildMetadata()` helper for title, description, canonical, OG, Twitter cards.
-- `json-ld.ts` — `organizationLd()`, `webSiteLd()`, `softwareApplicationLd()`, `webApplicationLd()` schema.org builders (Phase 5B adds app schemas).
+- `metadata.ts` — `buildMetadata()` helper for title, description, canonical, OG, Twitter cards. Phase 5C adds an optional `robots?` field (5C routes are all indexed, so they leave it unset).
+- `json-ld.ts` — `organizationLd()`, `webSiteLd()`, `softwareApplicationLd()`, `webApplicationLd()` (Phase 5B). Phase 5C adds `howToLd()`, `faqPageLd()`, `breadcrumbLd()` (see SEO.md).
 - `JsonLd.tsx` — Server component that injects `<script type="application/ld+json">`.
+
+### Content system (Phase 5C · MDX)
+
+**Typed content registry (`apps/web/src/lib/content/`)** — the single source of
+truth for everything _structured_ (params, metadata, sitemap, nav, JSON-LD),
+kept separate from the `@next/mdx` body render:
+
+- `schema.ts` — zod `featureFrontmatterSchema` + `docFrontmatterSchema` → typed `FeatureFrontmatter` / `DocFrontmatter` (+ `Qa`, `HowToStep`). `description ≤ 160`, `draft` defaults `false`.
+- `loader.ts` — `gray-matter` reads + zod-validates frontmatter: `getModeFrontmatter`, `getDocFrontmatter`, `getAllDocs` (enforces basename===`slug.join('-')`, drops `draft` in prod — the slug-guard/allow-list), plus a server-side heading parser (`github-slugger` ids) for the static TOC.
+- `features.ts` — `FEATURE_SLUG_TO_MODE` (pinned URL slug → engine `RecordMode`) + `FEATURE_BODY` (fixed 3-key static MDX import map).
+- `registry.ts` — `allFeatures`, `allDocs`, `docsBySection`, `routeList`, `getFeatureBySlug`, `getDocBySlug`, `prevNext`, `dedupeFaq` (keeps first per question → valid `FAQPage`).
+- `doc-bodies.ts` — `DOC_BODY` static import map (keyed by `slug.join('-')`; no dynamic `import()`).
+
+**MDX seam + prose (`apps/web/src/`)**
+
+- `mdx-components.tsx` — root `useMDXComponents` brand seam (App Router file convention): internal links → `<TransitionLink>`, external → `target=_blank rel=noreferrer`, `img` → `next/image` (explicit w/h, CLS-safe); headings keep `rehype-slug` ids; code/pre keep Shiki's resolved inline per-token colors.
+- `app/_components/content/Prose.tsx` — token-based MDX body wrapper (Instrument Serif headings / Geist body / Geist Mono code).
+
+**Static content nav (`apps/web/src/app/_components/content/`)** — all RSC, no client JS:
+
+- `Toc.tsx` — on-page anchor list to `rehype-slug` heading ids (sticky aside, reserved dims; no scroll-spy in v1).
+- `Breadcrumbs.tsx` — breadcrumb trail (last item = current page).
+- `DocsSidebar.tsx` — section-grouped docs nav (`docsBySection`), active-slug marker.
+
+## Content authoring workflow (Phase 5C)
+
+**To add a doc** (under `/docs/<slug>`):
+
+1. Create `apps/web/src/content/docs/<slug>.mdx` with frontmatter:
+   `title`, `description` (≤ 160 chars), `slug` (string[], v1 is single-segment),
+   `section`, `order`, optional `faq` (`{question, answer}[]`), optional `draft`
+   (defaults `false`), optional `updated`.
+2. Add a `DOC_BODY` entry in `lib/content/doc-bodies.ts` keyed by `slug.join('-')`
+   (static import — no dynamic `import()`). The catch-all validates the slug
+   against `getAllDocs()` and the `DOC_BODY` map (404 on either miss).
+3. Body authored in MDX; never export a `metadata`/`frontmatter` const (the
+   registry owns metadata — review rule). `draft: true` excludes it in prod.
+
+**Features** are the 3 fixed `app/features/[mode]/_content/*.mdx` (pinned slugs);
+add new modes only by extending `FEATURE_SLUG_TO_MODE` + `FEATURE_BODY` + a
+colocated `_content/<slug>.mdx`.
 
 ### OG template (Phase 5A · `apps/web/src/app/_og`)
 

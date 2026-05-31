@@ -101,13 +101,22 @@ Completed: 2026-05-30
 - [x] Lighthouse ≥ 95 on `/`
 - [x] Recapture `.github/assets/readme/hero.png` from `/` (replace `/dev/previews/landing`)
 
-**Slice 5C · MDX content system · planned**
+**Slice 5C · MDX content system · complete**
 
-- [ ] `/features/[mode]` MDX deep pages + metadata + OG per mode
-- [ ] `/docs` + `/docs/[...slug]` MDX documentation + metadata + OG
-- [ ] HowTo JSON-LD on `/features/[mode]`
-- [ ] FAQPage JSON-LD on `/docs`
-- [ ] Lighthouse ≥ 90 on `/docs/[...slug]` + `/features/[mode]`
+Completed: 2026-05-31
+
+- [x] `/features/[mode]` MDX deep pages (3 modes) + per-route metadata + per-mode OG card
+- [x] `HowTo` JSON-LD on each `/features/[mode]` + `BreadcrumbList` (additive beyond § 8.4)
+- [x] `/docs` index + `/docs/[...slug]` (6 docs: getting-started · permissions · codecs · safari · browser-support · troubleshooting) + metadata
+- [x] `FAQPage` JSON-LD on `/docs` (from the registry's deduped doc FAQ set) + `BreadcrumbList` on deep pages
+- [x] Single shared `/docs/opengraph-image` OG card (per-doc OG dropped — Next 15 cannot place `opengraph-image` inside a `[...slug]` catch-all)
+- [x] Build-time MDX toolchain (`@next/mdx` + `remark-frontmatter` strip + `rehype-pretty-code` single dark theme, CSP-safe; dev stays webpack — never `--turbopack`)
+- [x] Root `mdx-components.tsx` brand seam + `<Prose>` wrapper + single-theme Shiki code styling
+- [x] Typed content registry: `lib/content/{schema,loader,features,registry,doc-bodies}` (zod + gray-matter), single source for params/metadata/sitemap/nav/JSON-LD
+- [x] Static `<Toc>` + `<Breadcrumbs>` + `<DocsSidebar>` (RSC, no scroll-spy; `github-slugger` heading ids)
+- [x] `/` ↔ `/features` View-Transition + cross-links (ModeTriptych "Learn more →")
+- [x] Registry-driven `sitemap.ts` (+3 `/features/*` @ 0.8, `/docs` + each doc @ 0.6)
+- [x] Lighthouse ≥ 90 on `/features/[mode]` + `/docs/[...slug]` (verified: both new routes perf = 1.00, a11y = 1.00, bp = 0.96, seo = 1.00; LCP ≤ 1800, CLS ≤ 0.05)
 
 ## Phase 6 · Analytics & polish · planned
 

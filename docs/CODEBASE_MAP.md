@@ -2,7 +2,7 @@
 
 Auto-maintained by `/agent-checkpoint` (run weekly or after major merges).
 
-Last regenerated: 2026-05-30 (Phase 5B Editorial landing)
+Last regenerated: 2026-05-31 (Phase 5C MDX content system)
 
 ## record-me-sr-frontend
 
@@ -20,7 +20,7 @@ Last regenerated: 2026-05-30 (Phase 5B Editorial landing)
 - `app/dev/previews/studio/page.tsx` — Phase 4 studio surface mockup
 - `app/opengraph-image.tsx` · `app/privacy/page.tsx` · `app/privacy/opengraph-image.tsx` · `app/changelog/page.tsx` · `app/changelog/opengraph-image.tsx` — Phase 5A pages + OG
 - `app/sitemap.ts` · `app/robots.ts` · `app/manifest.ts` · `app/icon.svg` — Phase 5A SEO metadata
-- `lib/seo/site-config.ts` · `lib/seo/metadata.ts` · `lib/seo/json-ld.ts` · `lib/seo/JsonLd.tsx` — Phase 5A SEO library
+- `lib/seo/site-config.ts` · `lib/seo/metadata.ts` · `lib/seo/json-ld.ts` · `lib/seo/JsonLd.tsx` — Phase 5A SEO library (Phase 5C · staff adds `howToLd`/`faqPageLd`/`breadcrumbLd` to `json-ld.ts` + optional `robots` to `metadata.ts`; `sitemap.ts` becomes registry-driven)
 - `app/changelog/changelog.ts` — Typed changelog entries (MDX-free, v1.0.0 seed)
 - `app/_og/fonts.ts` · `app/_og/fonts/InstrumentSerif-Regular.ttf` · `app/_og/fonts/GeistMono-Regular.ttf` · `app/_og/template.tsx` — Phase 5A shared OG template
 - `app/_components/landing/LandingNav.tsx` · `LandingNav.test.tsx` — Phase 5B masthead (wordmark + studio link)
@@ -31,6 +31,23 @@ Last regenerated: 2026-05-30 (Phase 5B Editorial landing)
 - `app/_components/landing/LandingFooter.tsx` — Phase 5B colophon + version
 - `lib/motion/usePrefersReducedMotion.ts` · `variants.ts` — Phase 5B prefers-reduced-motion hook + motion object definitions
 - `components/TransitionLink.tsx` — Phase 5B View-Transitions wrapper (outbound navigation)
+
+#### Phase 5C · MDX content system (apps/web/src)
+
+- `mdx-components.tsx` · `mdx-components.test.tsx` — root MDX component map / brand seam (App Router file convention)
+- `lib/content/schema.ts` · `schema.test.ts` — zod frontmatter schemas + inferred types
+- `lib/content/loader.ts` · `loader.test.ts` — gray-matter read + zod validate + slug-guard + TOC heading parse (github-slugger)
+- `lib/content/features.ts` — pinned `FEATURE_SLUG_TO_MODE` + `FEATURE_BODY` static MDX import map
+- `lib/content/registry.ts` · `registry.test.ts` — `allFeatures`/`allDocs`/`docsBySection`/`routeList`/`prevNext`/`dedupeFaq`
+- `lib/content/doc-bodies.ts` — `DOC_BODY` static import map (keyed by `slug.join('-')`)
+- `app/_components/content/Prose.tsx` — token MDX body wrapper
+- `app/_components/content/Toc.tsx` · `Breadcrumbs.tsx` · `DocsSidebar.tsx` (+ `*.test.tsx`) — static RSC content nav
+- `app/features/layout.tsx` · `app/features/[mode]/page.tsx` · `page.test.tsx` · `opengraph-image.tsx` — feature deep pages + per-mode OG
+- `app/features/[mode]/_content/{screen-camera-cursor,screen-cursor,camera-only}.mdx` — 3 feature MDX bodies
+- `app/docs/layout.tsx` · `page.tsx` · `page.test.tsx` · `opengraph-image.tsx` — docs index + single shared docs OG
+- `app/docs/[...slug]/page.tsx` · `page.test.tsx` — catch-all docs route (static params from registry)
+- `content/docs/{getting-started,permissions,codecs,safari,browser-support,troubleshooting}.mdx` — 6 doc MDX bodies
+- `app/_components/landing/ModeTriptych.tsx` — Phase 5C adds "Learn more →" `TransitionLink` to `/features`
 
 ### packages/ui/src
 
@@ -100,8 +117,13 @@ Last regenerated: 2026-05-30 (Phase 5B Editorial landing)
 - `turbo.json`
 - `tsconfig.json`
 - `lefthook.yml`
-- `lighthouserc.json`
+- `lighthouserc.json` (Phase 5C · +`/features/screen-camera-cursor` + `/docs/getting-started` lhci urls)
 - `vitest.workspace.ts`
+
+### apps/web infra (record-me-staff)
+
+- `apps/web/next.config.ts` — Phase 5C wraps the config in `createMDX` (build-time MDX toolchain: `remark-frontmatter` strip, `rehype-pretty-code` single dark theme, OG font tracing keys for the 5C OG routes; dev/build stay webpack — never `--turbopack`)
+- `apps/web/package.json` — Phase 5C deps: `zod`, `@next/mdx`, `@mdx-js/loader`, `@types/mdx`, `gray-matter`, `remark-frontmatter`, `remark-gfm`, `rehype-slug`, `rehype-autolink-headings`, `rehype-pretty-code`, `shiki`, `github-slugger`
 
 ## record-me-scribe
 
@@ -124,3 +146,4 @@ Last regenerated: 2026-05-30 (Phase 5B Editorial landing)
 
 - `smoke.spec.ts` — Phase 1 smoke tests
 - `seo.spec.ts` — Phase 5A SEO metadata, robots, sitemap, OG image smoke tests
+- `content.spec.ts` — Phase 5C MDX content smoke tests (features/docs routes, JSON-LD, titles)
