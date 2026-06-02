@@ -137,3 +137,33 @@ Epic: #6
 **Pending deployment only** (operational, not code):
 
 - [ ] Production deployment + custom domain (Vercel link + domain setup)
+
+## Plan A · Cover-crop + Movable Camera Bubble · code complete
+
+Plan: `docs/superpowers/plans/2026-06-02-studio-capture-plan-a-camera-bubble.md`
+Spec: `docs/superpowers/specs/2026-06-02-studio-capture-fixes-design.md` §§ 5, 6, 7, Plan A rows of §§ 8, 10
+
+**Recorder engine (Tasks 1–4):**
+
+- [x] `coverSquare()` helper + 9-arg cover-crop in `drawCamFull`/`drawCamPip` (fix stretched camera)
+- [x] Zero-size frame guard (skip draw until `videoWidth/videoHeight > 0`)
+- [x] Video-dimension test mock (`packages/recorder/src/test/mocks/video.ts`)
+- [x] `PipState` type + `ComposerOptions.initialPip` + `Composer.setPip()` — dynamic/resizable PiP
+- [x] `RecorderOptions.initialPip` + `RecorderHandle.setCameraBubble()` — public API
+- [x] `PipState` exported from `@record-me/recorder` index
+- [x] Camera acquisition hint: `720×720 ideal` (no hard `aspectRatio`) for sharper bubbles
+
+**Web layer (Tasks 5–12):**
+
+- [x] `pip-geometry.ts` — `pipDiameter`, `resolvePip`, `nearestCorner`, `computeContentRect`
+- [x] `pip-storage.ts` — versioned `record-me-pip` localStorage preference
+- [x] `useVideoContentRect()` — ResizeObserver-backed letterbox rect hook
+- [x] `usePipState()` — corner/size preference with persistence
+- [x] Analytics: `cameraBubbleMoved` + `cameraBubbleResized` (PII-free, 9 total events)
+- [x] `useRecorder().setCameraBubble()` + `initialPip` passthrough on `start()`
+- [x] `<CameraBubbleControl>` — drag/snap/resize overlay (setup + live variants)
+- [x] `<Studio>` + `<LivePreview>` wired with bubble (setup placeholder + live overlay)
+
+**Deferred to Plan B:**
+
+- `§7.3` paused-frame `requestFrame()` on `setPip` (requires Plan B `captureStream(0)` + manual frame clock)

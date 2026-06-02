@@ -62,13 +62,18 @@ Update this table after every phase.
 ## Hooks (Phase 4–6)
 
 - `useRecorder()` — thin React wrapper around `createRecorder()` from
-  `@record-me/recorder`. Returns `{ state, durationMs, bytes, previewStream, result, error, memoryPressure, storageFallback, cursorScopeMissed, start, pause, resume, stop, reset, savePartial }`.
+  `@record-me/recorder`. Returns `{ state, durationMs, bytes, previewStream, result, error, memoryPressure, storageFallback, cursorScopeMissed, start, pause, resume, stop, reset, savePartial, setCameraBubble }`.
   Lifecycle: `reset()` disposes the handle + releases the result (privacy —
   camera/mic off); `start()` disposes any prior handle and releases the prior
   result's object URL; unmount releases the latest result's object URL.
   Phase 6 adds three boolean flags (`memoryPressure`, `storageFallback`,
-  `cursorScopeMissed`) and the `savePartial()` method for mid-recording
-  recovery.
+  `cursorScopeMissed`) and the `savePartial()` method for mid-recording recovery.
+  Phase 6+ adds `setCameraBubble(state: PipState)` for live bubble repositioning
+  and `initialPip` passthrough on `start()`.
+- `usePipState()` — corner/size preference state with `localStorage` persistence.
+  Returns `{ corner, size, setCorner, setSize }`. Reads `record-me-pip` on mount.
+- `useVideoContentRect(ref, aspect)` — `ResizeObserver`-backed hook returning the
+  letterboxed content rect (`ContentRect`) of an object-contain element.
 
 ## Component inventory
 
@@ -95,9 +100,19 @@ Update this table after every phase.
 - `<ModePicker>` — Triptych radio picker (A/B/C modes, available-mode gating).
 - `<CapSelector>` — Cap minutes selector (10–60 min), resolution (1080p/720p), cursor highlight toggle. Warns on >10 min.
 
+**Camera bubble (Phase 6+)**
+
+- `<CameraBubbleControl>` — Draggable, resizable camera bubble overlay. Renders in `'setup'`
+  variant (dark `bg-surface-2` circle with "CAM" mono label over a 16:9 placeholder stage) and
+  `'live'` variant (amber ring only). Arrow keys cycle corners; S/M/L radio group (hover/focus
+  revealed) sets size. Props: `corner`, `size`, `aspect`, `canvasWidth`, `canvasHeight`,
+  `surfaceRef`, `variant`, `onPreview` (drag), `onCommitCorner`, `onCommitSize`.
+
 **Live phase (recording)**
 
-- `<LivePreview>` — `<video srcObject>` mirror bound to `onPreviewReady` stream (composite video-only).
+- `<LivePreview>` — `<video srcObject>` mirror bound to `onPreviewReady` stream (composite
+  video-only). Accepts optional `surfaceRef` (for overlay measurement) and `children` (overlay
+  slot). Phase 6+ mounts `<CameraBubbleControl variant="live">` here for `screen+cam+cursor`.
 
 **Review phase (playback + download)**
 
@@ -145,9 +160,11 @@ Update this table after every phase.
 
 - `<TransitionLink>` — View-Transitions API wrapper for outbound navigation (href-based, no instrumentation)
 
-### Studio library modules (Phase 4–6 · `apps/web/src/lib`)
+### Studio library modules (Phase 4–6+ · `apps/web/src/lib`)
 
-- `analytics.ts` — Typed Vercel Analytics event taxonomy (Phase 6 · complete set of 7 studio events: `modeSelected`, `recordingStarted`, `recordingStopped`, `recordingDownloaded`, `permissionDenied`, `browserUnsupported`, `cursorHighlightDisabled`). All events fire from the studio state machine; zero PII (spec § 10.2).
+- `analytics.ts` — Typed Vercel Analytics event taxonomy (Phase 6 · 9 studio events: `modeSelected`, `recordingStarted`, `recordingStopped`, `recordingDownloaded`, `permissionDenied`, `browserUnsupported`, `cursorHighlightDisabled`, `cameraBubbleMoved`, `cameraBubbleResized`). All events fire from the studio state machine; zero PII (spec § 10.2).
+- `pip-geometry.ts` — Pure geometry helpers: `pipDiameter(size, w, h)`, `resolvePip(corner, size, w, h) → PipState`, `nearestCorner(xNorm, yNorm, size, w, h)`, `computeContentRect(boxW, boxH, aspect) → ContentRect`. Also exports `PipCorner`, `PipSize`, `PIP_CORNERS`, `PIP_SIZES`.
+- `pip-storage.ts` — Versioned `record-me-pip` localStorage preference. `loadPipPreference()` returns `{ corner: PipCorner, size: PipSize }` with safe fallback; `savePipPreference(pref)` writes `{ v:1, corner, size }`. Survives malformed JSON, quota errors, and private-mode blocks.
 - `capabilities.ts` — `deriveStudioCapabilities()` + `browserName()` UA sniff. Probe-to-mode derivation.
 - `format.ts` — `formatDuration()` (mm:ss), `formatMegabytes()` (1 decimal), `capMinutesToMs()`.
 

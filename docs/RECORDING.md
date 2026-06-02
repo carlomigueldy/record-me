@@ -5,19 +5,19 @@ for the contract: `docs/superpowers/specs/2026-05-27-record-me-design.md` § 7.
 
 ## Module map
 
-| Module                                    | Responsibility                                                           |
-| ----------------------------------------- | ------------------------------------------------------------------------ |
-| `src/index.ts`                            | Public re-exports                                                        |
-| `src/types.ts`                            | Public types (`RecorderOptions`, `RecorderHandle`, `RecordingResult`)    |
-| `src/capabilities.ts`                     | `supportedMimeType()` + `probeCapabilities()` (MP4-first negotiation)    |
-| `src/errors.ts`                           | `RecorderError` + DOMException → kind mapping                            |
-| `src/filename.ts`                         | `suggestedFilename(date, seq, mime)` builder                             |
-| `src/acquire.ts`                          | Per-mode track acquisition (A/B/C); camera hint requests 720×720         |
-| `src/composer.ts`                         | 2D canvas composer (RAF, screen full, cam PiP); cover-crop + dynamic PiP |
-| `src/cursor-highlights.ts`                | In-tab click ripples — drawn into composer's overlay slot                |
-| `src/encoder.ts`                          | `MediaRecorder` wrapper with chunk + error dispatch                      |
-| `src/storage/{memory,indexeddb,index}.ts` | Pluggable chunk stores + auto-strategy factory                           |
-| `src/recorder.ts`                         | `createRecorder()` state machine wiring everything                       |
+| Module                                    | Responsibility                                                                          |
+| ----------------------------------------- | --------------------------------------------------------------------------------------- |
+| `src/index.ts`                            | Public re-exports                                                                       |
+| `src/types.ts`                            | Public types (`RecorderOptions`, `RecorderHandle`, `RecordingResult`)                   |
+| `src/capabilities.ts`                     | `supportedMimeType()` + `probeCapabilities()` (MP4-first negotiation)                   |
+| `src/errors.ts`                           | `RecorderError` + DOMException → kind mapping                                           |
+| `src/filename.ts`                         | `suggestedFilename(date, seq, mime)` builder                                            |
+| `src/acquire.ts`                          | Per-mode track acquisition (A/B/C); camera hint requests 720×720                        |
+| `src/composer.ts`                         | 2D canvas composer (RAF, screen full, cam PiP); cover-crop + dynamic PiP via `setPip()` |
+| `src/cursor-highlights.ts`                | In-tab click ripples — drawn into composer's overlay slot                               |
+| `src/encoder.ts`                          | `MediaRecorder` wrapper with chunk + error dispatch                                     |
+| `src/storage/{memory,indexeddb,index}.ts` | Pluggable chunk stores + auto-strategy factory                                          |
+| `src/recorder.ts`                         | `createRecorder()` state machine wiring everything                                      |
 
 ## Five stages
 
