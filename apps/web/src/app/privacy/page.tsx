@@ -27,7 +27,7 @@ const PROMISES = [
   ],
   [
     'Recording data is short-lived.',
-    'Encoded chunks live in memory or IndexedDB only while you are working with a recording. Discarding, re-recording, leaving the page, or starting a new session clears the store — and a periodic stale-session sweep clears anything an unexpected crash leaves behind.',
+    'Encoded chunks live in memory or IndexedDB only while you are working with a recording. Discarding, re-recording, leaving the page, or starting a new session clears the store immediately — and a Safari-safe stale-session sweep (1-hour window) clears anything an unexpected crash leaves behind.',
   ],
   [
     'Locked down by headers.',

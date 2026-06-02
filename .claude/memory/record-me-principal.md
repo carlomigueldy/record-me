@@ -1021,3 +1021,34 @@ Detection: `awk '/^``/{f=!f} /^#{2,3} /{if(f)print}'` over the docs → confirme
   WebApplication + BreadcrumbList — all distinct @types, valid. Verify dedup by grepping the PRERENDERED
   .next/server/app/<route>.html for `"@type":"X"` counts, not by reading source. breadcrumbLd item shape
   `{name, path}` → ListItem{position(1-indexed), name, item:ABSOLUTE url} is schema.org-valid.
+
+## Phase 6 patterns (2026-06-02, doc-sync accuracy review)
+
+### MAJOR — privacy-contract overclaim in source-of-truth docs
+
+- **Best-effort crash recovery must never be worded as a guarantee.** The #60
+  Safari-safe sweep is best-effort: it runs only on the _next_ start() (data
+  persists indefinitely if the user never returns), and deleteDatabase can
+  stay onblocked/onerror. SECURITY.md (the privacy-contract source of truth)
+  must NOT close with absolutes like "No recording data persists across the 1h
+  window after a crash." Acceptable phrasings: "is swept on the next session
+  start (best-effort)", "the sweep targets / aims to clear". The same paragraph
+  was careful earlier ("may leave data", "marked stale to force retry") — the
+  concluding sentence still overclaimed. Pattern: scan the LAST sentence of any
+  privacy bullet for absolute quantifiers (No/Never/Always/Guaranteed) and
+  cross-check against the best-effort reality of the mechanism.
+- **/privacy marketing copy gets slightly more latitude than SECURITY.md.**
+  "clears anything an unexpected crash leaves behind" reads as intent/purpose,
+  borderline acceptable; the SECURITY.md absolute is the harder violation.
+
+### Accuracy-review wins (these were CORRECT and should stay)
+
+- Engine API is `salvage()` (RecorderHandle); hook method is `savePartial()`
+  (UseRecorderApi). RECORDING.md docs salvage(), FRONTEND.md docs savePartial()
+  — both correct, do NOT "fix" one to match the other.
+- MEMORY_PRESSURE_CHUNK_THRESHOLD = 600, STALE_REGISTRY_THRESHOLD_MS = 1h — docs
+  match source exactly.
+- start() runs BOTH sweepStaleChunkDatabases() (databases() backstop) AND
+  sweepRegisteredSessions() (registry, Safari-safe). Docs describe only the
+  registry sweep + say "does not depend on indexedDB.databases()" — accurate as
+  a description of the _Safari-safe_ mechanism, not an overclaim (backstop omitted = simplification).

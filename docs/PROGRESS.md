@@ -118,14 +118,22 @@ Completed: 2026-05-31
 - [x] Registry-driven `sitemap.ts` (+3 `/features/*` @ 0.8, `/docs` + each doc @ 0.6)
 - [x] Lighthouse ≥ 90 on `/features/[mode]` + `/docs/[...slug]` (verified: both new routes perf = 1.00, a11y = 1.00, bp = 0.96, seo = 1.00; LCP ≤ 1800, CLS ≤ 0.05)
 
-## Phase 6 · Analytics & polish · planned
+## Phase 6 · Analytics & polish · code complete
 
-Plan: (to be written)
+Plan: (shipped in 5 commits: recorder resilience, useRecorder hook, studio UX, /record SEO, e2e)
 Epic: #6
 
-- [ ] Vercel Analytics + Speed Insights wired (✓ scaffolded in Phase 1)
-- [ ] Custom event taxonomy implemented in `lib/analytics.ts`
-- [ ] All events firing from the right points in the studio
-- [ ] Lighthouse CI in pipeline (✓ scaffolded in Phase 1)
-- [ ] Final v1 done checklist verified
-- [ ] Production deployment + custom domain
+- [x] Recorder engine resilience: FallbackChunkStore on IDB failure + memory-pressure detection
+- [x] Safari-safe stale-IDB sweep via localStorage session registry (1h window, issue #60)
+- [x] Mid-recording track-failure recovery: `RecorderHandle.salvage()` + `RecordingResult.partial` flag
+- [x] `useRecorder()` hook expanded: `memoryPressure`, `storageFallback`, `cursorScopeMissed` flags + `savePartial()` method
+- [x] Studio UX: `<StorageFallbackToast>` + `<MemoryPressureBanner>` components
+- [x] Error state enhanced with "Save partial recording" affordance for track-failed errors
+- [x] Custom event taxonomy fully implemented + all 7 events firing (spec § 10.2)
+- [x] `/record` ships OG image + WebApplication + BreadcrumbList JSON-LD
+- [x] Lighthouse CI per-route budgets: `/` ≥ 0.95, others ≥ 0.90 (enforced in pipeline)
+- [x] E2E coverage for error recovery paths + analytics events
+
+**Pending deployment only** (operational, not code):
+
+- [ ] Production deployment + custom domain (Vercel link + domain setup)
