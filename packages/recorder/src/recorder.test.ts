@@ -559,4 +559,24 @@ describe('setCameraBubble', () => {
     rec.dispose();
     spy.mockRestore();
   });
+
+  it('is a no-op (setPip not called) in non-screen+cam+cursor modes (spec §6.2)', async () => {
+    setUserMediaResponse({ kind: 'resolve', tracks: ['video', 'audio'] });
+
+    let captured: ReturnType<typeof composerModule.createComposer> | undefined;
+    const real = composerModule.createComposer;
+    const spy = vi.spyOn(composerModule, 'createComposer').mockImplementation((o) => {
+      captured = real(o);
+      vi.spyOn(captured, 'setPip');
+      return captured;
+    });
+
+    const rec = createRecorder({ mode: 'cam-only' });
+    await rec.start();
+    rec.setCameraBubble({ xNorm: 0.5, yNorm: 0.5, diameter: 200 });
+    expect(captured!.setPip).not.toHaveBeenCalled();
+
+    rec.dispose();
+    spy.mockRestore();
+  });
 });

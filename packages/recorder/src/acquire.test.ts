@@ -50,7 +50,7 @@ describe('acquireTracks', () => {
     expect(getUserMediaCalls()).toHaveLength(0);
   });
 
-  it('mode C · cam-only — calls only getUserMedia with square aspect ratio', async () => {
+  it('mode C · cam-only — calls only getUserMedia without a hard aspectRatio constraint', async () => {
     setUserMediaResponse({ kind: 'resolve', tracks: ['video', 'audio'] });
 
     const result = await acquireTracks({ mode: 'cam-only' });
@@ -59,9 +59,9 @@ describe('acquireTracks', () => {
     expect(result.camera).toBeDefined();
     expect(result.mic).toBeDefined();
     expect(getDisplayMediaCalls()).toHaveLength(0);
-    expect(getUserMediaCalls()[0]).toMatchObject({
-      video: expect.objectContaining({ aspectRatio: 1 }),
-    });
+    const videoConstraint = getUserMediaCalls()[0]?.video as MediaTrackConstraints;
+    expect(videoConstraint).toMatchObject({ width: { ideal: 720 }, height: { ideal: 720 } });
+    expect(videoConstraint).not.toHaveProperty('aspectRatio'); // avoid OverconstrainedError
   });
 
   it('throws RecorderError(permission-denied) when screen is denied (mode A)', async () => {

@@ -31,8 +31,9 @@ const CAM_PIP_VIDEO: MediaTrackConstraints = {
   frameRate: { ideal: 30 },
 };
 
+// No hard aspectRatio: 1 — same reasoning as CAM_PIP_VIDEO; drawCamFull cover-crops
+// via coverSquare(), so a hard 1:1 constraint is both redundant and fragile.
 const CAM_SQUARE_VIDEO: MediaTrackConstraints = {
-  aspectRatio: 1,
   width: { ideal: 720 },
   height: { ideal: 720 },
   frameRate: { ideal: 30 },

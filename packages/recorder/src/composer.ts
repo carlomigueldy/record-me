@@ -33,7 +33,8 @@ export interface Composer {
   dispose(): void;
 }
 
-// PIP_DIAMETER kept as fallback reference only — dynamic pip uses defaultPip() below
+// defaultPip() computes the bottom-right position at round(0.22 * height); used when no
+// explicit pip has been set via setPip() or ComposerOptions.initialPip.
 
 function resolutionToSize(
   mode: RecordMode,
