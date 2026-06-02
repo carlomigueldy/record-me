@@ -15,6 +15,7 @@ export type {
   RecorderErrorLike,
   RecorderErrorKind,
   PermissionSubject,
+  PipState,
 } from './types';
 export { RecorderError } from './errors';
 export { suggestedFilename, extensionForMimeType } from './filename';
