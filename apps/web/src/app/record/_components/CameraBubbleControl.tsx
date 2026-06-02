@@ -3,7 +3,6 @@
 import { useCallback, useRef, useState } from 'react';
 import type { PipState } from '@record-me/recorder';
 import {
-  PIP_CORNERS,
   PIP_SIZES,
   nearestCorner,
   resolvePip,
@@ -100,6 +99,7 @@ export function CameraBubbleControl({
     (e: React.PointerEvent) => {
       if (!dragging.current) return;
       dragging.current = false;
+      const moved = dragNorm !== null;
       const final = dragNorm ?? { x: xNorm, y: yNorm };
       const next = nearestCorner(final.x, final.y, size, canvasWidth, canvasHeight);
       setDragNorm(null);
@@ -108,9 +108,13 @@ export function CameraBubbleControl({
       } catch {
         /* capture may already be released */
       }
-      onCommitCorner(next);
+      // Only commit when the user actually dragged, or the snap resolves to a different corner,
+      // to avoid spurious analytics events and re-persist on plain clicks.
+      if (moved || next !== corner) {
+        onCommitCorner(next);
+      }
     },
-    [dragNorm, xNorm, yNorm, size, canvasWidth, canvasHeight, onCommitCorner],
+    [dragNorm, xNorm, yNorm, size, canvasWidth, canvasHeight, corner, onCommitCorner],
   );
 
   const onKeyDown = useCallback(
@@ -125,15 +129,32 @@ export function CameraBubbleControl({
   // Flip the size control below the handle when it is near the top edge.
   const controlsBelow = cy - diameterPx / 2 < diameterPx; // little headroom
 
+  // Position the bubble via transform so the spring transition on the .group wrapper fires
+  // when the corner snaps. left/top on a positioned element does not animate with
+  // transition-transform; translate3d on the same element does.
+  const radius = diameterPx / 2;
+  const translateX = cx - radius;
+  const translateY = cy - radius;
+
   return (
     <div className="pointer-events-none absolute inset-0">
       <div
-        className="group absolute"
+        className={[
+          'group absolute',
+          // Spring snap: position moves via transform so transition-transform fires.
+          // motion-reduce: instant (no spring). During a live drag dragNorm is set so
+          // we suppress the transition to avoid lag between pointer and bubble.
+          dragNorm ? '' : 'transition-transform duration-[180ms] motion-reduce:transition-none',
+        ]
+          .join(' ')
+          .trim()}
         style={{
-          left: cx - diameterPx / 2,
-          top: cy - diameterPx / 2,
+          left: 0,
+          top: 0,
           width: diameterPx,
           height: diameterPx,
+          transform: `translate3d(${translateX}px, ${translateY}px, 0)`,
+          transitionTimingFunction: dragNorm ? undefined : 'cubic-bezier(0.34, 1.56, 0.64, 1)',
         }}
       >
         <button
@@ -146,13 +167,11 @@ export function CameraBubbleControl({
           onKeyDown={onKeyDown}
           className={[
             'pointer-events-auto absolute inset-0 flex items-center justify-center rounded-full',
-            'cursor-grab touch-none select-none transition-transform duration-[180ms] active:cursor-grabbing',
-            'motion-reduce:transition-none',
+            'cursor-grab touch-none select-none active:cursor-grabbing',
             variant === 'setup'
               ? 'bg-surface-2 text-ivory-mut ring-1 ring-line'
               : 'ring-2 ring-amber/70',
           ].join(' ')}
-          style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
         >
           {variant === 'setup' ? (
             <span className="font-mono text-[10px] uppercase tracking-widest">CAM</span>
@@ -164,7 +183,9 @@ export function CameraBubbleControl({
           aria-label="Camera bubble size"
           className={[
             'pointer-events-auto absolute left-1/2 flex -translate-x-1/2 gap-1 rounded-sm border border-line bg-surface px-1 py-0.5',
-            'opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 motion-reduce:transition-none',
+            // group-hover: mouse hover on the .group wrapper; group-focus-within: any
+            // descendant is focused (handle or a radio) — both reveal the size control.
+            'opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none',
             controlsBelow ? 'top-full mt-2' : 'bottom-full mb-2',
           ].join(' ')}
         >
@@ -186,8 +207,6 @@ export function CameraBubbleControl({
           ))}
         </div>
       </div>
-      {/* Keep PIP_CORNERS referenced for future affordances without dead-code lint. */}
-      <span className="sr-only">{PIP_CORNERS.length} corners</span>
     </div>
   );
 }
