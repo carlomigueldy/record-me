@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type * as RecorderModule from '@record-me/recorder';
@@ -12,6 +12,7 @@ interface MockHandle {
   stop: ReturnType<typeof vi.fn>;
   salvage: ReturnType<typeof vi.fn>;
   dispose: ReturnType<typeof vi.fn>;
+  setCameraBubble: ReturnType<typeof vi.fn>;
   /** Drive the engine to the error state with a track-failed kind. */
   simulateTrackFailed: () => void;
   /** Fire the cursor-scope-missed callback (surface is not this tab). */
@@ -66,6 +67,7 @@ vi.mock('@record-me/recorder', async (importOriginal) => {
           return result;
         }),
         dispose: vi.fn(),
+        setCameraBubble: vi.fn(),
         simulateTrackFailed: () => {
           opts.onError?.({
             name: 'RecorderError',
@@ -102,7 +104,23 @@ beforeEach(() => {
   handles.length = 0;
   mockHandles.length = 0;
   vi.clearAllMocks();
+  localStorage.clear();
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      cb: ResizeObserverCallback;
+      constructor(cb: ResizeObserverCallback) {
+        this.cb = cb;
+      }
+      observe() {
+        this.cb([], this as unknown as ResizeObserver);
+      }
+      disconnect() {}
+      unobserve() {}
+    },
+  );
 });
+afterEach(() => vi.unstubAllGlobals());
 
 describe('Studio', () => {
   it('renders the setup triptych and the Start button', async () => {
@@ -189,6 +207,23 @@ describe('Studio', () => {
         reason: 'not-record-me-tab',
       }),
     );
+  });
+
+  it('shows the camera bubble placeholder in setup for screen+cam+cursor', async () => {
+    render(<Studio />);
+    await userEvent.click(
+      await screen.findByRole('radio', { name: /screen \+ camera \+ cursor/i }),
+    );
+    expect(screen.getByRole('button', { name: /camera bubble position/i })).toBeInTheDocument();
+    expect(screen.getByText('CAM')).toBeInTheDocument();
+  });
+
+  it('does not show the camera bubble for screen+cursor', async () => {
+    render(<Studio />);
+    await userEvent.click(await screen.findByRole('radio', { name: /screen \+ cursor/i }));
+    expect(
+      screen.queryByRole('button', { name: /camera bubble position/i }),
+    ).not.toBeInTheDocument();
   });
 
   it('pause → resume fires recording_started exactly once', async () => {

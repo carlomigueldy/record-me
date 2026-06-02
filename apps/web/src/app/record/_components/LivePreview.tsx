@@ -1,12 +1,16 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
 
 export interface LivePreviewProps {
   stream: MediaStream | null;
+  /** Ref to the surface box (for an overlay to measure the letterboxed content). */
+  surfaceRef?: RefObject<HTMLDivElement | null>;
+  /** Overlay rendered above the video (e.g. the camera-bubble control). */
+  children?: ReactNode;
 }
 
-export function LivePreview({ stream }: LivePreviewProps) {
+export function LivePreview({ stream, surfaceRef, children }: LivePreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -18,13 +22,16 @@ export function LivePreview({ stream }: LivePreviewProps) {
   }, [stream]);
 
   return (
-    <video
-      ref={videoRef}
-      muted
-      autoPlay
-      playsInline
-      aria-label="Live recording preview"
-      className="h-full max-h-[70dvh] w-full bg-bg object-contain"
-    />
+    <div ref={surfaceRef} className="relative h-full max-h-[70dvh] w-full">
+      <video
+        ref={videoRef}
+        muted
+        autoPlay
+        playsInline
+        aria-label="Live recording preview"
+        className="h-full w-full bg-bg object-contain"
+      />
+      {children}
+    </div>
   );
 }
