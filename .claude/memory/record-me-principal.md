@@ -824,3 +824,102 @@ Detection: `awk '/^``/{f=!f} /^#{2,3} /{if(f)print}'` over the docs → confirme
 ### codex/Opus complementarity (held again)
 
 - codex found the buildResult dispose-race P2 I'd have had to trace; my probe CONFIRMED it (state→ready after dispose + phantom onResult) and my Opus value-add was the reachability framing (Section B wires it) + the fix-location precision (guard buildResult body, covers stop() too) + verifying the round-1/3/4 fixes are genuinely closed (intentionalStop-first, markStale, sync finalizing). codex ran long (xhigh effort, re-read the plan) — block on its exit, the Findings block is the LAST thing it prints.
+
+## Phase 6 Section B — Task B1 (useRecorder resilience surface) round 1 CHANGES_NEEDED (1 MAJOR)
+
+### MAJOR — savePartial()'s `.catch(/* surfaced via onError */)` comment is FALSE; engine salvage() rejections never route through onError
+
+- **The hook (use-recorder.ts:157-163) does `void handleRef.current?.salvage().catch(() => {/* surfaced via onError */})` and returns `Promise.resolve()`.** But the engine `salvage()` (recorder.ts:643) rejects via THREE direct `throw new RecorderError('invalid-state', …)` at lines 645 (state!=='error'), 653 (lastErrorKind!=='track-failed'), 659 (no store) — NONE call `opts.onError` (only `toError()` does, and salvage's guards bypass it). The `assemble()` await in buildResult can also reject without onError. So an invalid savePartial() leaves `error` UNCHANGED and gives the caller NO rejection — the UX gets zero signal. The review's explicit mandate was "rejection surfaced via onError, not unhandled"; it is NEITHER. Sized MAJOR not CRITICAL: ZERO app callers today (grep: savePartial/storageFallback/memoryPressure have no consumer outside the hook — Section C wires the Studio "Save partial" button to this method later), no privacy/build break. But it's a reusable public-API contract gap on the very method B1 exists to add, and the moment Section C lands a mistimed click swallows silently. This is the 4th "comment lies about behavior" instance in the log (5C Task-4/5/7) — now firmly a gatekeeper-check candidate. Fix options: (a) drop the false comment + surface the rejection — `salvage().catch(setError)` so the invalid-state RecorderError populates `error`, returning the real promise so callers can await; OR (b) if engine-side is preferred, route salvage's invalid-state throws through toError so onError fires (changes engine contract — out of B1 scope). Recommend (a): the hook is the right place. Pin with a test: "savePartial() while idle/non-track-failed surfaces the invalid-state error (or rejects), does not silently no-op."
+- **codex independently found this same MAJOR** (its prompt was pre-seeded with the recorder.ts line refs, but it confirmed the mechanism). Complementary as always.
+
+### Down-classified codex MAJOR → MINOR: new callbacks not under the mountedRef/genRef guard
+
+- **codex MAJOR "onStorageFallback can fire after reset/unmount resets the flag false (FallbackChunkStore.appendInner is not sessionToken-guarded, only chunk-path onMemoryPressure is)" → MINOR.** Real mechanism BUT: (1) the hook's documented guard protects start()'s ASYNC CONTINUATION, NOT the engine event callbacks — onStateChange/onError/onResult/onBytesTick/onDurationTick are ALL raw `setX` with no guard. The new onMemoryPressure/onStorageFallback match that established (deliberate) pattern exactly — bringing them under a guard while leaving the other five unguarded would be inconsistent, and guarding all five is a refactor out of B1 scope. (2) onMemoryPressure IS engine-guarded (fires inside the sessionToken-checked encoder onChunk, recorder.ts:558). (3) React 19 (Next 15) NO LONGER warns on setState-after-unmount — a stray set is a harmless no-op. (4) Worst case is a transient `storageFallback=true` after a reset within the same mounted session, self-corrected by the next start()'s reset — a calm advisory banner (Section C), not correctness/privacy/build. → MINOR. Lesson: when a finding says "new callback X isn't guarded like the hook's lifecycle guard," check whether the PRE-EXISTING peer callbacks are guarded; if they're uniformly unguarded by design, the new one matching them is consistency, not a regression — size it on the actual worst-case impact (transient advisory flag), not the theoretical race.
+
+### Verified CLEAN (don't re-litigate)
+
+- Flags reset on BOTH start() (lines 103-104) AND reset() (178-179) — mandate check passed, mirrors result/error reset.
+- StartOptions Omit adds onMemoryPressure+onStorageFallback (matches the 2 new engine options; engine owns them, callers must not pass — correct). UseRecorderApi additions (memoryPressure/storageFallback/savePartial) all present in interface AND return object.
+- No stale-closure regression: new flags are plain useState; mountedRef/genRef start() guard untouched.
+- Test reuses the single vi.mock('@record-me/recorder') seam (extends factory with salvage/fireMemoryPressure/fireStorageFallback + getLastRecorderMock helper over the existing handles[] array) — no second mocking style. 15/15 pass.
+- MINOR (codex, agreed): test coverage thin — does NOT exercise savePartial(), fireStorageFallback→storageFallback, or start/reset flag-clearing. Add these alongside the savePartial-rejection test.
+- Diff is a VERBATIM implementation of the plan's Task B1 code blocks — the savePartial false-comment originates in the PLAN itself (plan L1126-1133), so flag it to the lead/scribe as a plan defect, not implementer drift. Round 1, not a plateau.
+
+## Phase 6 Section B — Task B1 round 2 APPROVED (round-1 MAJOR converged, 0 CRIT/0 MAJOR)
+
+### The round-1 MAJOR is genuinely CLEARED (savePartial rejection surfacing)
+
+- Fix landed: savePartial (use-recorder.ts:157-170) now `salvage().then(()=>undefined).catch(err => { setError(err); throw err; })` — surfaces the rejection via `error` state AND re-throws so callers can await. Implementer correctly DEVIATED from the plan's Step-3 block (plan L1126-1133 had the false `/* surfaced via onError */` swallow comment) — exactly the plan defect flagged to lead/scribe in round 1. Pinned by 2 new tests (rejecting-salvage path asserts caughtError===err AND error.kind==='invalid-state'; happy-path asserts result populated + error null). 17/17 pass (was 15/15).
+- CRITICAL+MAJOR 1→0 = CONVERGENCE, not plateau. No escalation.
+
+### REJECTED codex P1 "salvage() can throw SYNCHRONOUSLY, .catch misses it" — FALSE PREMISE (async-method throw ≡ rejected promise)
+
+- codex claimed savePartial's `.catch` only handles post-return rejections and a synchronous invalid-state throw would skip setError. **WRONG: the engine's `salvage()` is declared `async salvage()` (recorder.ts:643), so its three `throw new RecorderError('invalid-state')` (L645/653/659) are converted by the runtime into a REJECTED PROMISE, never a synchronous exception.** `handle.salvage()` returns a Promise (typeof 'object'); the `.then().catch()` chain catches the rejection, fires setError, re-throws. Verified EMPIRICALLY with a node repro (async method whose body throws → `typeof return === 'object'`, .catch runs, outer promise rejects). Lesson: a `throw` inside an `async fn` is ALWAYS a rejected promise — a finding premised on "this async call can throw synchronously" is a false premise; a `.then/.catch` on the returned promise is sufficient (the codex-suggested async/try-catch refactor is equivalent, not required). Don't accept "sync throw" claims against an `async`-declared method without checking the `async` keyword. The codex prompt was pre-seeded with "throws ... synchronously" wording from my own probe phrasing — it parroted the premise; my Opus value-add was disproving it.
+
+### codex P1 "new callbacks unguarded by mountedRef/genRef" → MINOR (held from round 1, same rationale, now confirmed at the engine layer)
+
+- Down-classified again, identical reasoning: the 5 PRE-EXISTING event callbacks (onStateChange/onError/onResult/onBytesTick/onDurationTick) are ALL unguarded by design — the mountedRef/genRef guard protects start()'s async CONTINUATION, not engine event callbacks. Verified at engine: onMemoryPressure (recorder.ts:558) fires INSIDE the sessionToken-guarded onChunk closure (guard L545 returns before the threshold path) — engine-guarded, cannot fire from a superseded session. onStorageFallback (recorder.ts:526 → fallback.ts:62 appendInner) is NOT sessionToken-guarded (fallback.ts:22 docs "can fire more than once", chained tail promise) — so a late prior-handle IDB-append failure CAN flip storageFallback=true after reset/start within the same mounted session. Worst case = transient advisory flag, self-corrected by next start()'s setStorageFallback(false); zero consumers until Section C banner; React 19 no setState-after-unmount warn; first-party state, no privacy/correctness/build. → MINOR. Guarding only the new 2 while the other 5 stay unguarded would be inconsistent; guarding all 7 is a refactor out of B1 scope.
+
+### codex P2 test-coverage → MINOR, now PARTIALLY addressed
+
+- Round-2 tests DO cover the savePartial reject+happy paths (the round-1 gap). Still missing: storageFallback flip (fireStorageFallback helper exists in the mock but is unused), and explicit reset-on-start()/reset-on-reset() flag-clearing assertions. Legit MINOR follow-up; code itself is verified correct (lines 103-104, 185-186).
+
+### MINOR style nit
+
+- savePartial (use-recorder.ts:167) casts via inline `import('@record-me/recorder').RecorderErrorLike` though `RecorderErrorLike` is ALREADY imported at the top (line 10) — redundant inline import type; use the top-level `as RecorderErrorLike`. Cosmetic.
+
+### Verdict process note
+
+- 2 MINORs + 1 nit, 0 CRIT, 0 MAJOR → APPROVED. The deciding move was disproving codex's sync-throw P1 empirically rather than accepting it and bouncing a 3rd round on a non-defect. codex + Opus complementarity held: codex re-surfaced the unguarded-callback (correctly MINOR) and the coverage gap; Opus value-add = the async-throw disproof + the engine-layer guard tracing (onMemoryPressure guarded, onStorageFallback not) + confirming the round-1 MAJOR is genuinely closed not just comment-patched.
+
+## Phase 6 Section B — Task B1 round 3 CHANGES_NEEDED (1 MAJOR — codex-found, Opus-confirmed)
+
+### MAJOR — savePartial() happy path never clears the stale track-failed `error`; derivePhase keeps the Studio stuck on the error screen, the salvaged recording is unreachable
+
+- **savePartial (use-recorder.ts:163-169) `.then(() => undefined)` only lets onResult populate `result`; it never clears the hook's `error`.** The valid salvage path runs ONLY after a track-failed error has already fired (engine salvage() guards: state must be 'error' AND lastErrorKind==='track-failed', recorder.ts:644-657) — so `error` is ALWAYS set when the happy path runs. derivePhase (studio-phase.ts:20) returns `'error'` whenever `error` is non-null, BEFORE the `state==='ready' → 'review'` branch (L32-33). Studio.tsx:54 reads recorder.error directly. Net: a successful savePartial() leaves state='ready' + result populated but error=track-failed → phase stays 'error' → the partial recording NEVER reaches the download/review screen. Directly defeats spec § 14 ("Save partial recording" must yield a downloadable partial). The engine CANNOT clear this — `error` is React state owned by the hook; engine only clears lastErrorKind on start() (recorder.ts:444), not on the salvage path, and buildResult(true) has no access to hook state.
+- **Sized MAJOR not CRITICAL:** zero reachable consumers TODAY (grep: no non-test caller of savePartial/.salvage — Section C wires the "Save partial recording" button + reads phase later). No privacy/build/test break; 17/17 pass, tsc clean. But it is spec-alignment + design-intent drift on the very method B1 exists to add, and the moment Section C lands the feature is dead-on-arrival. Same trap-class as the round-1 swallow-comment: a contract gap that's invisible until the next section wires it.
+- **Fix (within B1 scope, ~1 line):** in savePartial's success path, `.then(() => { setError(null); return undefined; })` — the salvaged result becomes the review target, so the prior track-failed error must be cleared. Keep the `.catch(setError; throw)` invalid-state path unchanged. Pin with a test that exercises the FULL sequence (fire onError track-failed → savePartial resolves → assert error===null AND result populated AND derivePhase would be 'review'). The existing round-2 happy-path test asserts error===null only because NO error was set first — it does not cover salvage-after-error, which is the only real-world valid path.
+- **codex P2 found this; my Opus pass CONFIRMED the mechanism end-to-end** (traced derivePhase L20 priority + Studio.tsx:54 wiring + engine salvage guards proving error is always set on the valid path + engine cannot self-clear). codex sized it P2; I size it MAJOR because it's reachable-on-next-section + spec-defeating, not a cosmetic. Complementarity held: codex surfaced the stale-error, Opus supplied the reachability/spec-defeat framing + fix scoping.
+
+### Lesson: "resolve populates result" ≠ "UI shows result" when phase derivation prioritizes error
+
+- A salvage/recover method that transitions engine→ready but lives in a flow where `error` was already set must CLEAR that error, or any error-first phase deriver (derivePhase: `if (error) return 'error'` before the ready branch) will swallow the recovery. New gatekeeper-check candidate: any hook method that produces a `result` from an `error` state must reset `error`, AND its test must exercise the error→method→success sequence (not just method-from-clean-state). This is the round-1 swallow-comment's sibling: the round-1 gap was "rejection never surfaced"; this is "success never clears the prior error." Both are reachable-on-next-section contract gaps on savePartial.
+
+### Verified CLEAN this round (don't re-litigate)
+
+- Flags reset on BOTH start() (L103-104) AND reset() (L185-186) — mandate passed.
+- savePartial invalid-state rejection IS surfaced via setError + re-thrown (L166-169) — round-1 MAJOR stays closed; the new MAJOR is a DIFFERENT path (happy path, not the rejection path).
+- StartOptions Omit + UseRecorderApi additions consistent (round-1/2 verified, unchanged).
+- No stale-closure/lifecycle regression; mountedRef/genRef start() guard untouched; new flags plain useState.
+- Test reuses the single vi.mock seam (getLastRecorderMock + fire\* helpers) — no second style. 17/17 pass, web tsc exit 0.
+- The round-2 inline-RecorderErrorLike-import nit is GONE — current L167 uses the top-level import (L10). Cleaned.
+- fireStorageFallback helper exists in the mock but is still UNUSED (no storageFallback-flip test) — MINOR coverage gap, carried from round 2.
+
+## Phase 6 Section B — Task B1 round 4 APPROVED (round-3 MAJOR converged, 0 CRIT/0 MAJOR)
+
+### The round-3 MAJOR is genuinely CLEARED (savePartial happy path now clears stale track-failed error)
+
+- Fix landed: savePartial (use-recorder.ts:163-172) success path now `.then(() => { setError(null); return undefined; })` — clears the prior track-failed error so derivePhase advances past its `if (error) return 'error'` (studio-phase.ts:20) to the `state==='ready' && result → 'review'` branch (L32-33). Studio.tsx:54 reads recorder.error directly, so this is exactly what makes the salvaged partial reachable per spec §14 ("Save partial recording" row L706). Invalid-state `.catch(setError; throw)` path UNCHANGED (L169-172).
+- Pinned by the priority test "savePartial() after a track-failed error clears error and populates result (salvage path)" (use-recorder.test.ts ~387-418): fires onError track-failed → asserts error.kind==='track-failed' (error IS set first) → savePartial() → asserts error===null + result.suggestedFilename + state==='ready'. This is the salvage-AFTER-error sequence, NOT the no-error happy path (that's a separate test). Would fail against old code, passes against fix.
+- Also added the round-2/3 coverage gaps: storageFallback-flip (uses the previously-unused fireStorageFallback helper), start()-clears-flags, reset()-clears-flags. 21/21 pass (was 17/17), web tsc exit 0.
+- CRITICAL+MAJOR 1→0 = CONVERGENCE not plateau. No escalation.
+
+### codex P2 "savePartial stale continuation unguarded by genRef/handleRef" → MINOR (sized like the rounds 1-2 unguarded-callback finding)
+
+- Real mechanism: savePartial's `.then(setError(null))`/`.catch(setError(err))` runs after the salvage() await with NO mountedRef/genRef guard — if the user reset()s or start()s a new session during the in-flight await, the continuation can clear a new session's error or surface a stale invalid-state error. Structurally it IS the post-await state-write shape that start() guards (L90/136), unlike the genuinely fire-and-forget engine event callbacks.
+- Sized MINOR not MAJOR: (1) ZERO reachable consumers today — grep for savePartial/.salvage outside use-recorder.ts + tests = EXIT 1, the "Save partial recording" button is Section C, not wired in Studio.tsx. (2) Requires a deliberate concurrent reset/start within the sub-second salvage-assemble window (store is already buffered). (3) Worst case = transient wrong `error` in the new session, self-corrected by the next onError/onResult/reset; first-party React state, no privacy/recording-correctness/build/test impact. Distinct from the round-3 MAJOR which broke the NORMAL happy path (spec-defeating, dead-on-arrival).
+- Recommended pre-Section-C follow-up: snapshot `const handle = handleRef.current; const myGen = genRef.current;` at savePartial entry, then guard `if (handleRef.current !== handle || genRef.current !== myGen || !mountedRef.current) return;` before the setError calls — mirror start()'s pattern. Cheap + idiomatic to the file. Flag to lead so Section C doesn't wire the button onto an unguarded continuation.
+- Lesson refinement: the rounds 1-2 rule was "a NEW engine event callback matching the 5 pre-existing unguarded ones is consistency, not a regression." This P2 is the OTHER side: a NEW promise-chain CONTINUATION that writes state after an await is NOT a fire-and-forget callback — it's the start()-guarded shape, so it's a legit (MINOR, pre-consumer) hardening gap, not "consistent by design." Don't conflate the two. Both stay MINOR here only because zero consumers + transient worst case.
+
+### Acceptable cosmetic follow-ups (do NOT block)
+
+- Pre-existing act() warning on "start() that resolves AFTER unmount disposes the handle" test — unrelated to B1, harmless React-testing-lib advisory.
+
+### Verified CLEAN this round (don't re-litigate)
+
+- Invalid-state .catch path byte-unchanged from round 2/3 (surfaces via setError + re-throws); pinned by the idle-savePartial-rejects test (caughtError===invalidStateError + error.kind==='invalid-state').
+- Flags reset on BOTH start() (L103-104) AND reset() (L188-189) — pinned by the two new flag-clearing tests.
+- No lifecycle/stale-closure regression: mountedRef/genRef start() guard (L66-145) untouched; new flags plain useState; new savePartial useCallback has [] deps (no stale-dep).
+- StartOptions Omit + UseRecorderApi additions consistent with rounds 1-3.
+- Test reuses the single vi.mock seam (getLastRecorderMock + fire\* helpers); no second mocking style. 21/21 pass, web tsc exit 0.
+- codex + Opus complementarity held: codex surfaced the stale-continuation race (correctly sized P2/MINOR); Opus value-add = confirming the round-3 MAJOR is genuinely closed end-to-end (derivePhase priority + Studio wiring + engine track-failed guard proving error is always set on the valid path), verifying the priority test exercises salvage-AFTER-error not the clean happy path, and the consumer-reachability grep (EXIT 1) that bounds the P2 to MINOR.
