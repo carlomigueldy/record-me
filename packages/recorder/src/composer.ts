@@ -1,5 +1,5 @@
 // packages/recorder/src/composer.ts
-import type { RecordMode, RecordingResolution } from './types';
+import type { RecordMode, RecordingResolution, PipState } from './types';
 
 /** Largest centered square in the source, mapped to a square dest (object-fit: cover). */
 export function coverSquare(vw: number, vh: number): { sx: number; sy: number; side: number } {
@@ -16,6 +16,8 @@ export interface ComposerOptions {
   mode: RecordMode;
   resolution: RecordingResolution;
   fps: number;
+  /** Seeds the camera bubble so the first frame is correct (screen+cam+cursor only). */
+  initialPip?: PipState | undefined;
   /** Optional callback fired every frame — used by cursor-highlights to draw overlays. */
   onOverlay?: (ctx: CanvasRenderingContext2D, frame: { width: number; height: number }) => void;
 }
@@ -23,13 +25,15 @@ export interface ComposerOptions {
 export interface Composer {
   readonly canvas: HTMLCanvasElement;
   setLayers(layers: ComposerLayers): void;
+  /** Update the camera-bubble position/size (screen+cam+cursor only). */
+  setPip(state: PipState): void;
   start(): void;
   stop(): void;
   captureStream(): MediaStream;
   dispose(): void;
 }
 
-const PIP_DIAMETER = 240; // default fallback — replaced by dynamic pip in Task 2
+// PIP_DIAMETER kept as fallback reference only — dynamic pip uses defaultPip() below
 
 function resolutionToSize(
   mode: RecordMode,
@@ -71,6 +75,14 @@ export function createComposer(opts: ComposerOptions): Composer {
   let rafId = 0;
   let running = false;
   let stream: MediaStream | undefined;
+  let pip: PipState | undefined = opts.initialPip;
+
+  const defaultPip = (): PipState => {
+    const diameter = Math.round(0.22 * height);
+    const xInset = (diameter / 2 + 32) / width;
+    const yInset = (diameter / 2 + 32) / height;
+    return { xNorm: 1 - xInset, yNorm: 1 - yInset, diameter };
+  };
 
   const drawCamFull = () => {
     if (!cameraVideo) return;
@@ -91,19 +103,28 @@ export function createComposer(opts: ComposerOptions): Composer {
     const vw = cameraVideo.videoWidth;
     const vh = cameraVideo.videoHeight;
     if (vw === 0 || vh === 0) return; // frame not yet decoded
-    const diameter = PIP_DIAMETER;
-    const margin = 32;
-    const x = width - diameter - margin;
-    const y = height - diameter - margin;
-    const radius = diameter / 2;
+    const p = pip ?? defaultPip();
+    const radius = p.diameter / 2;
+    const cx = p.xNorm * width;
+    const cy = p.yNorm * height;
     const { sx, sy, side } = coverSquare(vw, vh);
 
     ctx.save();
     ctx.beginPath();
-    ctx.arc(x + radius, y + radius, radius, 0, Math.PI * 2);
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.closePath();
     ctx.clip();
-    ctx.drawImage(cameraVideo, sx, sy, side, side, x, y, diameter, diameter);
+    ctx.drawImage(
+      cameraVideo,
+      sx,
+      sy,
+      side,
+      side,
+      cx - radius,
+      cy - radius,
+      p.diameter,
+      p.diameter,
+    );
     ctx.restore();
   };
 
@@ -128,6 +149,9 @@ export function createComposer(opts: ComposerOptions): Composer {
     setLayers(layers) {
       if (layers.screen && !screenVideo) screenVideo = trackToImageSource(layers.screen);
       if (layers.camera && !cameraVideo) cameraVideo = trackToImageSource(layers.camera);
+    },
+    setPip(state) {
+      pip = state;
     },
     start() {
       if (running) return;

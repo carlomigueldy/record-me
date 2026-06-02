@@ -143,6 +143,66 @@ describe('createComposer', () => {
     expect(track?.readyState).toBe('ended');
   });
 
+  it('default PiP (no setPip) is bottom-right at round(0.22*height)', () => {
+    setMockVideoSize(640, 480);
+    const comp = createComposer({ mode: 'screen+cam+cursor', resolution: '1080p', fps: 30 });
+    comp.setLayers({
+      screen: makeTrack('video') as unknown as MediaStreamTrack,
+      camera: makeTrack('video') as unknown as MediaStreamTrack,
+    });
+    const ctx = getMockContext(comp.canvas)!;
+    comp.start();
+    vi.advanceTimersByTime(34);
+    comp.stop();
+
+    const diameter = Math.round(0.22 * 1080); // 238
+    const r = diameter / 2;
+    const cx = 1920 - 32 - r; // bottom-right inset by 32px margin
+    const cy = 1080 - 32 - r;
+    expect(ctx.arc).toHaveBeenCalledWith(cx, cy, r, 0, Math.PI * 2);
+  });
+
+  it('setPip moves and resizes the PiP', () => {
+    setMockVideoSize(640, 480);
+    const comp = createComposer({ mode: 'screen+cam+cursor', resolution: '720p', fps: 30 });
+    comp.setLayers({
+      screen: makeTrack('video') as unknown as MediaStreamTrack,
+      camera: makeTrack('video') as unknown as MediaStreamTrack,
+    });
+    comp.setPip({ xNorm: 0.25, yNorm: 0.25, diameter: 200 });
+    const ctx = getMockContext(comp.canvas)!;
+    comp.start();
+    vi.advanceTimersByTime(34);
+    comp.stop();
+
+    const cx = 0.25 * 1280; // 320
+    const cy = 0.25 * 720; // 180
+    expect(ctx.arc).toHaveBeenCalledWith(cx, cy, 100, 0, Math.PI * 2);
+    const camCall = ctx.drawImage.mock.calls.find((c) => c.length === 9)!;
+    // dest x,y = center - radius; dest w,h = diameter
+    expect(camCall.slice(5)).toEqual([cx - 100, cy - 100, 200, 200]);
+  });
+
+  it('initialPip seeds the first-frame position', () => {
+    setMockVideoSize(640, 480);
+    const comp = createComposer({
+      mode: 'screen+cam+cursor',
+      resolution: '720p',
+      fps: 30,
+      initialPip: { xNorm: 0.1, yNorm: 0.9, diameter: 120 },
+    });
+    comp.setLayers({
+      screen: makeTrack('video') as unknown as MediaStreamTrack,
+      camera: makeTrack('video') as unknown as MediaStreamTrack,
+    });
+    const ctx = getMockContext(comp.canvas)!;
+    comp.start();
+    vi.advanceTimersByTime(34);
+    comp.stop();
+
+    expect(ctx.arc).toHaveBeenCalledWith(0.1 * 1280, 0.9 * 720, 60, 0, Math.PI * 2);
+  });
+
   it('PiP draws the camera with a centered square source crop (cover)', () => {
     setMockVideoSize(640, 480);
     const comp = createComposer({ mode: 'screen+cam+cursor', resolution: '720p', fps: 30 });
