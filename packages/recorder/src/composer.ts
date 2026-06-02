@@ -1,6 +1,12 @@
 // packages/recorder/src/composer.ts
 import type { RecordMode, RecordingResolution } from './types';
 
+/** Largest centered square in the source, mapped to a square dest (object-fit: cover). */
+export function coverSquare(vw: number, vh: number): { sx: number; sy: number; side: number } {
+  const side = Math.min(vw, vh);
+  return { sx: (vw - side) / 2, sy: (vh - side) / 2, side };
+}
+
 export interface ComposerLayers {
   screen?: MediaStreamTrack | undefined;
   camera?: MediaStreamTrack | undefined;
@@ -23,7 +29,7 @@ export interface Composer {
   dispose(): void;
 }
 
-const PIP_DIAMETER = 240; // matches spec § 6.1 — bottom-right circle ~ 240px @ 1080p
+const PIP_DIAMETER = 240; // default fallback — replaced by dynamic pip in Task 2
 
 function resolutionToSize(
   mode: RecordMode,
@@ -68,8 +74,11 @@ export function createComposer(opts: ComposerOptions): Composer {
 
   const drawCamFull = () => {
     if (!cameraVideo) return;
-    // Square crop: fit shortest dimension, center.
-    ctx.drawImage(cameraVideo, 0, 0, width, height);
+    const vw = cameraVideo.videoWidth;
+    const vh = cameraVideo.videoHeight;
+    if (vw === 0 || vh === 0) return; // frame not yet decoded
+    const { sx, sy, side } = coverSquare(vw, vh);
+    ctx.drawImage(cameraVideo, sx, sy, side, side, 0, 0, width, height);
   };
 
   const drawScreenFull = () => {
@@ -79,18 +88,22 @@ export function createComposer(opts: ComposerOptions): Composer {
 
   const drawCamPip = () => {
     if (!cameraVideo) return;
+    const vw = cameraVideo.videoWidth;
+    const vh = cameraVideo.videoHeight;
+    if (vw === 0 || vh === 0) return; // frame not yet decoded
     const diameter = PIP_DIAMETER;
     const margin = 32;
     const x = width - diameter - margin;
     const y = height - diameter - margin;
     const radius = diameter / 2;
+    const { sx, sy, side } = coverSquare(vw, vh);
 
     ctx.save();
     ctx.beginPath();
     ctx.arc(x + radius, y + radius, radius, 0, Math.PI * 2);
     ctx.closePath();
     ctx.clip();
-    ctx.drawImage(cameraVideo, x, y, diameter, diameter);
+    ctx.drawImage(cameraVideo, sx, sy, side, side, x, y, diameter, diameter);
     ctx.restore();
   };
 

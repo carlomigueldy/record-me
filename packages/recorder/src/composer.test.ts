@@ -1,6 +1,7 @@
 // packages/recorder/src/composer.test.ts
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createComposer } from './composer';
+import { createComposer, coverSquare } from './composer';
+import { setMockVideoSize } from './test/mocks/video';
 import { makeTrack } from './test/factories';
 import { getMockContext, getCanvasStream } from './test/mocks/canvas';
 import type { MockMediaStream } from './test/mocks/media-stream';
@@ -140,5 +141,67 @@ describe('createComposer', () => {
     const track = stream.getVideoTracks()[0];
     comp.dispose();
     expect(track?.readyState).toBe('ended');
+  });
+
+  it('PiP draws the camera with a centered square source crop (cover)', () => {
+    setMockVideoSize(640, 480);
+    const comp = createComposer({ mode: 'screen+cam+cursor', resolution: '720p', fps: 30 });
+    comp.setLayers({
+      screen: makeTrack('video') as unknown as MediaStreamTrack,
+      camera: makeTrack('video') as unknown as MediaStreamTrack,
+    });
+    const ctx = getMockContext(comp.canvas)!;
+    comp.start();
+    vi.advanceTimersByTime(34);
+    comp.stop();
+
+    // The camera draw is the 9-argument drawImage; the screen draw uses 4 args.
+    const camCall = ctx.drawImage.mock.calls.find((c) => c.length === 9)!;
+    expect(camCall).toBeDefined();
+    expect(camCall.slice(1, 5)).toEqual([80, 0, 480, 480]); // sx, sy, side, side
+  });
+
+  it('cam-only draws a centered square crop into the square canvas', () => {
+    setMockVideoSize(1280, 720);
+    const comp = createComposer({ mode: 'cam-only', resolution: '720p', fps: 30 });
+    comp.setLayers({ camera: makeTrack('video') as unknown as MediaStreamTrack });
+    const ctx = getMockContext(comp.canvas)!;
+    comp.start();
+    vi.advanceTimersByTime(34);
+    comp.stop();
+
+    const camCall = ctx.drawImage.mock.calls.find((c) => c.length === 9)!;
+    expect(camCall.slice(1, 5)).toEqual([280, 0, 720, 720]); // sx, sy, side, side
+    expect(camCall.slice(5)).toEqual([0, 0, 720, 720]); // dest fills the square canvas
+  });
+
+  it('skips the camera draw until the first frame has dimensions', () => {
+    setMockVideoSize(0, 0);
+    const comp = createComposer({ mode: 'screen+cam+cursor', resolution: '720p', fps: 30 });
+    comp.setLayers({
+      screen: makeTrack('video') as unknown as MediaStreamTrack,
+      camera: makeTrack('video') as unknown as MediaStreamTrack,
+    });
+    const ctx = getMockContext(comp.canvas)!;
+    comp.start();
+    vi.advanceTimersByTime(34);
+    comp.stop();
+
+    // No 9-arg camera draw, and no circle clip, because the cam draw is skipped.
+    expect(ctx.drawImage.mock.calls.some((c) => c.length === 9)).toBe(false);
+    expect(ctx.clip).not.toHaveBeenCalled();
+  });
+});
+
+describe('coverSquare', () => {
+  it('crops a centered square from a landscape source', () => {
+    expect(coverSquare(640, 480)).toEqual({ sx: 80, sy: 0, side: 480 });
+    expect(coverSquare(1280, 720)).toEqual({ sx: 280, sy: 0, side: 720 });
+  });
+  it('crops a centered square from a portrait source', () => {
+    expect(coverSquare(480, 640)).toEqual({ sx: 0, sy: 80, side: 480 });
+  });
+  it('is a no-op rect for an already-square source', () => {
+    expect(coverSquare(720, 720)).toEqual({ sx: 0, sy: 0, side: 720 });
   });
 });
