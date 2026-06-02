@@ -60,4 +60,12 @@ describe('analytics', () => {
     analytics.cursorHighlightDisabled('opt-out');
     expect(track).toHaveBeenCalledWith('cursor_highlight_disabled', { reason: 'opt-out' });
   });
+  it('emits camera_bubble_moved with corner + where', () => {
+    analytics.cameraBubbleMoved({ corner: 'tl', where: 'live' });
+    expect(track).toHaveBeenCalledWith('camera_bubble_moved', { corner: 'tl', where: 'live' });
+  });
+  it('emits camera_bubble_resized with size + where', () => {
+    analytics.cameraBubbleResized({ size: 'lg', where: 'setup' });
+    expect(track).toHaveBeenCalledWith('camera_bubble_resized', { size: 'lg', where: 'setup' });
+  });
 });

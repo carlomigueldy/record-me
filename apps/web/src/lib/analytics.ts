@@ -1,5 +1,6 @@
 import { track } from '@vercel/analytics';
 import type { RecordMode, RecordingResolution } from '@record-me/recorder';
+import type { PipCorner, PipSize } from './pip-geometry';
 
 export type PermissionDeviceKind = 'screen' | 'camera' | 'mic';
 export type CursorDisabledReason = 'opt-out' | 'not-record-me-tab';
@@ -60,5 +61,11 @@ export const analytics = {
   },
   cursorHighlightDisabled(reason: CursorDisabledReason): void {
     track('cursor_highlight_disabled', { reason });
+  },
+  cameraBubbleMoved(p: { corner: PipCorner; where: 'setup' | 'live' }): void {
+    track('camera_bubble_moved', { corner: p.corner, where: p.where });
+  },
+  cameraBubbleResized(p: { size: PipSize; where: 'setup' | 'live' }): void {
+    track('camera_bubble_resized', { size: p.size, where: p.where });
   },
 };
