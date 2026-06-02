@@ -59,13 +59,16 @@ apps/web/src/app/
 
 Update this table after every phase.
 
-## Hooks (Phase 4)
+## Hooks (Phase 4–6)
 
 - `useRecorder()` — thin React wrapper around `createRecorder()` from
-  `@record-me/recorder`. Returns `{ state, durationMs, bytes, previewStream, result, error, start, pause, resume, stop, reset }`.
+  `@record-me/recorder`. Returns `{ state, durationMs, bytes, previewStream, result, error, memoryPressure, storageFallback, cursorScopeMissed, start, pause, resume, stop, reset, savePartial }`.
   Lifecycle: `reset()` disposes the handle + releases the result (privacy —
   camera/mic off); `start()` disposes any prior handle and releases the prior
   result's object URL; unmount releases the latest result's object URL.
+  Phase 6 adds three boolean flags (`memoryPressure`, `storageFallback`,
+  `cursorScopeMissed`) and the `savePartial()` method for mid-recording
+  recovery.
 
 ## Component inventory
 
@@ -100,9 +103,14 @@ Update this table after every phase.
 
 - `<ReviewPane>` — `<video controls>` for playback with result URL.
 
+**Alerts (Phase 6)**
+
+- `<StorageFallbackToast>` — Toast alert when IDB writes fail and the engine falls back to in-memory buffering. Fires once per session. Wired to `useRecorder().storageFallback` flag.
+- `<MemoryPressureBanner>` — Banner when buffered chunk count crosses the memory-pressure threshold. Fires once per session. Wired to `useRecorder().memoryPressure` flag.
+
 **Error + unsupported**
 
-- `<ErrorState>` — Editorial error cards per kind (permission-denied device-specific, track-failed interrupted, etc.). "Try again" callback.
+- `<ErrorState>` — Editorial error cards per kind (permission-denied device-specific, track-failed interrupted, etc.). Phase 6 adds an optional "Save partial recording" button when `error.kind === 'track-failed'` and `onSavePartial` callback is provided (calls `useRecorder().savePartial()`).
 - `<UnsupportedState>` — Browser-unsupported gate (no MediaRecorder, no getDisplayMedia, etc.).
 
 **Utilities**
@@ -137,9 +145,9 @@ Update this table after every phase.
 
 - `<TransitionLink>` — View-Transitions API wrapper for outbound navigation (href-based, no instrumentation)
 
-### Studio library modules (Phase 4 · `apps/web/src/lib`)
+### Studio library modules (Phase 4–6 · `apps/web/src/lib`)
 
-- `analytics.ts` — Typed Vercel Analytics event taxonomy (7 studio events: modeSelected, recordingStarted, recordingStopped, recordingDownloaded, permissionDenied, browserUnsupported, cursorHighlightDisabled).
+- `analytics.ts` — Typed Vercel Analytics event taxonomy (Phase 6 · complete set of 7 studio events: `modeSelected`, `recordingStarted`, `recordingStopped`, `recordingDownloaded`, `permissionDenied`, `browserUnsupported`, `cursorHighlightDisabled`). All events fire from the studio state machine; zero PII (spec § 10.2).
 - `capabilities.ts` — `deriveStudioCapabilities()` + `browserName()` UA sniff. Probe-to-mode derivation.
 - `format.ts` — `formatDuration()` (mm:ss), `formatMegabytes()` (1 decimal), `capMinutesToMs()`.
 

@@ -17,6 +17,8 @@ import { CapSelector } from './CapSelector';
 import { LivePreview } from './LivePreview';
 import { ReviewPane } from './ReviewPane';
 import { ErrorState } from './ErrorState';
+import { MemoryPressureBanner } from './MemoryPressureBanner';
+import { StorageFallbackToast } from './StorageFallbackToast';
 import { UnsupportedState } from './UnsupportedState';
 
 const MODE_LABELS: Record<RecordMode, string> = {
@@ -125,6 +127,7 @@ export function Studio() {
         duration_seconds: Math.round(recorder.result.durationMs / 1000),
         bytes: recorder.result.bytes,
         mime_type: recorder.result.mimeType,
+        ...(recorder.result.partial ? { partial: true } : {}),
       });
     }
     if (recorder.state !== 'ready') stoppedTracked.current = false;
@@ -154,6 +157,14 @@ export function Studio() {
     setCursorHighlights(enabled);
     if (!enabled) analytics.cursorHighlightDisabled('opt-out');
   }, []);
+
+  // cursor_highlight_disabled('not-record-me-tab') analytics — fires once when
+  // the engine detects the captured surface is not this browser tab (spec § 7.3, § 10.2).
+  useEffect(() => {
+    if (recorder.cursorScopeMissed) {
+      analytics.cursorHighlightDisabled('not-record-me-tab');
+    }
+  }, [recorder.cursorScopeMissed]);
 
   // ----- Render: one persistent StudioShell, body + controls per phase -----
   const header = useMemo(() => {
@@ -270,7 +281,11 @@ export function Studio() {
         return <UnsupportedState />;
       case 'error':
         return recorder.error ? (
-          <ErrorState error={recorder.error} onRetry={() => void recorderReset()} />
+          <ErrorState
+            error={recorder.error}
+            onRetry={() => void recorderReset()}
+            onSavePartial={() => void recorder.savePartial()}
+          />
         ) : null;
       case 'setup':
         return (
@@ -309,8 +324,16 @@ export function Studio() {
   })();
 
   return (
-    <StudioShell className="w-full max-w-5xl" header={header} footer={footer}>
-      {body}
-    </StudioShell>
+    <div className="flex w-full max-w-5xl flex-col gap-3">
+      {recorder.memoryPressure && (phase === 'live' || phase === 'paused') ? (
+        <MemoryPressureBanner />
+      ) : null}
+      {recorder.storageFallback && (phase === 'live' || phase === 'paused') ? (
+        <StorageFallbackToast />
+      ) : null}
+      <StudioShell className="w-full" header={header} footer={footer}>
+        {body}
+      </StudioShell>
+    </div>
   );
 }

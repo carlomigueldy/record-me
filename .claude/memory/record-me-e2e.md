@@ -90,6 +90,74 @@ await page.route('**/_vercel/speed-insights/**', (route) =>
 Call both routes before `page.goto()`. Text-filtering `msg.text()` alone will
 NOT work because the generic "Failed to load resource" message contains no URL.
 
+## Phase 6 patterns
+
+### Screen+cursor mode stub for track-failure tests
+
+To test the `track-failed` → "Save partial recording" / "Start over" flow in
+`studio-resilience.spec.ts`, three patches are needed in one `addInitScript` call:
+
+1. **getUserMedia({ video })**: drop audio (prevents macOS headless hang — same
+   as Phase 4 pattern).
+2. **getUserMedia({ audio: true, no video })** — mic-only call from
+   `screen+cursor` acquireTracks: return `new MediaStream()` (empty). Do NOT
+   pass `{ audio: false }` — Chrome rejects with `NotSupportedError` when both
+   audio and video are absent/false. An empty stream yields `getAudioTracks()[0]
+= undefined`, which acquireTracks treats as "no mic" and continues.
+3. **getDisplayMedia**: return a fake video stream from `getUserMedia({ video:
+true })` (no screen-share prompt). Stash on `window.__fakeDisplayStream`.
+
+All three patches must be in one `addInitScript` call so execution order is
+deterministic (getDisplayMedia calls the already-patched getUserMedia).
+
+### headless Chromium: track.stop() does NOT fire the 'ended' event
+
+In headless Chromium with `--use-fake-device-for-media-stream`, calling
+`MediaStreamTrack.stop()` sets `readyState = 'ended'` but does NOT dispatch
+the `'ended'` DOM event on the track. Since `handleTrackFailure()` is registered
+via `track.addEventListener('ended', ...)`, the handler never runs.
+
+Fix: call both `t.stop()` AND `t.dispatchEvent(new Event('ended'))` from
+`page.evaluate()`. The synthetic event is received by the recorder's listener
+identically to a native OS-level "Stop sharing" event.
+
+```ts
+const triggerTrackFailure = async (page: Page) => {
+  await page.evaluate(() => {
+    const stream = (window as Window & { __fakeDisplayStream?: MediaStream }).__fakeDisplayStream;
+    if (!stream) throw new Error('__fakeDisplayStream not found');
+    stream.getTracks().forEach((t) => {
+      t.stop(); // sets readyState = 'ended'
+      t.dispatchEvent(new Event('ended')); // fires addEventListener('ended') handlers
+    });
+  });
+};
+```
+
+This is NOT a fake assertion — it exercises the exact same code path as
+production by calling the event listener that the recorder registered. The
+workaround is purely about the headless Chromium fake-device not emitting the
+native event; the application logic is unchanged.
+
+### track-failure tests: wait for the recording state before triggering failure
+
+The `RecDot` (role="status" aria-label="Recording") must be visible before
+calling `triggerTrackFailure()`. This confirms the recorder is in `recording`
+state and the track-ended listeners are attached. Without this guard the
+fake-device track is not yet managed by the recorder and the dispatch is a no-op.
+
+### pageerror 'nothing to salvage' — acquireTracks mic failure clears store
+
+If `getUserMedia({ audio: false })` is called (from a `dropAudio` patch) for a
+mic-only request without a video constraint, Chrome throws `NotSupportedError`.
+This causes the `acquireTracks` catch block to call `cleanupResources()`, which
+sets `internal.store = undefined`. Then `toError('track-failed')` is called.
+When the user clicks "Save partial recording", `salvage()` sees `!internal.store`
+and throws "nothing to salvage" — surfaced as a `pageerror`.
+
+Fix: intercept mic-only `getUserMedia` calls to return `new MediaStream()`
+instead of delegating to the real API with an invalid constraint set.
+
 ## Phase 5C patterns
 
 ### OG image routes 404 in `next dev`

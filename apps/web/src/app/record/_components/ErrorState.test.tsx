@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ErrorState } from './ErrorState';
 
@@ -39,5 +39,28 @@ describe('ErrorState', () => {
     );
     await userEvent.click(screen.getByRole('button', { name: /try again/i }));
     expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers "Save partial recording" only for track-failed errors', () => {
+    const onSavePartial = vi.fn();
+    const { rerender } = render(
+      <ErrorState
+        error={{ name: 'RecorderError', message: '', kind: 'track-failed' }}
+        onRetry={vi.fn()}
+        onSavePartial={onSavePartial}
+      />,
+    );
+    const save = screen.getByRole('button', { name: /save partial recording/i });
+    fireEvent.click(save);
+    expect(onSavePartial).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <ErrorState
+        error={{ name: 'RecorderError', message: '', kind: 'permission-denied', subject: 'screen' }}
+        onRetry={vi.fn()}
+        onSavePartial={onSavePartial}
+      />,
+    );
+    expect(screen.queryByRole('button', { name: /save partial recording/i })).toBeNull();
   });
 });

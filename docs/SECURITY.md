@@ -14,13 +14,18 @@ Source of truth: `docs/superpowers/specs/2026-05-27-record-me-design.md` § 15.
 4. **Custom analytics events carry no PII.** Only mode, duration, bytes, mime
    type, and error kind are tracked.
 5. **IndexedDB stores are cleared on graceful exit; stale data is swept
-   periodically.** stop() only assembles the Blob — chunks remain in IDB
-   while the recording is in the review pane. Discarding, re-recording,
-   leaving the page, or starting a new session triggers release()/dispose()
-   which clears the store immediately. A hard exit (tab-kill / crash) may
-   leave data in IDB; sweepStaleChunkDatabases() removes DBs older than 24h
-   on the next session start (best-effort; requires indexedDB.databases()
-   support). No recording data persists across normal sessions.
+   periodically (Phase 6 · Safari-safe).** `stop()` only assembles the Blob —
+   chunks remain in IDB while the recording is in the review pane. Discarding,
+   re-recording, leaving the page, or starting a new session triggers
+   `release()`/`dispose()` which clears the store immediately. A hard exit
+   (tab-kill / crash) may leave data in IDB; `sweepRegisteredSessions()` on
+   the next session start removes DBs older than 1h using a localStorage-backed
+   session registry (Safari-safe; does not depend on `indexedDB.databases()`).
+   If a DB's IDB.deleteDatabase() call is blocked, the registry entry is marked
+   stale (ts=0) to force retry on the next start(). On the next session start,
+   the sweep targets crashed-session DBs older than 1h (best-effort — runs only
+   when the app is reopened; a permanently blocked deleteDatabase is retried on
+   a later start).
 6. **CSP headers via `apps/web/next.config.ts`** block third-party scripts
    beyond Vercel itself.
 

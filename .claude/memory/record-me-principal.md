@@ -775,3 +775,280 @@ Detection: `awk '/^``/{f=!f} /^#{2,3} /{if(f)print}'` over the docs → confirme
   the unresponsive scribe; spot-checked PROGRESS (records the contract change +
   real lhci numbers transparently), FRONTEND (routes/registry/seam match landed
   code), against reality — accurate, not aspirational. Approved.
+
+## Phase 6 Section A (2026-06-02, recorder resilience: fallback/pressure/salvage/sweep) — round 1 CHANGES_NEEDED
+
+### MAJOR — re-entrant track-failure on near-simultaneous involuntary track ends
+
+- **`handleTrackFailure` stopped surviving tracks (recorder.ts:203 `acquired.all.forEach(t.stop())`) BEFORE setting `intentionalStop=true` + detaching listeners (lines 216-218).** The guard the code INTENDS exists but runs too late. In the mock, `MockMediaStreamTrack.stop()` synchronously dispatches `ended` (media-stream.ts:33) → stopping the still-live mic re-enters handleTrackFailure (intentionalStop still false, state still 'recording' because toError at 211 hasn't run yet) → duplicate `onError` + a misleading subject ('mic' instead of 'screen'). Real `track.stop()` is SILENT per W3C (no `ended` on voluntary stop), so the mock path isn't the production trigger — BUT two independent INVOLUNTARY ends (OS revokes screen+mic together) is production-reachable: the 2nd `ended` fires before the 1st's intentionalStop is set. Fix: set `intentionalStop=true` + detach detachers as the FIRST mutation in handleTrackFailure (before the t.stop() loop), mirroring stop()/cleanupResources which DO set the guard first. Sized MAJOR (corrupts the §10 partial-flow analytics with a double recording_stopped/error + wrong subject; cheap fix; the code already intends the guard). Pattern: when a cleanup path both (a) stops resources that can fire re-entrant events and (b) sets a re-entrancy guard, the guard MUST be set before the resource-stop, not after. Same family as Phase-4 edge-detection but for synchronous re-entrancy.
+- **Test gap that hid it:** the multi-track "all tracks stopped" salvage test asserts readyState==='ended' for every track but NOT `onError` call COUNT (`toHaveBeenCalledWith` ≠ `toHaveBeenCalledTimes(1)`). Require an explicit `expect(onError).toHaveBeenCalledTimes(1)` in a 2-track involuntary-end test — assertion-count honesty, same lesson as the 5C fallback size-only assert.
+
+### MAJOR — clear()'s deleteDb resolves on onblocked THEN deregisters → defeats the A4 retry net
+
+- **This diff added `deregisterSession(this.dbName)` to `IndexedDbChunkStore.clear()` (indexeddb.ts:127) right after `await deleteDb()` — but the PRE-EXISTING `deleteDb` resolves on `onblocked` (treats blocked-delete as success).** So a blocked deletion: (1) leaves bytes in IDB, (2) resolves as if wiped, (3) deregisters the registry entry — removing the very retry mechanism Task A4 built (sweepRegisteredSessions RETAINS blocked entries for retry, MAJOR 5). The two blocked-delete handlers are now INCONSISTENT: registry sweep retains, direct clear() abandons+deregisters. Defeats the §15 'no artifacts persist' contract on the blocked path. Sized MAJOR not CRITICAL: `onblocked` requires a concurrent connection and the store closes its own connection before clear(), so it's unreachable in single-tab normal flow; legacy 24h→1h sweep is a Chromium backstop. Fix: make a clear()-local deleteDb that distinguishes success (only onsuccess) and SKIP deregisterSession on blocked/errored so the entry survives for the next start()'s sweep. Add a blocked-delete clear() regression test. Lesson: when a diff adds a registry-coupled side effect (deregister) next to a pre-existing best-effort resolver (resolve-on-blocked), check the two agree on what "done" means — a resolve-on-failure + unconditional-deregister silently abandons the new retry contract.
+
+### MINOR (kept) — codex calls I down-classified, with reasons
+
+- **Legacy `sweepStaleChunkDatabases()` ignores the registry / could delete a >1h in-use DB from another tab (codex MAJOR→MINOR).** Pre-existing mechanism; runs at start() before this session's store exists so it can't nuke the current DB; multi-tab concurrent recording where another tab's session is >1h old (cap is 60min) is an edge of an edge. Shrink 24h→1h marginally raises it but it's not newly introduced. Hardening (skip registry names) is reasonable but MINOR.
+- **Fallback assemble-order tests assert only `out.size`, not byte sequence (codex MINOR, agreed).** The tests EXIST to prove order (IDB chunks then memory chunks); size-only would pass on a reversed concat. Use distinct payloads + assert the byte sequence. Coverage-honesty nit, same family as 5C.
+
+### Things verified CLEAN (don't re-litigate next round)
+
+- FallbackChunkStore serialization (promise-chain `tail`) correctly makes appends totally ordered so "fallback at the tail" holds + onFallback fires once even under concurrent un-awaited appends (the recorder fires append() per timeslice without awaiting). 100% coverage on fallback.ts.
+- Memory-pressure one-shot (`memoryPressureFired`) + reset in BOTH start() (MAJOR 1: covers the normal stop→release→start cycle where cleanupResources isn't called) AND cleanupResources. Cross-session reset test present. No finding (codex agreed).
+- salvage() gated to lastErrorKind==='track-failed' (not just state==='error') — recorder-failed correctly rejects. Both reject tests present.
+- Privacy wipe holds on both salvage paths: salvage→ready keeps internal.store until release() wipes IDB; "Start over"→dispose→cleanupResources wipes via chained pendingCleanup. buildResult does NOT null internal.store (only release() does, ownership-guarded).
+- buildResult's `finalFlush` await is correct: only set by handleTrackFailure (so salvage awaits the last MediaRecorder chunk before snapshotting pendingAppends); undefined on the normal stop() path (stop() already awaits encoder.stop() itself) — no double-await.
+- recorder pkg: typecheck/lint/build clean, 126 tests pass, coverage 98.29% (fallback 100, recorder 97.53, session-registry 88.88) — well above the 90% floor. c8 ignores are on genuinely env-specific branches (Safari databases(), IDB tx onerror, FileReader.onerror), NOT gaming reachable logic.
+
+### Environment note (not a finding)
+
+- Repo-wide `pnpm typecheck` fails in apps/web (mdx-components implicit-any, missing zod/gray-matter/.mdx module decls) on BOTH the dirty tree AND the clean committed HEAD — it's a worktree dep-resolution / MDX type-gen gap, NOT caused by Section A (which touches only packages/recorder). Confirmed by stashing the recorder changes and re-running. Don't attribute pre-existing web typecheck noise to an engine-only task; isolate by package.
+- codex was strong again: independently found the clear()/onblocked deregister (it over-called it CRITICAL; I sized MAJOR on reachability), the handleTrackFailure ordering re-entrancy, the legacy-sweep registry-ignorance, and the size-only assemble assert. Run it every round. The first background run produced an EMPTY output file; re-running in foreground with `< /dev/null` (the known stdin-swallow workaround) gave the full Findings block.
+
+## Phase 6 Section A — round 5 (post round-4 fix) CHANGES_NEEDED (1 MAJOR: dispose-during-salvage)
+
+### Round-1/3 MAJORs all CONFIRMED CLOSED (independently probed)
+
+- re-entrant track-failure: intentionalStop=true + detach are now the FIRST mutations in handleTrackFailure (recorder.ts:198-200, before the t.stop() loop at 226). Test pins onError toHaveBeenCalledTimes(1) for 2-track involuntary ends. Closed.
+- clear()/onblocked: deleteDb in indexeddb.ts now returns boolean (true ONLY on onsuccess); clear() deregisters on true, markStale(ts=0) on false. P1 (blocked release leaves entry STALE → next start() sweep deletes leftover) verified with a throwaway recorder-level probe (full start→stop→blocked release→entry ts=0→next start sweeps the dbName). §15.5 holds. Closed.
+- P2 (double salvage): synchronous setState('finalizing') before buildResult() makes the 2nd concurrent call fail the state!=='error' guard. Probed: onResult fires EXACTLY once, 2nd rejects invalid-state, EXACTLY one URL.createObjectURL + one revokeObjectURL (spy installed AFTER startWithScreenTrackCapture's vi.restoreAllMocks — that restore was eating an earlier spy; install URL spies AFTER any restore in these tests). Closed.
+
+### NEW MAJOR (codex P2, confirmed by probe) — buildResult body has NO ownership guard → dispose-during-salvage corrupts state
+
+- **buildResult() (recorder.ts:317) awaits finalFlush/pendingAppends/store.assemble, THEN unconditionally runs `internal.acquired?.all.forEach(t.stop())` (346), `setState('ready')` (355), and `opts.onResult?.(result)` (394) with NO session-token/ownership guard.** The release() CLOSURE (386, `internal.store===store`) and encoder onChunk (510, sessionToken) BOTH have the guard — buildResult's BODY was never given it. Probe (dispose() called during in-flight salvage, before its awaits settle): state trace `[...error, finalizing, idle, ready]` — dispose() correctly→idle, then the stale salvage continuation flips a DISPOSED recorder back to `ready` AND fires a phantom onResult (spurious recording_stopped(partial) §10). With a new start() interleaved, the stale loop can stop the NEW session's tracks (probe 2 looked clean only due to microtask ordering; the unguarded paths remain).
+- **Reachability/sizing = MAJOR not CRITICAL, NOT silently waived:** salvage() has ZERO callers in the shipped app TODAY (Section A is engine-only; the hook wires only dispose() in reset()/unmount). But salvage IS a reusable public engine API and Section B (next in the A→B→C sequence) wires `void handleRef.current?.salvage().catch()` (fire-and-forget) while "Start over"→reset()→dispose(); the moment B lands the race is live. This review's EXPLICIT mandate was "confirm NO new lifecycle sibling in the salvage path" — codex+probe found exactly one, so it's load-bearing, not waivable.
+- **Fix (mechanical, matches established pattern):** capture `const entryToken = internal.sessionToken` at the TOP of buildResult (before first await); after the awaits, if `internal.sessionToken !== entryToken` → revoke the just-created URL and return early WITHOUT the t.stop() loop, WITHOUT setState('ready'), WITHOUT onResult. cleanupResources() already bumps sessionToken on dispose/reset, so the guard fires. Note: stop()→buildResult(false) shares the SAME gap — the token guard covers both paths. Pin with a test: "dispose() during in-flight salvage leaves state idle, fires no onResult, does not stop a later session's tracks."
+- **NOT a plateau, NOT escalate:** round-1 cleared 2 MAJORs, round-4 cleared P1+P2 — CRIT+MAJOR count is DECREASING, findings EVOLVING (convergence). This is ONE clearly-scoped mechanical guard (buildResult body), not an open-ended design problem; the gap predates the round-4 fix (existed since buildResult was extracted in A3) — the round-4 P2 fix addressed a DIFFERENT vector (concurrent salvage) through the same function. One more focused round, no design pass needed.
+
+### codex/Opus complementarity (held again)
+
+- codex found the buildResult dispose-race P2 I'd have had to trace; my probe CONFIRMED it (state→ready after dispose + phantom onResult) and my Opus value-add was the reachability framing (Section B wires it) + the fix-location precision (guard buildResult body, covers stop() too) + verifying the round-1/3/4 fixes are genuinely closed (intentionalStop-first, markStale, sync finalizing). codex ran long (xhigh effort, re-read the plan) — block on its exit, the Findings block is the LAST thing it prints.
+
+## Phase 6 Section B — Task B1 (useRecorder resilience surface) round 1 CHANGES_NEEDED (1 MAJOR)
+
+### MAJOR — savePartial()'s `.catch(/* surfaced via onError */)` comment is FALSE; engine salvage() rejections never route through onError
+
+- **The hook (use-recorder.ts:157-163) does `void handleRef.current?.salvage().catch(() => {/* surfaced via onError */})` and returns `Promise.resolve()`.** But the engine `salvage()` (recorder.ts:643) rejects via THREE direct `throw new RecorderError('invalid-state', …)` at lines 645 (state!=='error'), 653 (lastErrorKind!=='track-failed'), 659 (no store) — NONE call `opts.onError` (only `toError()` does, and salvage's guards bypass it). The `assemble()` await in buildResult can also reject without onError. So an invalid savePartial() leaves `error` UNCHANGED and gives the caller NO rejection — the UX gets zero signal. The review's explicit mandate was "rejection surfaced via onError, not unhandled"; it is NEITHER. Sized MAJOR not CRITICAL: ZERO app callers today (grep: savePartial/storageFallback/memoryPressure have no consumer outside the hook — Section C wires the Studio "Save partial" button to this method later), no privacy/build break. But it's a reusable public-API contract gap on the very method B1 exists to add, and the moment Section C lands a mistimed click swallows silently. This is the 4th "comment lies about behavior" instance in the log (5C Task-4/5/7) — now firmly a gatekeeper-check candidate. Fix options: (a) drop the false comment + surface the rejection — `salvage().catch(setError)` so the invalid-state RecorderError populates `error`, returning the real promise so callers can await; OR (b) if engine-side is preferred, route salvage's invalid-state throws through toError so onError fires (changes engine contract — out of B1 scope). Recommend (a): the hook is the right place. Pin with a test: "savePartial() while idle/non-track-failed surfaces the invalid-state error (or rejects), does not silently no-op."
+- **codex independently found this same MAJOR** (its prompt was pre-seeded with the recorder.ts line refs, but it confirmed the mechanism). Complementary as always.
+
+### Down-classified codex MAJOR → MINOR: new callbacks not under the mountedRef/genRef guard
+
+- **codex MAJOR "onStorageFallback can fire after reset/unmount resets the flag false (FallbackChunkStore.appendInner is not sessionToken-guarded, only chunk-path onMemoryPressure is)" → MINOR.** Real mechanism BUT: (1) the hook's documented guard protects start()'s ASYNC CONTINUATION, NOT the engine event callbacks — onStateChange/onError/onResult/onBytesTick/onDurationTick are ALL raw `setX` with no guard. The new onMemoryPressure/onStorageFallback match that established (deliberate) pattern exactly — bringing them under a guard while leaving the other five unguarded would be inconsistent, and guarding all five is a refactor out of B1 scope. (2) onMemoryPressure IS engine-guarded (fires inside the sessionToken-checked encoder onChunk, recorder.ts:558). (3) React 19 (Next 15) NO LONGER warns on setState-after-unmount — a stray set is a harmless no-op. (4) Worst case is a transient `storageFallback=true` after a reset within the same mounted session, self-corrected by the next start()'s reset — a calm advisory banner (Section C), not correctness/privacy/build. → MINOR. Lesson: when a finding says "new callback X isn't guarded like the hook's lifecycle guard," check whether the PRE-EXISTING peer callbacks are guarded; if they're uniformly unguarded by design, the new one matching them is consistency, not a regression — size it on the actual worst-case impact (transient advisory flag), not the theoretical race.
+
+### Verified CLEAN (don't re-litigate)
+
+- Flags reset on BOTH start() (lines 103-104) AND reset() (178-179) — mandate check passed, mirrors result/error reset.
+- StartOptions Omit adds onMemoryPressure+onStorageFallback (matches the 2 new engine options; engine owns them, callers must not pass — correct). UseRecorderApi additions (memoryPressure/storageFallback/savePartial) all present in interface AND return object.
+- No stale-closure regression: new flags are plain useState; mountedRef/genRef start() guard untouched.
+- Test reuses the single vi.mock('@record-me/recorder') seam (extends factory with salvage/fireMemoryPressure/fireStorageFallback + getLastRecorderMock helper over the existing handles[] array) — no second mocking style. 15/15 pass.
+- MINOR (codex, agreed): test coverage thin — does NOT exercise savePartial(), fireStorageFallback→storageFallback, or start/reset flag-clearing. Add these alongside the savePartial-rejection test.
+- Diff is a VERBATIM implementation of the plan's Task B1 code blocks — the savePartial false-comment originates in the PLAN itself (plan L1126-1133), so flag it to the lead/scribe as a plan defect, not implementer drift. Round 1, not a plateau.
+
+## Phase 6 Section B — Task B1 round 2 APPROVED (round-1 MAJOR converged, 0 CRIT/0 MAJOR)
+
+### The round-1 MAJOR is genuinely CLEARED (savePartial rejection surfacing)
+
+- Fix landed: savePartial (use-recorder.ts:157-170) now `salvage().then(()=>undefined).catch(err => { setError(err); throw err; })` — surfaces the rejection via `error` state AND re-throws so callers can await. Implementer correctly DEVIATED from the plan's Step-3 block (plan L1126-1133 had the false `/* surfaced via onError */` swallow comment) — exactly the plan defect flagged to lead/scribe in round 1. Pinned by 2 new tests (rejecting-salvage path asserts caughtError===err AND error.kind==='invalid-state'; happy-path asserts result populated + error null). 17/17 pass (was 15/15).
+- CRITICAL+MAJOR 1→0 = CONVERGENCE, not plateau. No escalation.
+
+### REJECTED codex P1 "salvage() can throw SYNCHRONOUSLY, .catch misses it" — FALSE PREMISE (async-method throw ≡ rejected promise)
+
+- codex claimed savePartial's `.catch` only handles post-return rejections and a synchronous invalid-state throw would skip setError. **WRONG: the engine's `salvage()` is declared `async salvage()` (recorder.ts:643), so its three `throw new RecorderError('invalid-state')` (L645/653/659) are converted by the runtime into a REJECTED PROMISE, never a synchronous exception.** `handle.salvage()` returns a Promise (typeof 'object'); the `.then().catch()` chain catches the rejection, fires setError, re-throws. Verified EMPIRICALLY with a node repro (async method whose body throws → `typeof return === 'object'`, .catch runs, outer promise rejects). Lesson: a `throw` inside an `async fn` is ALWAYS a rejected promise — a finding premised on "this async call can throw synchronously" is a false premise; a `.then/.catch` on the returned promise is sufficient (the codex-suggested async/try-catch refactor is equivalent, not required). Don't accept "sync throw" claims against an `async`-declared method without checking the `async` keyword. The codex prompt was pre-seeded with "throws ... synchronously" wording from my own probe phrasing — it parroted the premise; my Opus value-add was disproving it.
+
+### codex P1 "new callbacks unguarded by mountedRef/genRef" → MINOR (held from round 1, same rationale, now confirmed at the engine layer)
+
+- Down-classified again, identical reasoning: the 5 PRE-EXISTING event callbacks (onStateChange/onError/onResult/onBytesTick/onDurationTick) are ALL unguarded by design — the mountedRef/genRef guard protects start()'s async CONTINUATION, not engine event callbacks. Verified at engine: onMemoryPressure (recorder.ts:558) fires INSIDE the sessionToken-guarded onChunk closure (guard L545 returns before the threshold path) — engine-guarded, cannot fire from a superseded session. onStorageFallback (recorder.ts:526 → fallback.ts:62 appendInner) is NOT sessionToken-guarded (fallback.ts:22 docs "can fire more than once", chained tail promise) — so a late prior-handle IDB-append failure CAN flip storageFallback=true after reset/start within the same mounted session. Worst case = transient advisory flag, self-corrected by next start()'s setStorageFallback(false); zero consumers until Section C banner; React 19 no setState-after-unmount warn; first-party state, no privacy/correctness/build. → MINOR. Guarding only the new 2 while the other 5 stay unguarded would be inconsistent; guarding all 7 is a refactor out of B1 scope.
+
+### codex P2 test-coverage → MINOR, now PARTIALLY addressed
+
+- Round-2 tests DO cover the savePartial reject+happy paths (the round-1 gap). Still missing: storageFallback flip (fireStorageFallback helper exists in the mock but is unused), and explicit reset-on-start()/reset-on-reset() flag-clearing assertions. Legit MINOR follow-up; code itself is verified correct (lines 103-104, 185-186).
+
+### MINOR style nit
+
+- savePartial (use-recorder.ts:167) casts via inline `import('@record-me/recorder').RecorderErrorLike` though `RecorderErrorLike` is ALREADY imported at the top (line 10) — redundant inline import type; use the top-level `as RecorderErrorLike`. Cosmetic.
+
+### Verdict process note
+
+- 2 MINORs + 1 nit, 0 CRIT, 0 MAJOR → APPROVED. The deciding move was disproving codex's sync-throw P1 empirically rather than accepting it and bouncing a 3rd round on a non-defect. codex + Opus complementarity held: codex re-surfaced the unguarded-callback (correctly MINOR) and the coverage gap; Opus value-add = the async-throw disproof + the engine-layer guard tracing (onMemoryPressure guarded, onStorageFallback not) + confirming the round-1 MAJOR is genuinely closed not just comment-patched.
+
+## Phase 6 Section B — Task B1 round 3 CHANGES_NEEDED (1 MAJOR — codex-found, Opus-confirmed)
+
+### MAJOR — savePartial() happy path never clears the stale track-failed `error`; derivePhase keeps the Studio stuck on the error screen, the salvaged recording is unreachable
+
+- **savePartial (use-recorder.ts:163-169) `.then(() => undefined)` only lets onResult populate `result`; it never clears the hook's `error`.** The valid salvage path runs ONLY after a track-failed error has already fired (engine salvage() guards: state must be 'error' AND lastErrorKind==='track-failed', recorder.ts:644-657) — so `error` is ALWAYS set when the happy path runs. derivePhase (studio-phase.ts:20) returns `'error'` whenever `error` is non-null, BEFORE the `state==='ready' → 'review'` branch (L32-33). Studio.tsx:54 reads recorder.error directly. Net: a successful savePartial() leaves state='ready' + result populated but error=track-failed → phase stays 'error' → the partial recording NEVER reaches the download/review screen. Directly defeats spec § 14 ("Save partial recording" must yield a downloadable partial). The engine CANNOT clear this — `error` is React state owned by the hook; engine only clears lastErrorKind on start() (recorder.ts:444), not on the salvage path, and buildResult(true) has no access to hook state.
+- **Sized MAJOR not CRITICAL:** zero reachable consumers TODAY (grep: no non-test caller of savePartial/.salvage — Section C wires the "Save partial recording" button + reads phase later). No privacy/build/test break; 17/17 pass, tsc clean. But it is spec-alignment + design-intent drift on the very method B1 exists to add, and the moment Section C lands the feature is dead-on-arrival. Same trap-class as the round-1 swallow-comment: a contract gap that's invisible until the next section wires it.
+- **Fix (within B1 scope, ~1 line):** in savePartial's success path, `.then(() => { setError(null); return undefined; })` — the salvaged result becomes the review target, so the prior track-failed error must be cleared. Keep the `.catch(setError; throw)` invalid-state path unchanged. Pin with a test that exercises the FULL sequence (fire onError track-failed → savePartial resolves → assert error===null AND result populated AND derivePhase would be 'review'). The existing round-2 happy-path test asserts error===null only because NO error was set first — it does not cover salvage-after-error, which is the only real-world valid path.
+- **codex P2 found this; my Opus pass CONFIRMED the mechanism end-to-end** (traced derivePhase L20 priority + Studio.tsx:54 wiring + engine salvage guards proving error is always set on the valid path + engine cannot self-clear). codex sized it P2; I size it MAJOR because it's reachable-on-next-section + spec-defeating, not a cosmetic. Complementarity held: codex surfaced the stale-error, Opus supplied the reachability/spec-defeat framing + fix scoping.
+
+### Lesson: "resolve populates result" ≠ "UI shows result" when phase derivation prioritizes error
+
+- A salvage/recover method that transitions engine→ready but lives in a flow where `error` was already set must CLEAR that error, or any error-first phase deriver (derivePhase: `if (error) return 'error'` before the ready branch) will swallow the recovery. New gatekeeper-check candidate: any hook method that produces a `result` from an `error` state must reset `error`, AND its test must exercise the error→method→success sequence (not just method-from-clean-state). This is the round-1 swallow-comment's sibling: the round-1 gap was "rejection never surfaced"; this is "success never clears the prior error." Both are reachable-on-next-section contract gaps on savePartial.
+
+### Verified CLEAN this round (don't re-litigate)
+
+- Flags reset on BOTH start() (L103-104) AND reset() (L185-186) — mandate passed.
+- savePartial invalid-state rejection IS surfaced via setError + re-thrown (L166-169) — round-1 MAJOR stays closed; the new MAJOR is a DIFFERENT path (happy path, not the rejection path).
+- StartOptions Omit + UseRecorderApi additions consistent (round-1/2 verified, unchanged).
+- No stale-closure/lifecycle regression; mountedRef/genRef start() guard untouched; new flags plain useState.
+- Test reuses the single vi.mock seam (getLastRecorderMock + fire\* helpers) — no second style. 17/17 pass, web tsc exit 0.
+- The round-2 inline-RecorderErrorLike-import nit is GONE — current L167 uses the top-level import (L10). Cleaned.
+- fireStorageFallback helper exists in the mock but is still UNUSED (no storageFallback-flip test) — MINOR coverage gap, carried from round 2.
+
+## Phase 6 Section B — Task B1 round 4 APPROVED (round-3 MAJOR converged, 0 CRIT/0 MAJOR)
+
+### The round-3 MAJOR is genuinely CLEARED (savePartial happy path now clears stale track-failed error)
+
+- Fix landed: savePartial (use-recorder.ts:163-172) success path now `.then(() => { setError(null); return undefined; })` — clears the prior track-failed error so derivePhase advances past its `if (error) return 'error'` (studio-phase.ts:20) to the `state==='ready' && result → 'review'` branch (L32-33). Studio.tsx:54 reads recorder.error directly, so this is exactly what makes the salvaged partial reachable per spec §14 ("Save partial recording" row L706). Invalid-state `.catch(setError; throw)` path UNCHANGED (L169-172).
+- Pinned by the priority test "savePartial() after a track-failed error clears error and populates result (salvage path)" (use-recorder.test.ts ~387-418): fires onError track-failed → asserts error.kind==='track-failed' (error IS set first) → savePartial() → asserts error===null + result.suggestedFilename + state==='ready'. This is the salvage-AFTER-error sequence, NOT the no-error happy path (that's a separate test). Would fail against old code, passes against fix.
+- Also added the round-2/3 coverage gaps: storageFallback-flip (uses the previously-unused fireStorageFallback helper), start()-clears-flags, reset()-clears-flags. 21/21 pass (was 17/17), web tsc exit 0.
+- CRITICAL+MAJOR 1→0 = CONVERGENCE not plateau. No escalation.
+
+### codex P2 "savePartial stale continuation unguarded by genRef/handleRef" → MINOR (sized like the rounds 1-2 unguarded-callback finding)
+
+- Real mechanism: savePartial's `.then(setError(null))`/`.catch(setError(err))` runs after the salvage() await with NO mountedRef/genRef guard — if the user reset()s or start()s a new session during the in-flight await, the continuation can clear a new session's error or surface a stale invalid-state error. Structurally it IS the post-await state-write shape that start() guards (L90/136), unlike the genuinely fire-and-forget engine event callbacks.
+- Sized MINOR not MAJOR: (1) ZERO reachable consumers today — grep for savePartial/.salvage outside use-recorder.ts + tests = EXIT 1, the "Save partial recording" button is Section C, not wired in Studio.tsx. (2) Requires a deliberate concurrent reset/start within the sub-second salvage-assemble window (store is already buffered). (3) Worst case = transient wrong `error` in the new session, self-corrected by the next onError/onResult/reset; first-party React state, no privacy/recording-correctness/build/test impact. Distinct from the round-3 MAJOR which broke the NORMAL happy path (spec-defeating, dead-on-arrival).
+- Recommended pre-Section-C follow-up: snapshot `const handle = handleRef.current; const myGen = genRef.current;` at savePartial entry, then guard `if (handleRef.current !== handle || genRef.current !== myGen || !mountedRef.current) return;` before the setError calls — mirror start()'s pattern. Cheap + idiomatic to the file. Flag to lead so Section C doesn't wire the button onto an unguarded continuation.
+- Lesson refinement: the rounds 1-2 rule was "a NEW engine event callback matching the 5 pre-existing unguarded ones is consistency, not a regression." This P2 is the OTHER side: a NEW promise-chain CONTINUATION that writes state after an await is NOT a fire-and-forget callback — it's the start()-guarded shape, so it's a legit (MINOR, pre-consumer) hardening gap, not "consistent by design." Don't conflate the two. Both stay MINOR here only because zero consumers + transient worst case.
+
+### Acceptable cosmetic follow-ups (do NOT block)
+
+- Pre-existing act() warning on "start() that resolves AFTER unmount disposes the handle" test — unrelated to B1, harmless React-testing-lib advisory.
+
+### Verified CLEAN this round (don't re-litigate)
+
+- Invalid-state .catch path byte-unchanged from round 2/3 (surfaces via setError + re-throws); pinned by the idle-savePartial-rejects test (caughtError===invalidStateError + error.kind==='invalid-state').
+- Flags reset on BOTH start() (L103-104) AND reset() (L188-189) — pinned by the two new flag-clearing tests.
+- No lifecycle/stale-closure regression: mountedRef/genRef start() guard (L66-145) untouched; new flags plain useState; new savePartial useCallback has [] deps (no stale-dep).
+- StartOptions Omit + UseRecorderApi additions consistent with rounds 1-3.
+- Test reuses the single vi.mock seam (getLastRecorderMock + fire\* helpers); no second mocking style. 21/21 pass, web tsc exit 0.
+- codex + Opus complementarity held: codex surfaced the stale-continuation race (correctly sized P2/MINOR); Opus value-add = confirming the round-3 MAJOR is genuinely closed end-to-end (derivePhase priority + Studio wiring + engine track-failed guard proving error is always set on the valid path), verifying the priority test exercises salvage-AFTER-error not the clean happy path, and the consumer-reachability grep (EXIT 1) that bounds the P2 to MINOR.
+
+## Phase 6C patterns (2026-06-02, studio resilience UX + analytics completion) — APPROVED
+
+### Synchronous-within-start engine callback ≠ stale-closure risk (rejected codex MAJOR → MINOR)
+
+- **codex MAJOR: hook's `onCursorScopeMissed: () => setCursorScopeMissed(true)` is not gen/mount
+  guarded → stale session could fire `cursor_highlight_disabled` for the wrong session.** Down-
+  classified to MINOR. The deciding mechanism: the engine fires `onCursorScopeMissed` SYNCHRONOUSLY
+  inside `handle.start()` (recorder.ts ~L522, right after `await acquireTracks` resolves, no awaits
+  between acquisition and the emission). There is no async/event-listener path that could fire it
+  "later." So it can only fire during the hook's `await handle.start()` — part of the very session
+  being set up. This is the IDENTICAL pattern to the already-shipped/reviewed `onMemoryPressure`/
+  `onStorageFallback`/`onResult`/`onError` callbacks (all plain setState setters, none gen-guarded).
+  PLUS `cursorScopeMissed` is reset to false on BOTH start() and reset(), and the Studio analytics
+  effect is keyed `[recorder.cursorScopeMissed]` (fires only on the false→true CHANGE, once/session).
+  Rule: a gen/mount guard is load-bearing on POST-AWAIT CONTINUATIONS (where reset()/unmount can
+  interleave during the yield), NOT on engine callbacks that fire synchronously within an awaited
+  engine method. Don't inflate "this setter isn't guarded like the continuations" to MAJOR when the
+  setter can't fire across a session boundary. (Contrast: savePartial's .then/.catch ARE post-await
+  continuations and CORRECTLY carry the mountedRef+handleRef-identity+genRef guard — that one needs it.)
+
+### "best-effort" spec label caps the severity of a detection-accuracy finding (codex MAJOR → MINOR)
+
+- **codex MAJOR: `displaySurface !== 'browser'` treats a DIFFERENT browser tab as in-scope, suppressing
+  a real scope-miss.** True limitation, but spec § 7.3 ("honest scope") + the Phase-4 design doc
+  (2026-05-29 L298-300) EXPLICITLY label `cursor_highlight_disabled{not-record-me-tab}` "best-effort"
+  and defer real self-tab detection (capture-handle nonce) to the v2 extension (apps/extension). The
+  `displaySurface !== 'browser'` heuristic IS the sanctioned best-effort signal. Down to MINOR (narrow
+  the comment to "non-browser surface" best-effort). Rule: when a finding targets DETECTION ACCURACY
+  of a signal the spec itself flags "best-effort"/"approximate," the inaccuracy is a documented
+  limitation, not a defect — cap at MINOR. Always grep the spec + design docs for "best-effort" near
+  the event name before sizing an accuracy finding.
+
+### savePartial continuation guard — the C3-enabling safety (verified correct)
+
+- The salvage→partial-save button is only safe because savePartial()'s post-await .then/.catch guard
+  on `mountedRef.current && handleRef.current === handle && genRef.current === myGen` (snapshotting
+  handle + myGen at call time, mirroring start()). Pinned by a dedicated test: set track-failed error
+  → make salvage() in-flight (deferred reject) → reset() (bumps genRef) → start() new session →
+  inject permission-denied → release stale salvage → assert NEW session's permission-denied SURVIVES
+  and the rejection is re-thrown to the caller. This is the right test for a stale-mutation guard:
+  prove the stale continuation neither clobbers the new session NOR swallows the caller's error.
+
+### Once-per-session analytics: dependency-array change-detection is sufficient (don't require a ref)
+
+- recording_started/stopped/browser_unsupported use a `*Tracked` ref because their effect dep
+  (recorder.state / caps) re-fires the effect while still in the target state. But cursorScopeMissed's
+  effect deps on `[recorder.cursorScopeMissed]` (the flag itself) → re-runs ONLY on the false→true
+  change → once/session WITHOUT a ref. Both patterns are once-safe; the right one depends on whether
+  the dep value is sticky-during-state vs. flips-once. recording_stopped{partial} stays correctly
+  ref-guarded (stoppedTracked) — its dep is recorder.state which is sticky at 'ready'.
+
+### Open MINORs carried as post-merge follow-ups (none blocking)
+
+- Studio test asserts `toHaveBeenCalledWith('recording_stopped', {partial:true})` not the exact COUNT;
+  prod IS once-guarded by stoppedTracked, but the test should filter track.mock.calls by event +
+  assert length 1 (a future double-fire regression would pass today).
+- `void recorder.savePartial()` in the onSavePartial handler drops the re-thrown rejection (the hook
+  re-throws by design for awaiting callers); a rapid double-click → 2nd salvage rejects invalid-state
+  → unhandled rejection + transient flicker. Disable the button while salvage is pending.
+- MemoryPressureBanner/StorageFallbackToast share the same amber/10 + amber/30 visual — fine
+  (both warnings), but role differs correctly (status=polite vs alert=assertive).
+
+### New OG route MUST get an outputFileTracingIncludes entry (recurring CRITICAL/MAJOR class)
+
+- Pattern: every new `app/**/opengraph-image.tsx` calls `ogImage()` → `loadOgFonts()`, which reads
+  `src/app/_og/fonts/**` via `fs` + a computed path that @vercel/nft cannot trace. `next.config.ts`
+  `outputFileTracingIncludes` is a PER-ROUTE map (one key per OG route id), NOT a glob. A local
+  `next build` PASSES because the PNG is statically prerendered at build time — the missing-font
+  failure only manifests at RUNTIME on Vercel (serverless function bundle lacks the .ttf → tofu or
+  crash). So a green local build is NOT evidence the OG route is production-safe.
+- Phase 6 D1: `/record/opengraph-image.tsx` was added but `'/record/opengraph-image'` was NOT added
+  to `outputFileTracingIncludes` → MAJOR. Fix: add `'/record/opengraph-image': ['src/app/_og/fonts/**']`.
+- REVIEW RULE: whenever Changed files include a new `opengraph-image.tsx`, immediately grep
+  `apps/web/next.config.ts` for the route id in `outputFileTracingIncludes`. Missing entry = MAJOR
+  (production OG regression), even if the build is green. This is the SAME class as the phase-5a
+  "og font tracing" auto-memory learning — it recurs on every new OG route. Candidate gatekeeper-check.
+- codex catches this reliably (P2 "Add font tracing for the new OG route") — trust it on this class.
+
+### LHCI assertMatrix verification recipe (Phase 6 E1 — verified correct)
+
+- To verify a per-route Lighthouse budget split, don't eyeball the regex — run:
+  `node -e` loading lighthouserc.json, for each collect.url assert it matches EXACTLY ONE assertMatrix
+  entry via `new RegExp(pattern).test(url)`. Confirms (a) every URL is covered (LHCI silently passes an
+  unmatched URL), (b) `/` is anchored (`http://localhost:3000/$` does NOT catch `/record`), (c) no URL
+  double-matches (LHCI applies ALL matching entries). Phase 6 split (`/`≥0.95 anchored `/$`, others
+  ≥0.90 via `(record|privacy|changelog|features|docs).*`) passed all three; CWV thresholds identical in
+  both entries = spec §8.5 preserved. MINOR-only nit: prefix `^` on the `/$` pattern for start-anchoring
+  robustness (functionally safe as-is due to the literal host prefix).
+
+### Cross-route JSON-LD dedup: same builder on different pages is NOT a duplicate
+
+- Phase 6 D2: `webApplicationLd()` renders on BOTH `/` (page.tsx) and `/record` (page.tsx). NOT a dup —
+  separate documents. The only dup risk is WITHIN a single rendered page: check layout.tsx's LD
+  (organizationLd + webSiteLd) against the page's LD. On /record the union is Organization + WebSite +
+  WebApplication + BreadcrumbList — all distinct @types, valid. Verify dedup by grepping the PRERENDERED
+  .next/server/app/<route>.html for `"@type":"X"` counts, not by reading source. breadcrumbLd item shape
+  `{name, path}` → ListItem{position(1-indexed), name, item:ABSOLUTE url} is schema.org-valid.
+
+## Phase 6 patterns (2026-06-02, doc-sync accuracy review)
+
+### MAJOR — privacy-contract overclaim in source-of-truth docs
+
+- **Best-effort crash recovery must never be worded as a guarantee.** The #60
+  Safari-safe sweep is best-effort: it runs only on the _next_ start() (data
+  persists indefinitely if the user never returns), and deleteDatabase can
+  stay onblocked/onerror. SECURITY.md (the privacy-contract source of truth)
+  must NOT close with absolutes like "No recording data persists across the 1h
+  window after a crash." Acceptable phrasings: "is swept on the next session
+  start (best-effort)", "the sweep targets / aims to clear". The same paragraph
+  was careful earlier ("may leave data", "marked stale to force retry") — the
+  concluding sentence still overclaimed. Pattern: scan the LAST sentence of any
+  privacy bullet for absolute quantifiers (No/Never/Always/Guaranteed) and
+  cross-check against the best-effort reality of the mechanism.
+- **/privacy marketing copy gets slightly more latitude than SECURITY.md.**
+  "clears anything an unexpected crash leaves behind" reads as intent/purpose,
+  borderline acceptable; the SECURITY.md absolute is the harder violation.
+
+### Accuracy-review wins (these were CORRECT and should stay)
+
+- Engine API is `salvage()` (RecorderHandle); hook method is `savePartial()`
+  (UseRecorderApi). RECORDING.md docs salvage(), FRONTEND.md docs savePartial()
+  — both correct, do NOT "fix" one to match the other.
+- MEMORY_PRESSURE_CHUNK_THRESHOLD = 600, STALE_REGISTRY_THRESHOLD_MS = 1h — docs
+  match source exactly.
+- start() runs BOTH sweepStaleChunkDatabases() (databases() backstop) AND
+  sweepRegisteredSessions() (registry, Safari-safe). Docs describe only the
+  registry sweep + say "does not depend on indexedDB.databases()" — accurate as
+  a description of the _Safari-safe_ mechanism, not an overclaim (backstop omitted = simplification).

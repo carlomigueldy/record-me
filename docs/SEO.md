@@ -11,11 +11,13 @@ inheritance. Title, description, OG image, Twitter card, canonical URL.
 Built using `buildMetadata()` from `lib/seo/metadata.ts` + root layout exports
 `metadataBase` + `title.template` for auto-suffixing child pages.
 
-## OG images (Phase 5A · shipped)
+## OG images (Phase 5A · shipped, Phase 6 · /record added)
 
 Per-route `opengraph-image.tsx` rendered at the edge via `next/og` (built-in
 `ImageResponse`). 1200×630. Twilight palette + Instrument Serif headline +
 mono caption strip. Shared template in `app/_og/template.tsx`.
+
+Phase 6 adds `/record/opengraph-image.tsx` for the studio route.
 
 ## Sitemap + robots (Phase 5A · shipped, Phase 5C · content routes)
 
@@ -27,13 +29,14 @@ mono caption strip. Shared template in `app/_og/template.tsx`.
 - `app/manifest.ts` — PWA metadata + brand icon reference.
 - `app/icon.svg` — 64×64 brand icon (amber dot on Twilight).
 
-## Structured data (JSON-LD) (Phase 5A · Foundation, Phase 5B · App schemas, Phase 5C · content)
+## Structured data (JSON-LD) (Phase 5A · Foundation, Phase 5B · App schemas, Phase 5C · content, Phase 6 · /record)
 
 - `Organization` + `WebSite` on root layout (via `lib/seo/json-ld.ts`)
 - `SoftwareApplication` + `WebApplication` on `/` (Phase 5B · shipped)
+- `WebApplication` + `BreadcrumbList` on `/record` (Phase 6 · shipped)
 - `HowTo` (+ `HowToStep`) on each `/features/[mode]` (Phase 5C · shipped) — `howToLd()`, sourced from frontmatter `howToSteps[]`
 - `FAQPage` (+ `Question`/`acceptedAnswer`) on `/docs` (Phase 5C · shipped) — `faqPageLd()`, from the registry's **deduped** doc `faq[]`, mirroring the visible on-page Q&A
-- `BreadcrumbList` on every deep page (`/features/[mode]`, `/docs/[...slug]`) — `breadcrumbLd()`, **additive beyond spec § 8.4** (not in the spec's JSON-LD list; supports the new deep-page IA). Each crumb carries a resolvable **absolute** URL (`new URL(path, siteConfig.url)`) — Google ignores relative item URLs.
+- `BreadcrumbList` on every deep page (`/record`, `/features/[mode]`, `/docs/[...slug]`) — `breadcrumbLd()`, **additive beyond spec § 8.4** (not in the spec's JSON-LD list; supports the new deep-page IA). Each crumb carries a resolvable **absolute** URL (`new URL(path, siteConfig.url)`) — Google ignores relative item URLs.
 
 All three 5C builders return the existing `Ld` type from `lib/seo/json-ld.ts`
 (extended, not forked) and are injected via the `<JsonLd>` server component.
@@ -49,9 +52,12 @@ mismatch Google penalizes.
 ## CWV contract
 
 - LCP < 1.8s · INP < 200ms · CLS < 0.05 (Speed Insights p75)
-- Lighthouse ≥ 95 on `/`, ≥ 90 elsewhere
+- Lighthouse per-route budgets (Phase 6 · in `lighthouserc.json`):
+  - `/` (home): perf ≥ 0.95, a11y/bp/seo ≥ 0.95, LCP ≤ 1800, CLS ≤ 0.05
+  - All others (`/record`, `/privacy`, `/changelog`, `/features/*`, `/docs*`): perf ≥ 0.90, a11y/bp/seo ≥ 0.95, LCP ≤ 1800, CLS ≤ 0.05
 - Enforced in CI by `lhci` (see `lighthouserc.json` and `.github/workflows/ci.yml`)
-- 5C added 2 representative `lhci` urls — `/features/screen-camera-cursor` + `/docs/getting-started` — running the full global budget (perf ≥ 0.90, a11y/bp/seo ≥ 0.95, LCP ≤ 1800, CLS ≤ 0.05). Verified passing: both new routes scored perf = 1.00, a11y = 1.00, bp = 0.96, seo = 1.00.
+- Phase 5C added 2 representative urls for spot-check coverage: `/features/screen-camera-cursor` + `/docs/getting-started` (verified passing: perf = 1.00, a11y = 1.00, bp = 0.96, seo = 1.00)
+- Phase 6 expanded Lighthouse CI to all six routes (`/`, `/record`, `/privacy`, `/changelog`, `/features/[mode]`, `/docs/[...slug]`)
 
 ## Discipline rules
 
