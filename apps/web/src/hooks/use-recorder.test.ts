@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import type { RecorderOptions, RecorderHandle } from '@record-me/recorder';
+import type { RecorderOptions, RecorderHandle, PipState } from '@record-me/recorder';
 
 type MockHandle = RecorderHandle & {
   opts: RecorderOptions;
   fireMemoryPressure: () => void;
   fireStorageFallback: () => void;
   fireCursorScopeMissed: () => void;
+  setCameraBubble: (state: PipState) => void;
 };
 
 // Capture each created handle so tests can drive its callbacks.
@@ -70,6 +71,7 @@ vi.mock('@record-me/recorder', () => ({
         return result;
       }),
       dispose: vi.fn(),
+      setCameraBubble: vi.fn(),
       fireMemoryPressure: () => opts.onMemoryPressure?.(),
       fireStorageFallback: () => opts.onStorageFallback?.(),
       fireCursorScopeMissed: () => opts.onCursorScopeMissed?.(),
@@ -278,6 +280,7 @@ describe('useRecorder', () => {
           release: vi.fn(async () => {}),
         })),
         dispose: blockedHandleDispose,
+        setCameraBubble: vi.fn(),
       }) as unknown as MockHandle;
 
     const { result, unmount } = renderHook(() => useRecorder());
@@ -301,6 +304,16 @@ describe('useRecorder', () => {
 
     // The handle must have been disposed (by cleanup or post-await guard).
     expect(blockedHandleDispose).toHaveBeenCalled();
+  });
+});
+
+describe('useRecorder · camera bubble', () => {
+  it('exposes setCameraBubble as a safe no-op before start()', () => {
+    const { result } = renderHook(() => useRecorder());
+    expect(typeof result.current.setCameraBubble).toBe('function');
+    expect(() =>
+      result.current.setCameraBubble({ xNorm: 0.5, yNorm: 0.5, diameter: 200 }),
+    ).not.toThrow();
   });
 });
 
