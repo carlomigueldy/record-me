@@ -105,4 +105,9 @@ export interface RecorderHandle {
    */
   salvage: () => Promise<RecordingResult>;
   dispose: () => void;
+  /**
+   * Update the camera-bubble position/size live (screen+cam+cursor only).
+   * No-op in other modes or before start().
+   */
+  setCameraBubble: (state: PipState) => void;
 }

@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { createRecorder } from './recorder';
 import type { RecorderState } from './types';
 import { MockMediaRecorder } from './test/mocks/media-recorder';
+import * as composerModule from './composer';
 import {
   setDisplayMediaResponse,
   setUserMediaResponse,
@@ -515,5 +516,47 @@ describe('createRecorder · auto-stop and error surfaces', () => {
       subject: 'screen',
     });
     handle.dispose();
+  });
+});
+
+describe('setCameraBubble', () => {
+  it('is a safe no-op before start()', () => {
+    const rec = createRecorder({ mode: 'screen+cam+cursor' });
+    expect(() => rec.setCameraBubble({ xNorm: 0.5, yNorm: 0.5, diameter: 200 })).not.toThrow();
+  });
+
+  it('forwards to composer.setPip while recording in screen+cam+cursor', async () => {
+    setDisplayMediaResponse({ kind: 'resolve', tracks: ['video'] });
+    setUserMediaResponse({ kind: 'resolve', tracks: ['video', 'audio'] });
+
+    let captured: ReturnType<typeof composerModule.createComposer> | undefined;
+    const real = composerModule.createComposer;
+    const spy = vi.spyOn(composerModule, 'createComposer').mockImplementation((o) => {
+      captured = real(o);
+      vi.spyOn(captured, 'setPip');
+      return captured;
+    });
+
+    const rec = createRecorder({ mode: 'screen+cam+cursor' });
+    await rec.start();
+    const pip = { xNorm: 0.25, yNorm: 0.75, diameter: 180 };
+    rec.setCameraBubble(pip);
+    expect(captured!.setPip).toHaveBeenCalledWith(pip);
+
+    rec.dispose();
+    spy.mockRestore();
+  });
+
+  it('passes initialPip through to the composer', async () => {
+    setDisplayMediaResponse({ kind: 'resolve', tracks: ['video'] });
+    setUserMediaResponse({ kind: 'resolve', tracks: ['video', 'audio'] });
+
+    const spy = vi.spyOn(composerModule, 'createComposer');
+    const initialPip = { xNorm: 0.1, yNorm: 0.9, diameter: 120 };
+    const rec = createRecorder({ mode: 'screen+cam+cursor', initialPip });
+    await rec.start();
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ initialPip }));
+    rec.dispose();
+    spy.mockRestore();
   });
 });
