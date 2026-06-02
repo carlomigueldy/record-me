@@ -5,19 +5,19 @@ for the contract: `docs/superpowers/specs/2026-05-27-record-me-design.md` § 7.
 
 ## Module map
 
-| Module                                    | Responsibility                                                        |
-| ----------------------------------------- | --------------------------------------------------------------------- |
-| `src/index.ts`                            | Public re-exports                                                     |
-| `src/types.ts`                            | Public types (`RecorderOptions`, `RecorderHandle`, `RecordingResult`) |
-| `src/capabilities.ts`                     | `supportedMimeType()` + `probeCapabilities()` (MP4-first negotiation) |
-| `src/errors.ts`                           | `RecorderError` + DOMException → kind mapping                         |
-| `src/filename.ts`                         | `suggestedFilename(date, seq, mime)` builder                          |
-| `src/acquire.ts`                          | Per-mode track acquisition (A/B/C); camera hint requests 720×720      |
+| Module                                    | Responsibility                                                           |
+| ----------------------------------------- | ------------------------------------------------------------------------ |
+| `src/index.ts`                            | Public re-exports                                                        |
+| `src/types.ts`                            | Public types (`RecorderOptions`, `RecorderHandle`, `RecordingResult`)    |
+| `src/capabilities.ts`                     | `supportedMimeType()` + `probeCapabilities()` (MP4-first negotiation)    |
+| `src/errors.ts`                           | `RecorderError` + DOMException → kind mapping                            |
+| `src/filename.ts`                         | `suggestedFilename(date, seq, mime)` builder                             |
+| `src/acquire.ts`                          | Per-mode track acquisition (A/B/C); camera hint requests 720×720         |
 | `src/composer.ts`                         | 2D canvas composer (RAF, screen full, cam PiP); cover-crop + dynamic PiP |
-| `src/cursor-highlights.ts`                | In-tab click ripples — drawn into composer's overlay slot             |
-| `src/encoder.ts`                          | `MediaRecorder` wrapper with chunk + error dispatch                   |
-| `src/storage/{memory,indexeddb,index}.ts` | Pluggable chunk stores + auto-strategy factory                        |
-| `src/recorder.ts`                         | `createRecorder()` state machine wiring everything                    |
+| `src/cursor-highlights.ts`                | In-tab click ripples — drawn into composer's overlay slot                |
+| `src/encoder.ts`                          | `MediaRecorder` wrapper with chunk + error dispatch                      |
+| `src/storage/{memory,indexeddb,index}.ts` | Pluggable chunk stores + auto-strategy factory                           |
+| `src/recorder.ts`                         | `createRecorder()` state machine wiring everything                       |
 
 ## Five stages
 
@@ -113,7 +113,7 @@ distortion when the input aspect ratio differs from the square PiP shape. The `c
 helper computes the largest centered square source rectangle:
 
 ```typescript
-export function coverSquare(vw: number, vh: number): { sx: number; sy: number; side: number }
+export function coverSquare(vw: number, vh: number): { sx: number; sy: number; side: number };
 ```
 
 When camera dimensions are unavailable (zero-size frames during startup), the camera draw is skipped
@@ -135,8 +135,8 @@ live drag-and-snap during recording. The composer's position is decoupled from U
 
 ```typescript
 export interface PipState {
-  xNorm: number;  // normalized X (0..1), relative to canvas width
-  yNorm: number;  // normalized Y (0..1), relative to canvas height
+  xNorm: number; // normalized X (0..1), relative to canvas width
+  yNorm: number; // normalized Y (0..1), relative to canvas height
   diameter: number; // circle diameter in canvas pixels
 }
 ```
