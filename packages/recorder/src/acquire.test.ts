@@ -97,6 +97,18 @@ describe('acquireTracks', () => {
     });
   });
 
+  it('requests a higher-res PiP camera without a hard aspectRatio constraint', async () => {
+    setDisplayMediaResponse({ kind: 'resolve', tracks: ['video'] });
+    setUserMediaResponse({ kind: 'resolve', tracks: ['video', 'audio'] });
+    await acquireTracks({ mode: 'screen+cam+cursor' });
+    const videoConstraint = getUserMediaCalls()
+      .map((c) => c.video)
+      .find((v) => v && typeof v === 'object') as MediaTrackConstraints;
+    expect(videoConstraint.width).toEqual({ ideal: 720 });
+    expect(videoConstraint.height).toEqual({ ideal: 720 });
+    expect(videoConstraint).not.toHaveProperty('aspectRatio'); // avoid OverconstrainedError
+  });
+
   it('mode B · stops the screen track when mic is denied', async () => {
     setDisplayMediaResponse({ kind: 'resolve', tracks: ['video'] });
     setUserMediaResponse({

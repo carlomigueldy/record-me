@@ -22,9 +22,12 @@ const DISPLAY_VIDEO = {
   cursor: 'always',
 } as MediaTrackConstraints;
 
+// No hard aspectRatio: 1 — that can throw OverconstrainedError on cameras that
+// can't deliver it. coverSquare() is the source-of-truth crop; ideal 720x720
+// gives the composer enough pixels for the largest bubble at 1080p.
 const CAM_PIP_VIDEO: MediaTrackConstraints = {
-  width: { ideal: 640 },
-  height: { ideal: 480 },
+  width: { ideal: 720 },
+  height: { ideal: 720 },
   frameRate: { ideal: 30 },
 };
 
