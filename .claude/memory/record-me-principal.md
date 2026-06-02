@@ -985,3 +985,39 @@ Detection: `awk '/^``/{f=!f} /^#{2,3} /{if(f)print}'` over the docs → confirme
   → unhandled rejection + transient flicker. Disable the button while salvage is pending.
 - MemoryPressureBanner/StorageFallbackToast share the same amber/10 + amber/30 visual — fine
   (both warnings), but role differs correctly (status=polite vs alert=assertive).
+
+### New OG route MUST get an outputFileTracingIncludes entry (recurring CRITICAL/MAJOR class)
+
+- Pattern: every new `app/**/opengraph-image.tsx` calls `ogImage()` → `loadOgFonts()`, which reads
+  `src/app/_og/fonts/**` via `fs` + a computed path that @vercel/nft cannot trace. `next.config.ts`
+  `outputFileTracingIncludes` is a PER-ROUTE map (one key per OG route id), NOT a glob. A local
+  `next build` PASSES because the PNG is statically prerendered at build time — the missing-font
+  failure only manifests at RUNTIME on Vercel (serverless function bundle lacks the .ttf → tofu or
+  crash). So a green local build is NOT evidence the OG route is production-safe.
+- Phase 6 D1: `/record/opengraph-image.tsx` was added but `'/record/opengraph-image'` was NOT added
+  to `outputFileTracingIncludes` → MAJOR. Fix: add `'/record/opengraph-image': ['src/app/_og/fonts/**']`.
+- REVIEW RULE: whenever Changed files include a new `opengraph-image.tsx`, immediately grep
+  `apps/web/next.config.ts` for the route id in `outputFileTracingIncludes`. Missing entry = MAJOR
+  (production OG regression), even if the build is green. This is the SAME class as the phase-5a
+  "og font tracing" auto-memory learning — it recurs on every new OG route. Candidate gatekeeper-check.
+- codex catches this reliably (P2 "Add font tracing for the new OG route") — trust it on this class.
+
+### LHCI assertMatrix verification recipe (Phase 6 E1 — verified correct)
+
+- To verify a per-route Lighthouse budget split, don't eyeball the regex — run:
+  `node -e` loading lighthouserc.json, for each collect.url assert it matches EXACTLY ONE assertMatrix
+  entry via `new RegExp(pattern).test(url)`. Confirms (a) every URL is covered (LHCI silently passes an
+  unmatched URL), (b) `/` is anchored (`http://localhost:3000/$` does NOT catch `/record`), (c) no URL
+  double-matches (LHCI applies ALL matching entries). Phase 6 split (`/`≥0.95 anchored `/$`, others
+  ≥0.90 via `(record|privacy|changelog|features|docs).*`) passed all three; CWV thresholds identical in
+  both entries = spec §8.5 preserved. MINOR-only nit: prefix `^` on the `/$` pattern for start-anchoring
+  robustness (functionally safe as-is due to the literal host prefix).
+
+### Cross-route JSON-LD dedup: same builder on different pages is NOT a duplicate
+
+- Phase 6 D2: `webApplicationLd()` renders on BOTH `/` (page.tsx) and `/record` (page.tsx). NOT a dup —
+  separate documents. The only dup risk is WITHIN a single rendered page: check layout.tsx's LD
+  (organizationLd + webSiteLd) against the page's LD. On /record the union is Organization + WebSite +
+  WebApplication + BreadcrumbList — all distinct @types, valid. Verify dedup by grepping the PRERENDERED
+  .next/server/app/<route>.html for `"@type":"X"` counts, not by reading source. breadcrumbLd item shape
+  `{name, path}` → ListItem{position(1-indexed), name, item:ABSOLUTE url} is schema.org-valid.

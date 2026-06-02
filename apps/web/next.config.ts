@@ -38,6 +38,11 @@ const config: NextConfig = {
     // opengraph-image inside the [...slug] catch-all (startup crash), so there
     // is no per-doc OG route to trace — only this shared one.
     '/docs/opengraph-image': ['src/app/_og/fonts/**'],
+    // Phase 6 /record OG route — same computed-path tofu risk. The serverless
+    // function bundle produced by @vercel/nft cannot trace the .ttf files
+    // (loaded via fs + process.cwd()); force-include them so the route renders
+    // Instrument Serif headline + mono caption on Vercel (spec §8.3).
+    '/record/opengraph-image': ['src/app/_og/fonts/**'],
   },
   transpilePackages: ['@record-me/ui', '@record-me/recorder'],
   async headers() {
