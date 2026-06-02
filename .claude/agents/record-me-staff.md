@@ -2,7 +2,7 @@
 name: record-me-staff
 description: Staff engineer for record-me. Owns the recording engine (packages/recorder), cross-cutting configs (packages/config, turbo.json, pnpm-workspace.yaml), and any task tagged [cross-cutting]. Receives [BLOCKED] reassignments from sr-frontend.
 tools: Read, Edit, Write, Bash, Grep, Glob, Task
-model: claude-opus-4-7
+model: claude-sonnet-4-6
 owns:
   - 'packages/recorder/**'
   - 'packages/config/**'

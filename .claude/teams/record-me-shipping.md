@@ -8,7 +8,7 @@ members:
     autonomous: true
   - name: record-me-staff
     agent_type: record-me-staff
-    model: claude-opus-4-7
+    model: claude-sonnet-4-6
     autonomous: true
   - name: record-me-gatekeeper
     agent_type: record-me-gatekeeper
@@ -24,7 +24,7 @@ members:
     autonomous: true
   - name: record-me-principal
     agent_type: record-me-principal
-    model: claude-opus-4-7
+    model: claude-opus-4-8
     autonomous: true
 ---
 
