@@ -12,8 +12,8 @@ for the contract: `docs/superpowers/specs/2026-05-27-record-me-design.md` § 7.
 | `src/capabilities.ts`                     | `supportedMimeType()` + `probeCapabilities()` (MP4-first negotiation) |
 | `src/errors.ts`                           | `RecorderError` + DOMException → kind mapping                         |
 | `src/filename.ts`                         | `suggestedFilename(date, seq, mime)` builder                          |
-| `src/acquire.ts`                          | Per-mode track acquisition (A/B/C)                                    |
-| `src/composer.ts`                         | 2D canvas composer (RAF, screen full, cam PiP, square crop)           |
+| `src/acquire.ts`                          | Per-mode track acquisition (A/B/C); camera hint requests 720×720      |
+| `src/composer.ts`                         | 2D canvas composer (RAF, screen full, cam PiP); cover-crop + dynamic PiP |
 | `src/cursor-highlights.ts`                | In-tab click ripples — drawn into composer's overlay slot             |
 | `src/encoder.ts`                          | `MediaRecorder` wrapper with chunk + error dispatch                   |
 | `src/storage/{memory,indexeddb,index}.ts` | Pluggable chunk stores + auto-strategy factory                        |
@@ -105,6 +105,57 @@ recorder detects the end event, transitions to the `'error'` state with kind
    calling `salvage()` is safe and does not race with encoding.
 4. **Privacy on `release()`** — The partial result's `release()` call clears the
    IDB store, respecting the privacy contract (spec § 7.2, § 15). Spec § 14.
+
+## Camera cover-crop (Phase 6+)
+
+The camera feed is cropped to a centered square (object-fit: cover semantics) to prevent
+distortion when the input aspect ratio differs from the square PiP shape. The `coverSquare(vw, vh)`
+helper computes the largest centered square source rectangle:
+
+```typescript
+export function coverSquare(vw: number, vh: number): { sx: number; sy: number; side: number }
+```
+
+When camera dimensions are unavailable (zero-size frames during startup), the camera draw is skipped
+(guarded by `if (vw === 0 || vh === 0) return`) until the first frame decodes. This prevents
+black or corrupted composites.
+
+Camera acquisition requests a best-effort higher resolution hint (720×720 ideal, no hard
+aspectRatio constraint) to improve sharpness when scaling to larger bubble sizes. The `CAM_PIP_VIDEO`
+constraint uses `ideal` rather than hard constraints to avoid `OverconstrainedError` on cameras
+that cannot match 1:1 aspect ratio.
+
+## Dynamic camera-bubble position (Phase 6+)
+
+The camera PiP position and size are now mutable via the `PipState` interface, allowing
+live drag-and-snap during recording. The composer's position is decoupled from UI concerns
+(drag, snap, persistence) — the UI layer resolves user intent into normalized coordinates.
+
+### PipState type
+
+```typescript
+export interface PipState {
+  xNorm: number;  // normalized X (0..1), relative to canvas width
+  yNorm: number;  // normalized Y (0..1), relative to canvas height
+  diameter: number; // circle diameter in canvas pixels
+}
+```
+
+### Composer API (`src/composer.ts`)
+
+- **`ComposerOptions.initialPip?: PipState`** — Seeds the first frame with a resolved
+  position/size (e.g., from persisted preference). Only applies to `screen+cam+cursor` mode.
+- **`Composer.setPip(state: PipState)`** — Update the bubble position and diameter live.
+  Subsequent frames draw at the new location. Safe to call while recording.
+- **Default PiP (no `setPip` call)** — Positioned at the bottom-right corner, inset 32 px
+  from the edges. Diameter is `Math.round(0.22 × canvasHeight)` (e.g., 238 px at 1080p).
+
+### Recorder API (`src/recorder.ts`)
+
+- **`RecorderOptions.initialPip?: PipState`** — Passed through to the composer.
+- **`RecorderHandle.setCameraBubble(state: PipState)`** — Forward calls to the composer's
+  `setPip()` method. Guarded: only effective in `screen+cam+cursor` mode; safe (no-op) before
+  `start()` and in other modes.
 
 ## Cursor highlights — honest scope
 
