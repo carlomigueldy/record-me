@@ -6,6 +6,8 @@ import { Button, MetaChip } from '@record-me/ui';
 export interface ErrorStateProps {
   error: RecorderErrorLike;
   onRetry: () => void;
+  /** When provided and the error is a track failure, offer to save what was recorded. */
+  onSavePartial?: () => void;
 }
 
 function messageFor(error: RecorderErrorLike): string {
@@ -19,14 +21,18 @@ function messageFor(error: RecorderErrorLike): string {
   return 'Something interrupted the recording.';
 }
 
-export function ErrorState({ error, onRetry }: ErrorStateProps) {
+export function ErrorState({ error, onRetry, onSavePartial }: ErrorStateProps) {
+  const canSavePartial = error.kind === 'track-failed' && typeof onSavePartial === 'function';
   return (
     <div className="flex flex-col items-start gap-4 p-10">
       <MetaChip tone="danger">recording error</MetaChip>
       <p className="max-w-prose font-serif text-2xl leading-snug text-ivory">{messageFor(error)}</p>
-      <Button variant="secondary" onClick={onRetry}>
-        Try again
-      </Button>
+      <div className="flex items-center gap-3">
+        {canSavePartial ? <Button onClick={onSavePartial}>Save partial recording</Button> : null}
+        <Button variant="secondary" onClick={onRetry}>
+          {canSavePartial ? 'Start over' : 'Try again'}
+        </Button>
+      </div>
     </div>
   );
 }

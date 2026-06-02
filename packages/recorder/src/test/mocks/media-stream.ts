@@ -17,6 +17,7 @@ export class MockMediaStreamTrack extends EventTarget {
   public readyState: 'live' | 'ended' = 'live';
   public readonly id: string;
   public stopCalls = 0;
+  public displaySurface: 'browser' | 'window' | 'monitor' | undefined;
 
   constructor(init: MockMediaStreamTrackInit) {
     super();
@@ -24,6 +25,12 @@ export class MockMediaStreamTrack extends EventTarget {
     this.label = init.label ?? `${init.kind}-track`;
     this.enabled = init.enabled ?? true;
     this.id = `track-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  getSettings(): MediaTrackSettings {
+    return this.displaySurface
+      ? ({ displaySurface: this.displaySurface } as MediaTrackSettings)
+      : ({} as MediaTrackSettings);
   }
 
   stop(): void {

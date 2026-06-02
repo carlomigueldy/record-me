@@ -512,6 +512,17 @@ export function createRecorder(opts: RecorderOptions): RecorderHandle {
         internal.highlights = createCursorHighlights({ enabled: resolved.cursorHighlights });
         internal.highlights.attach();
 
+        // Cursor-scope check: if highlights are enabled but the captured surface
+        // is not this browser tab, in-tab click highlights won't apply (spec § 7.3).
+        // Fire the signal once so callers can surface the analytics event
+        // cursor_highlight_disabled('not-record-me-tab') (spec § 10.2).
+        if (resolved.cursorHighlights && resolved.mode !== 'cam-only' && internal.acquired.screen) {
+          const surface = internal.acquired.screen.getSettings?.().displaySurface;
+          if (surface && surface !== 'browser') {
+            opts.onCursorScopeMissed?.();
+          }
+        }
+
         const videoStream = internal.composer.captureStream();
         // Phase 4: expose a video-only composite stream for the live preview.
         opts.onPreviewReady?.(new MediaStream(videoStream.getVideoTracks()));

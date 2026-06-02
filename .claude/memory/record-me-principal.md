@@ -923,3 +923,65 @@ Detection: `awk '/^``/{f=!f} /^#{2,3} /{if(f)print}'` over the docs → confirme
 - StartOptions Omit + UseRecorderApi additions consistent with rounds 1-3.
 - Test reuses the single vi.mock seam (getLastRecorderMock + fire\* helpers); no second mocking style. 21/21 pass, web tsc exit 0.
 - codex + Opus complementarity held: codex surfaced the stale-continuation race (correctly sized P2/MINOR); Opus value-add = confirming the round-3 MAJOR is genuinely closed end-to-end (derivePhase priority + Studio wiring + engine track-failed guard proving error is always set on the valid path), verifying the priority test exercises salvage-AFTER-error not the clean happy path, and the consumer-reachability grep (EXIT 1) that bounds the P2 to MINOR.
+
+## Phase 6C patterns (2026-06-02, studio resilience UX + analytics completion) — APPROVED
+
+### Synchronous-within-start engine callback ≠ stale-closure risk (rejected codex MAJOR → MINOR)
+
+- **codex MAJOR: hook's `onCursorScopeMissed: () => setCursorScopeMissed(true)` is not gen/mount
+  guarded → stale session could fire `cursor_highlight_disabled` for the wrong session.** Down-
+  classified to MINOR. The deciding mechanism: the engine fires `onCursorScopeMissed` SYNCHRONOUSLY
+  inside `handle.start()` (recorder.ts ~L522, right after `await acquireTracks` resolves, no awaits
+  between acquisition and the emission). There is no async/event-listener path that could fire it
+  "later." So it can only fire during the hook's `await handle.start()` — part of the very session
+  being set up. This is the IDENTICAL pattern to the already-shipped/reviewed `onMemoryPressure`/
+  `onStorageFallback`/`onResult`/`onError` callbacks (all plain setState setters, none gen-guarded).
+  PLUS `cursorScopeMissed` is reset to false on BOTH start() and reset(), and the Studio analytics
+  effect is keyed `[recorder.cursorScopeMissed]` (fires only on the false→true CHANGE, once/session).
+  Rule: a gen/mount guard is load-bearing on POST-AWAIT CONTINUATIONS (where reset()/unmount can
+  interleave during the yield), NOT on engine callbacks that fire synchronously within an awaited
+  engine method. Don't inflate "this setter isn't guarded like the continuations" to MAJOR when the
+  setter can't fire across a session boundary. (Contrast: savePartial's .then/.catch ARE post-await
+  continuations and CORRECTLY carry the mountedRef+handleRef-identity+genRef guard — that one needs it.)
+
+### "best-effort" spec label caps the severity of a detection-accuracy finding (codex MAJOR → MINOR)
+
+- **codex MAJOR: `displaySurface !== 'browser'` treats a DIFFERENT browser tab as in-scope, suppressing
+  a real scope-miss.** True limitation, but spec § 7.3 ("honest scope") + the Phase-4 design doc
+  (2026-05-29 L298-300) EXPLICITLY label `cursor_highlight_disabled{not-record-me-tab}` "best-effort"
+  and defer real self-tab detection (capture-handle nonce) to the v2 extension (apps/extension). The
+  `displaySurface !== 'browser'` heuristic IS the sanctioned best-effort signal. Down to MINOR (narrow
+  the comment to "non-browser surface" best-effort). Rule: when a finding targets DETECTION ACCURACY
+  of a signal the spec itself flags "best-effort"/"approximate," the inaccuracy is a documented
+  limitation, not a defect — cap at MINOR. Always grep the spec + design docs for "best-effort" near
+  the event name before sizing an accuracy finding.
+
+### savePartial continuation guard — the C3-enabling safety (verified correct)
+
+- The salvage→partial-save button is only safe because savePartial()'s post-await .then/.catch guard
+  on `mountedRef.current && handleRef.current === handle && genRef.current === myGen` (snapshotting
+  handle + myGen at call time, mirroring start()). Pinned by a dedicated test: set track-failed error
+  → make salvage() in-flight (deferred reject) → reset() (bumps genRef) → start() new session →
+  inject permission-denied → release stale salvage → assert NEW session's permission-denied SURVIVES
+  and the rejection is re-thrown to the caller. This is the right test for a stale-mutation guard:
+  prove the stale continuation neither clobbers the new session NOR swallows the caller's error.
+
+### Once-per-session analytics: dependency-array change-detection is sufficient (don't require a ref)
+
+- recording_started/stopped/browser_unsupported use a `*Tracked` ref because their effect dep
+  (recorder.state / caps) re-fires the effect while still in the target state. But cursorScopeMissed's
+  effect deps on `[recorder.cursorScopeMissed]` (the flag itself) → re-runs ONLY on the false→true
+  change → once/session WITHOUT a ref. Both patterns are once-safe; the right one depends on whether
+  the dep value is sticky-during-state vs. flips-once. recording_stopped{partial} stays correctly
+  ref-guarded (stoppedTracked) — its dep is recorder.state which is sticky at 'ready'.
+
+### Open MINORs carried as post-merge follow-ups (none blocking)
+
+- Studio test asserts `toHaveBeenCalledWith('recording_stopped', {partial:true})` not the exact COUNT;
+  prod IS once-guarded by stoppedTracked, but the test should filter track.mock.calls by event +
+  assert length 1 (a future double-fire regression would pass today).
+- `void recorder.savePartial()` in the onSavePartial handler drops the re-thrown rejection (the hook
+  re-throws by design for awaiting callers); a rapid double-click → 2nd salvage rejects invalid-state
+  → unhandled rejection + transient flicker. Disable the button while salvage is pending.
+- MemoryPressureBanner/StorageFallbackToast share the same amber/10 + amber/30 visual — fine
+  (both warnings), but role differs correctly (status=polite vs alert=assertive).

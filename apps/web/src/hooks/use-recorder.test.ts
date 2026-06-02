@@ -6,6 +6,7 @@ type MockHandle = RecorderHandle & {
   opts: RecorderOptions;
   fireMemoryPressure: () => void;
   fireStorageFallback: () => void;
+  fireCursorScopeMissed: () => void;
 };
 
 // Capture each created handle so tests can drive its callbacks.
@@ -71,6 +72,7 @@ vi.mock('@record-me/recorder', () => ({
       dispose: vi.fn(),
       fireMemoryPressure: () => opts.onMemoryPressure?.(),
       fireStorageFallback: () => opts.onStorageFallback?.(),
+      fireCursorScopeMissed: () => opts.onCursorScopeMissed?.(),
     };
     handles.push(handle as unknown as MockHandle);
     return handle;
@@ -470,5 +472,125 @@ describe('useRecorder · resilience signals', () => {
     });
     expect(result.current.memoryPressure).toBe(false);
     expect(result.current.storageFallback).toBe(false);
+  });
+
+  // C4: cursorScopeMissed — exposes the flag from the engine callback.
+  it('exposes cursorScopeMissed flag (false initially)', () => {
+    const { result } = renderHook(() => useRecorder());
+    expect(result.current.cursorScopeMissed).toBe(false);
+  });
+
+  it('flips cursorScopeMissed to true when the engine fires onCursorScopeMissed', async () => {
+    const { result } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'screen+cursor' });
+    });
+    act(() => {
+      getLastRecorderMock().fireCursorScopeMissed();
+    });
+    expect(result.current.cursorScopeMissed).toBe(true);
+  });
+
+  it('start() clears cursorScopeMissed before a new session', async () => {
+    const { result } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'screen+cursor' });
+    });
+    act(() => {
+      getLastRecorderMock().fireCursorScopeMissed();
+    });
+    expect(result.current.cursorScopeMissed).toBe(true);
+    await act(async () => {
+      await result.current.start({ mode: 'screen+cursor' });
+    });
+    expect(result.current.cursorScopeMissed).toBe(false);
+  });
+
+  it('reset() clears cursorScopeMissed', async () => {
+    const { result } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'screen+cursor' });
+    });
+    act(() => {
+      getLastRecorderMock().fireCursorScopeMissed();
+    });
+    expect(result.current.cursorScopeMissed).toBe(true);
+    await act(async () => {
+      await result.current.reset();
+    });
+    expect(result.current.cursorScopeMissed).toBe(false);
+  });
+
+  // MINOR: stale-session guard — reset() during in-flight salvage must not allow
+  // the continuation to clear or alter the NEW session's error state.
+  it('reset() during in-flight salvage does not alter the new session error state', async () => {
+    const { result } = renderHook(() => useRecorder());
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+
+    // Set a track-failed error so there is something to salvage.
+    act(() => {
+      handles[handles.length - 1]!.opts.onError?.({
+        name: 'RecorderError',
+        kind: 'track-failed',
+        message: 'screen track ended',
+        subject: 'screen',
+      });
+    });
+    expect(result.current.error?.kind).toBe('track-failed');
+
+    // Replace salvage() with a deferred promise so we can interleave reset().
+    let resolveSalvage!: () => void;
+    const salvageGate = new Promise<never>((_, rej) => {
+      // salvage will never resolve — we only need it to be in-flight.
+      // Use reject so the continuation exercises the catch branch, but
+      // hold it open until we choose to release it.
+      resolveSalvage = () =>
+        rej({ name: 'RecorderError', kind: 'invalid-state', message: 'stale' });
+    });
+    const handle = getLastRecorderMock();
+    handle.salvage = vi.fn(() => salvageGate);
+
+    // Fire savePartial() — it enters the in-flight state (awaiting salvage).
+    let savePartialRejection: unknown;
+    const savePartialPromise = result.current.savePartial().catch((err) => {
+      savePartialRejection = err;
+    });
+
+    // reset() — bumps genRef, clears state. The salvage is still in-flight.
+    await act(async () => {
+      await result.current.reset();
+    });
+    // After reset: error is null (reset cleared it), state is idle.
+    expect(result.current.error).toBeNull();
+    expect(result.current.state).toBe('idle');
+
+    // Now inject a NEW session error so we can verify the stale continuation
+    // doesn't clobber it.
+    await act(async () => {
+      await result.current.start({ mode: 'cam-only' });
+    });
+    act(() => {
+      handles[handles.length - 1]!.opts.onError?.({
+        name: 'RecorderError',
+        kind: 'permission-denied',
+        message: 'cam denied',
+        subject: 'camera',
+      });
+    });
+    expect(result.current.error?.kind).toBe('permission-denied');
+
+    // Now let the in-flight salvage reject — the stale continuation must NOT
+    // overwrite the new session's 'permission-denied' error with anything.
+    await act(async () => {
+      resolveSalvage();
+      await savePartialPromise;
+    });
+
+    // The new session's error must be intact — stale continuation was suppressed.
+    expect(result.current.error?.kind).toBe('permission-denied');
+    // The rejection was re-thrown for the caller.
+    expect((savePartialRejection as { kind: string }).kind).toBe('invalid-state');
   });
 });

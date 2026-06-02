@@ -21,6 +21,7 @@ export type StartOptions = Omit<
   | 'onPreviewReady'
   | 'onMemoryPressure'
   | 'onStorageFallback'
+  | 'onCursorScopeMissed'
 >;
 
 export interface UseRecorderApi {
@@ -32,6 +33,7 @@ export interface UseRecorderApi {
   error: RecorderErrorLike | null;
   memoryPressure: boolean;
   storageFallback: boolean;
+  cursorScopeMissed: boolean;
   start: (opts: StartOptions) => Promise<void>;
   pause: () => void;
   resume: () => void;
@@ -49,6 +51,7 @@ export function useRecorder(): UseRecorderApi {
   const [error, setError] = useState<RecorderErrorLike | null>(null);
   const [memoryPressure, setMemoryPressure] = useState(false);
   const [storageFallback, setStorageFallback] = useState(false);
+  const [cursorScopeMissed, setCursorScopeMissed] = useState(false);
 
   const handleRef = useRef<RecorderHandle | null>(null);
   // Mirrors the latest RecordingResult so unmount cleanup can release it
@@ -102,6 +105,7 @@ export function useRecorder(): UseRecorderApi {
       setError(null);
       setMemoryPressure(false);
       setStorageFallback(false);
+      setCursorScopeMissed(false);
 
       // Create the new recorder and store it immediately so unmount/reset can
       // dispose it even if handle.start() is still awaiting.
@@ -118,6 +122,7 @@ export function useRecorder(): UseRecorderApi {
         onError: setError,
         onMemoryPressure: () => setMemoryPressure(true),
         onStorageFallback: () => setStorageFallback(true),
+        onCursorScopeMissed: () => setCursorScopeMissed(true),
       });
       handleRef.current = handle;
 
@@ -156,17 +161,26 @@ export function useRecorder(): UseRecorderApi {
 
   const savePartial = useCallback((): Promise<void> => {
     if (!handleRef.current) return Promise.resolve();
+    // Snapshot session identity at call time. If reset()/start() fires while
+    // the salvage is in-flight these refs will have changed, and the
+    // post-await continuations must not touch the new session's state.
+    const handle = handleRef.current;
+    const myGen = genRef.current;
     // Result arrives via onResult → setResult. Rejections (e.g. invalid-state
     // when salvage() is called outside of a track-failed error) are surfaced via
     // setError so the hook's `error` state is populated, AND re-thrown so the
     // caller's await/catch can observe the failure.
-    return handleRef.current
+    return handle
       .salvage()
       .then(() => {
+        if (!mountedRef.current || handleRef.current !== handle || genRef.current !== myGen) return;
         setError(null);
         return undefined;
       })
       .catch((err: unknown) => {
+        if (!mountedRef.current || handleRef.current !== handle || genRef.current !== myGen) {
+          throw err;
+        }
         setError(err as RecorderErrorLike);
         throw err;
       });
@@ -187,6 +201,7 @@ export function useRecorder(): UseRecorderApi {
     setError(null);
     setMemoryPressure(false);
     setStorageFallback(false);
+    setCursorScopeMissed(false);
     setDurationMs(0);
     setBytes(0);
     setState('idle');
@@ -216,6 +231,7 @@ export function useRecorder(): UseRecorderApi {
     error,
     memoryPressure,
     storageFallback,
+    cursorScopeMissed,
     start,
     pause,
     resume,

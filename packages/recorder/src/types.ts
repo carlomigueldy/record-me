@@ -41,6 +41,8 @@ export interface RecorderOptions {
   onMemoryPressure?: () => void;
   /** Chunk count that triggers onMemoryPressure. Defaults to MEMORY_PRESSURE_CHUNK_THRESHOLD. */
   memoryPressureChunkThreshold?: number;
+  /** Fired once after start() in a screen mode when cursorHighlights is on but the captured surface is not this tab (spec § 7.3, § 10.2). */
+  onCursorScopeMissed?: () => void;
 }
 
 // Re-declared here as a structural type so consumers don't need to import the
