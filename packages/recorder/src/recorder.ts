@@ -14,6 +14,7 @@ import type {
   RecorderState,
   RecordingResult,
   PermissionSubject,
+  PipState,
 } from './types';
 
 const DEFAULTS = {
@@ -501,6 +502,7 @@ export function createRecorder(opts: RecorderOptions): RecorderHandle {
           mode: resolved.mode,
           resolution: resolved.resolution,
           fps: resolved.fps,
+          initialPip: opts.initialPip,
           onOverlay: (ctx, frame) => internal.highlights?.draw(ctx, frame, performance.now()),
         });
         internal.composer.setLayers({
@@ -683,6 +685,11 @@ export function createRecorder(opts: RecorderOptions): RecorderHandle {
     dispose(): void {
       cleanupResources();
       if (state !== 'idle') setState('idle');
+    },
+
+    setCameraBubble(state: PipState): void {
+      if (resolved.mode !== 'screen+cam+cursor') return;
+      internal.composer?.setPip(state);
     },
   };
 

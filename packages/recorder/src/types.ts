@@ -19,6 +19,13 @@ export type ChunkStorageStrategy = 'auto' | 'memory' | 'indexeddb';
 
 export type RecordingResolution = '720p' | '1080p';
 
+/** Resolved camera-bubble draw position: normalized center (0..1) + diameter in canvas px. */
+export interface PipState {
+  xNorm: number;
+  yNorm: number;
+  diameter: number;
+}
+
 export interface RecorderOptions {
   mode: RecordMode;
   resolution?: RecordingResolution;
@@ -26,6 +33,8 @@ export interface RecorderOptions {
   videoBitsPerSecond?: number;
   maxDurationMs?: number;
   cursorHighlights?: boolean;
+  /** Initial camera-bubble position/size; seeds the composer so the first frame is correct (screen+cam+cursor only). */
+  initialPip?: PipState;
   storage?: ChunkStorageStrategy;
   onStateChange?: (state: RecorderState) => void;
   onDurationTick?: (ms: number) => void;
@@ -96,4 +105,9 @@ export interface RecorderHandle {
    */
   salvage: () => Promise<RecordingResult>;
   dispose: () => void;
+  /**
+   * Update the camera-bubble position/size live (screen+cam+cursor only).
+   * No-op in other modes or before start().
+   */
+  setCameraBubble: (state: PipState) => void;
 }

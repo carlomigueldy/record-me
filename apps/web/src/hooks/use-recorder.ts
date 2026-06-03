@@ -8,6 +8,7 @@ import {
   type RecorderState,
   type RecordingResult,
   type RecorderErrorLike,
+  type PipState,
 } from '@record-me/recorder';
 
 /** Options the caller supplies at start() — the hook owns all engine callbacks. */
@@ -40,6 +41,7 @@ export interface UseRecorderApi {
   stop: () => void;
   reset: () => Promise<void>;
   savePartial: () => Promise<void>;
+  setCameraBubble: (state: PipState) => void;
 }
 
 export function useRecorder(): UseRecorderApi {
@@ -151,6 +153,10 @@ export function useRecorder(): UseRecorderApi {
 
   const pause = useCallback(() => handleRef.current?.pause(), []);
   const resume = useCallback(() => handleRef.current?.resume(), []);
+  const setCameraBubble = useCallback(
+    (state: PipState) => handleRef.current?.setCameraBubble(state),
+    [],
+  );
 
   const stop = useCallback(() => {
     // The result arrives via onResult — ignore stop()'s returned value.
@@ -238,5 +244,6 @@ export function useRecorder(): UseRecorderApi {
     stop,
     reset,
     savePartial,
+    setCameraBubble,
   };
 }

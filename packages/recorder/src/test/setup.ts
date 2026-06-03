@@ -10,12 +10,14 @@ import { installMediaRecorderGlobal, MockMediaRecorder } from './mocks/media-rec
 import { installMediaDevices, resetMediaDevices } from './mocks/media-devices';
 import { installCanvasMocks } from './mocks/canvas';
 import { installAudioContextGlobal } from './mocks/audio-context';
+import { installVideoMocks, resetMockVideoSize } from './mocks/video';
 
 installMediaStreamGlobals();
 installMediaRecorderGlobal();
 installMediaDevices();
 installCanvasMocks();
 installAudioContextGlobal();
+installVideoMocks();
 
 // jsdom omits URL.createObjectURL / revokeObjectURL — stub minimal versions so
 // recorder.stop() can produce a `blob:` URL for the RecordingResult.
@@ -37,4 +39,5 @@ beforeEach(() => {
 afterEach(() => {
   resetMediaDevices();
   MockMediaRecorder.reset();
+  resetMockVideoSize();
 });

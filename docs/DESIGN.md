@@ -81,6 +81,28 @@ All primitives are React Server Components by default; `<Button>` opts into `'us
 | ---------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `<Button>` | `packages/ui/src/components/Button.tsx` | `variant: 'primary' \| 'secondary' \| 'ghost'`, `size: 'sm' \| 'md' \| 'lg'`, `asChild?` (Radix Slot) |
 
+## Camera bubble control (Phase 6+)
+
+`<CameraBubbleControl>` is an absolute overlay (absolute inset-0) that renders the draggable
+camera position indicator for `screen+cam+cursor` mode. Two variants share the same geometry
+and interaction model but differ visually:
+
+| Variant | Circle fill    | Ring                   | Label                                                                  |
+| ------- | -------------- | ---------------------- | ---------------------------------------------------------------------- |
+| `setup` | `bg-surface-2` | `ring-1 ring-line`     | `font-mono text-[10px] uppercase tracking-widest text-ivory-mut` "CAM" |
+| `live`  | transparent    | `ring-2 ring-amber/70` | none                                                                   |
+
+**Size presets (S/M/L):** Revealed on hover/focus via a `radiogroup` floating above or below the
+bubble (controlled via `controlsBelow` flag). Selected size: `bg-amber text-bg` (Tailwind utility
+classes). Unselected: `text-ivory-dim hover:text-ivory`.
+
+**Snap animation:** Position change on commit uses `transition-transform duration-[180ms]` with
+`cubic-bezier(0.34, 1.56, 0.64, 1)` (spring-over). Disabled (`motion-reduce:transition-none`)
+when `prefers-reduced-motion: reduce`.
+
+**Setup stage:** 16:9 `aspect-video` surface with `border border-line bg-bg` inside a container.
+The stage label uses `font-mono text-[10px] uppercase tracking-widest text-ivory-mut`.
+
 ## Illustration components (Phase 5B)
 
 Bespoke CSS/div illustrations used in landing editorial:

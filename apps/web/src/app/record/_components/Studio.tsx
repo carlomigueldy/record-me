@@ -4,7 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RecordMode, RecordingResolution } from '@record-me/recorder';
 import { Button, MetaChip, RecDot, StudioShell } from '@record-me/ui';
 import { useRecorder } from '../../../hooks/use-recorder';
+import { usePipState } from '../../../hooks/use-pip-state';
 import { analytics } from '../../../lib/analytics';
+import { resolvePip } from '../../../lib/pip-geometry';
 import {
   getStudioCapabilities,
   browserName,
@@ -15,6 +17,7 @@ import { derivePhase } from './studio-phase';
 import { ModePicker } from './ModePicker';
 import { CapSelector } from './CapSelector';
 import { LivePreview } from './LivePreview';
+import { CameraBubbleControl } from './CameraBubbleControl';
 import { ReviewPane } from './ReviewPane';
 import { ErrorState } from './ErrorState';
 import { MemoryPressureBanner } from './MemoryPressureBanner';
@@ -29,6 +32,9 @@ const MODE_LABELS: Record<RecordMode, string> = {
 
 export function Studio() {
   const recorder = useRecorder();
+  const pip = usePipState();
+  const liveSurfaceRef = useRef<HTMLDivElement>(null);
+  const setupSurfaceRef = useRef<HTMLDivElement>(null);
   const [caps, setCaps] = useState<StudioCapabilities | null>(null);
 
   // Setup selections (lifted so the shell footer + body share them).
@@ -50,6 +56,31 @@ export function Studio() {
       setMode(c.availableModes[0]!);
     }
   }, []);
+
+  // Composite canvas dimensions for screen+cam+cursor (16:9, resolution-locked at start()).
+  const canvasW = resolution === '1080p' ? 1920 : 1280;
+  const canvasH = resolution === '1080p' ? 1080 : 720;
+  const PIP_ASPECT = 16 / 9;
+
+  const { setCameraBubble } = recorder;
+
+  const onCommitCornerPip = useCallback(
+    (corner: typeof pip.corner, where: 'setup' | 'live') => {
+      pip.setCorner(corner);
+      setCameraBubble(resolvePip(corner, pip.size, canvasW, canvasH));
+      analytics.cameraBubbleMoved({ corner, where });
+    },
+    [pip, setCameraBubble, canvasW, canvasH],
+  );
+
+  const onCommitSizePip = useCallback(
+    (size: typeof pip.size, where: 'setup' | 'live') => {
+      pip.setSize(size);
+      setCameraBubble(resolvePip(pip.corner, size, canvasW, canvasH));
+      analytics.cameraBubbleResized({ size, where });
+    },
+    [pip, setCameraBubble, canvasW, canvasH],
+  );
 
   const supported = caps ? caps.supported : true;
   const availableModes = caps?.availableModes ?? ['screen+cam+cursor', 'screen+cursor', 'cam-only'];
@@ -86,8 +117,21 @@ export function Studio() {
       maxDurationMs: capMinutesToMs(capMinutes),
       resolution,
       cursorHighlights,
+      ...(mode === 'screen+cam+cursor'
+        ? { initialPip: resolvePip(pip.corner, pip.size, canvasW, canvasH) }
+        : {}),
     });
-  }, [recorder, mode, capMinutes, resolution, cursorHighlights]);
+  }, [
+    recorder,
+    mode,
+    capMinutes,
+    resolution,
+    cursorHighlights,
+    pip.corner,
+    pip.size,
+    canvasW,
+    canvasH,
+  ]);
 
   const onDownload = useCallback(() => {
     const result = recorder.result;
@@ -291,6 +335,29 @@ export function Studio() {
         return (
           <div className="flex flex-col gap-6 p-6">
             <ModePicker selected={mode} available={availableModes} onSelect={onSelectMode} />
+            {mode === 'screen+cam+cursor' ? (
+              <div className="flex flex-col gap-2">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-ivory-mut">
+                  drag your camera bubble
+                </span>
+                <div
+                  ref={setupSurfaceRef}
+                  className="relative aspect-video w-full overflow-hidden rounded-sm border border-line bg-bg"
+                >
+                  <CameraBubbleControl
+                    corner={pip.corner}
+                    size={pip.size}
+                    aspect={PIP_ASPECT}
+                    canvasWidth={canvasW}
+                    canvasHeight={canvasH}
+                    surfaceRef={setupSurfaceRef}
+                    variant="setup"
+                    onCommitCorner={(c) => onCommitCornerPip(c, 'setup')}
+                    onCommitSize={(s) => onCommitSizePip(s, 'setup')}
+                  />
+                </div>
+              </div>
+            ) : null}
             {showCursorToggle ? (
               <p className="text-xs leading-relaxed text-ivory-dim">
                 Click highlights work when you record this tab. For highlights in other apps,
@@ -309,7 +376,28 @@ export function Studio() {
         );
       case 'live':
       case 'paused':
-        return <LivePreview stream={recorder.previewStream} />;
+        return (
+          <LivePreview
+            stream={recorder.previewStream}
+            aspect={mode === 'cam-only' ? 1 : PIP_ASPECT}
+            surfaceRef={liveSurfaceRef}
+          >
+            {mode === 'screen+cam+cursor' ? (
+              <CameraBubbleControl
+                corner={pip.corner}
+                size={pip.size}
+                aspect={PIP_ASPECT}
+                canvasWidth={canvasW}
+                canvasHeight={canvasH}
+                surfaceRef={liveSurfaceRef}
+                variant="live"
+                onPreview={(p) => setCameraBubble(p)}
+                onCommitCorner={(c) => onCommitCornerPip(c, 'live')}
+                onCommitSize={(s) => onCommitSizePip(s, 'live')}
+              />
+            ) : null}
+          </LivePreview>
+        );
       case 'finalizing':
         return (
           <div className="flex min-h-[40dvh] items-center justify-center p-10">
