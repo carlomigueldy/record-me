@@ -377,7 +377,11 @@ export function Studio() {
       case 'live':
       case 'paused':
         return (
-          <LivePreview stream={recorder.previewStream} surfaceRef={liveSurfaceRef}>
+          <LivePreview
+            stream={recorder.previewStream}
+            aspect={mode === 'cam-only' ? 1 : PIP_ASPECT}
+            surfaceRef={liveSurfaceRef}
+          >
             {mode === 'screen+cam+cursor' ? (
               <CameraBubbleControl
                 corner={pip.corner}
